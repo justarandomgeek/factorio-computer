@@ -1,0 +1,83 @@
+'comment': 'Factorio Compiler Syntax: version 0.0'
+'fileTypes': [
+  'factorio'
+]
+'name': 'Factorio'
+
+'scopeName': 'source.factorio'
+
+'patterns':[
+  {
+    'include': '#program'
+  }
+]
+
+'repository':
+  'label':
+    'match':'[a-zA-Z0-9-]+:?'
+    'name':'variable.parameter.factorio'
+  'register':
+    'match':'r([0-9]+|Null|Red|Green|Stat|Op|Nixie)'
+    'name':'constant.language.factorio'
+  'keyword':
+    'match':'r?(j(u?)mp|call)|branch(call)?'
+    'name':'keyword.control.factorio'
+  'signal':
+    'match':'\\.[a-zA-Z0-9\\-]+'
+    'name':'variable.language.factorio'
+
+  'number':
+    'match': '-?\\d+'
+    'name': 'constant.numeric.factorio'
+  'string':
+    'begin': '"'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.string.begin.factorio'
+    'end': '"'
+    'endCaptures':
+      '0':
+        'name': 'punctuation.definition.string.end.factorio'
+    'name': 'string.quoted.double.factorio'
+  'linecomment':
+    'begin': '\\/\\/'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.factorio'
+    'end': '\\n'
+    'name': 'comment.line.double-slash.factorio'
+  'blockcomment':
+    'begin': '\\/\\*'
+    'captures':
+      '0':
+        'name': 'punctuation.definition.comment.factorio'
+    'end': '\\*\\/'
+    'name': 'comment.block.factorio'
+  'program':
+    'patterns': [
+      {
+        'include': '#string'
+      }
+      {
+        'include': '#linecomment'
+      }
+      {
+        'include': '#blockcomment'
+      }
+      {
+        'include': '#number'
+      }
+      {
+        'include': '#register'
+      }
+      {
+        'include': '#signal'
+      }
+      {
+        'include': '#keyword'
+      }
+      {
+        'include': '#label'
+      }
+    ]
+'scopeName': 'source.factorio'

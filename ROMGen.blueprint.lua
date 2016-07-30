@@ -1,254 +1,116 @@
-do local foo="bar"
---[[ The line above must start with "do local" to be recognized as a decompressed blueprint.
-     Adjust rombase to control the first memory address the rom is generated for.
-     Adjust addrsignal below to control memory address signal. Requires a compatible machine, and address signal cannot be stored.
-     data is array of parameter lists for constant combinators.
-     
-     strings are converted to serialized frames and appended to data. No terminators are added.
-     pixeldata is converted and added after strings.
-  ]]
-
-local rombase = 1001
-local addrsignal = {name = "signal-A",type = "virtual"}
-local data = { 
-{{count = 704643295, signal = {name = 'signal-blue', type = 'virtual'}},{count = 1019, signal = {name = 'signal-S', type = 'virtual'}},{count = 1001, signal = {name = 'signal-D', type = 'virtual'}},{count = 12, signal = {name = 'signal-N', type = 'virtual'}},},
-{{count = 1006633183, signal = {name = 'signal-blue', type = 'virtual'}},{count = 1, signal = {name = 'signal-S', type = 'virtual'}},{count = 7, signal = {name = 'signal-W', type = 'virtual'}},{count = 1, signal = {name = 'signal-N', type = 'virtual'}},},
-{{count = 186056944, signal = {name = 'signal-blue', type = 'virtual'}},{count = 6, signal = {name = 'signal-N', type = 'virtual'}},},
-{{count = 1006633183, signal = {name = 'signal-blue', type = 'virtual'}},{count = 1, signal = {name = 'signal-S', type = 'virtual'}},{count = 1, signal = {name = 'signal-W', type = 'virtual'}},{count = 1, signal = {name = 'signal-N', type = 'virtual'}},},
-{{count = 186056944, signal = {name = 'signal-blue', type = 'virtual'}},{count = 6, signal = {name = 'signal-N', type = 'virtual'}},{count = -7, signal = {name = 'signal-S', type = 'virtual'}},},
-{{count = 889201935, signal = {name = 'signal-blue', type = 'virtual'}},{count = -2, signal = {name = 'signal-green', type = 'virtual'}},},
-{}, --[[ This space intentionally left blank ]]
-{},
-{},
-{},
-{},
-{},
-{},
-{},
-{},
-{},
-{},
-{},
-{{count = 1, signal = {name = 'inserter', type = 'item'}},},
+do local script=true
+--[[ The line above must start with "do local script" to be recognized as a script]]
+local name = "TEST PROGRAM"
+local data = {
+[1001]={["signal-0"]=58,["signal-R"]=0,["signal-S"]=0,["signal-T"]=13,["signal-U"]=43,["signal-white"]=1009,["signal-V"]=1,["signal-W"]=37,},
+[1002]={["signal-0"]=82,["signal-R"]=1,["signal-S"]=37,["signal-V"]=2,},
+[1003]={["signal-0"]=50,["signal-R"]=2,["signal-T"]=13,["signal-U"]=43,["signal-white"]=0,["signal-V"]=14,},
+[1004]={["signal-0"]=58,["signal-R"]=0,["signal-S"]=0,["signal-T"]=13,["signal-U"]=43,["signal-white"]=1,["signal-A"]=1,["signal-V"]=1,["signal-W"]=37,},
+[1005]={["signal-0"]=74,["signal-R"]=1,["signal-S"]=37,["signal-T"]=13,["signal-U"]=43,["signal-white"]=1020,},
+[1006]={["signal-0"]=70,["signal-R"]=13,["signal-S"]=44,["signal-grey"]=0,},
+[1007]={["signal-0"]=70,["signal-R"]=13,["signal-S"]=44,["signal-grey"]=1002,},
+[1008]={["signal-0"]=70,["signal-R"]=13,["signal-S"]=44,["signal-grey"]=0,},
+[1009]={["signal-H"]=1,["rail"]=1,},
+[1010]={["signal-E"]=1,["rail"]=1,},
+[1011]={["signal-L"]=1,["rail"]=1,},
+[1012]={["signal-L"]=1,["rail"]=1,},
+[1013]={["signal-O"]=1,["rail"]=1,},
+[1014]={["rail"]=1,},
+[1015]={["signal-W"]=1,["rail"]=1,},
+[1016]={["signal-O"]=1,["rail"]=1,},
+[1017]={["signal-R"]=1,["rail"]=1,},
+[1018]={["signal-L"]=1,["rail"]=1,},
+[1019]={["signal-D"]=1,["rail"]=1,},
+[1020]={},
+[1021]={["signal-0"]=58,["signal-R"]=0,["signal-S"]=0,["signal-T"]=13,["signal-U"]=43,["signal-white"]=1,["signal-V"]=14,["signal-W"]=0,},
+}
+local types={
+  ["rail"]="item"
 }
 
-local strings = { 
-{color="signal-red",   text="Hello "},
-{color="signal-green", text="World"},
-{color="signal-blue",  text="!"},
-}
+  local addrsignal = "signal-black"
+  local dir = 4
 
-local pixeldata={
-{color="signal-red",     data={1,0,0,0,0,0,0,1}},
-{color="signal-green",   data={0,1,0,0,0,0,1,0}},
-{color="signal-blue",    data={0,0,1,0,0,1,0,0}},
-{color="signal-cyan",    data={0,0,0,1,1,0,0,0}},
-{color="signal-pink", data={0,0,1,0,0,1,0,0}},
-{color="signal-yellow",  data={0,1,0,0,0,0,1,0}},
-}
+  local function signal_type(n) if types[n] then return types[n] else return "virtual" end end
+  local function signal(n) return {name=n,type=signal_type(n)} end
+  local function filter(i,n,v) return {index=i,count=v,signal=signal(n)} end
 
+  local entities = {}
+  local count = 1
 
---[[ ROMGen Code begins here ]]
-
-local chars={
-["A"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'alien-artifact', type = 'item'}}},
-["B"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-B', type = 'virtual'}}},
-["C"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-C', type = 'virtual'}}},
-["D"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-D', type = 'virtual'}}},
-["E"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-E', type = 'virtual'}}},
-["F"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-F', type = 'virtual'}}},
-["G"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-G', type = 'virtual'}}},
-["H"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-H', type = 'virtual'}}},
-["I"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-I', type = 'virtual'}}},
-["J"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-J', type = 'virtual'}}},
-["K"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-K', type = 'virtual'}}},
-["L"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-L', type = 'virtual'}}},
-["M"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-M', type = 'virtual'}}},
-["N"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-N', type = 'virtual'}}},
-["O"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-O', type = 'virtual'}}},
-["P"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-P', type = 'virtual'}}},
-["Q"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-Q', type = 'virtual'}}},
-["R"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-R', type = 'virtual'}}},
-["S"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-S', type = 'virtual'}}},
-["T"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-T', type = 'virtual'}}},
-["U"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-U', type = 'virtual'}}},
-["V"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-V', type = 'virtual'}}},
-["W"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-W', type = 'virtual'}}},
-["X"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-X', type = 'virtual'}}},
-["Y"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-Y', type = 'virtual'}}},
-["Z"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-Z', type = 'virtual'}}},
-[" "]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}}},
-["!"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-grey', type = 'virtual'}}},
-["_"]={{count=1,signal={name = 'medium-electric-pole', type = 'item'}},{count=1,signal={name = 'signal-black', type = 'virtual'}}},
-}
-
-while strings[1] do
-  local s = table.remove(strings,1)
-  local str = string.upper(s.text)
-  for i = 1, #str do
-    local c = str:sub(i,i)
-    local d =  util.table.deepcopy(chars[c])
-    if s.color then
-      table.insert(d,{count=1,signal={name=s.color,type='virtual'}})
+  function CC(position, direction, addr, signals, connections)
+    local cc = {
+      connections = connections,control_behavior={filters={}},
+      name = "constant-combinator", direction=direction, position = position
+      }
+    local i=1
+    for n,v in pairs(signals) do
+      cc.control_behavior.filters[i]=filter(i,n,v)
+      i=i+1
     end
-    table.insert(data,d)
+    cc.control_behavior.filters[i]=filter(i,addrsignal,-addr)
+    table.insert(entities,cc)
+    count = count+1
+    return cc
   end
-end
 
-while pixeldata[1] do
-  local p = table.remove(pixeldata,1)
-  local d = {
-    {count=1,signal={name='rail',type='item'}},
-    {count=p.data[1],signal={name='transport-belt',type='item'}},
-    {count=p.data[2],signal={name='fast-transport-belt',type='item'}},
-    {count=p.data[3],signal={name='express-transport-belt',type='item'}},
-    {count=p.data[4],signal={name='underground-belt',type='item'}},
-    {count=p.data[5],signal={name='fast-underground-belt',type='item'}},
-    {count=p.data[6],signal={name='express-underground-belt',type='item'}},
-    {count=p.data[7],signal={name='splitter',type='item'}},
-    {count=p.data[8],signal={name='express-splitter',type='item'}},dw
-  }
-  
-  if p.color then
-    table.insert(d,{count=1,signal={name=p.color,type='virtual'}})
-  end
-  
-  table.insert(data,d)
-end
-
-
-
-local entities = {}
-local count = 1
-
---[[ CC() Creates a constant combinator with the given data and connections ]]
-function CC(position, filters, connections)
-  local cc = {
-		connections = connections ,
-    entity_number = count,
-    control_behavior={filters=filters},
-    name = "constant-combinator",
-		direction=2,
-    position = position 
+  function filterDC(position,dir,connections,selectsig,selectval,outputsig)
+    local dc = {
+      control_behavior={
+        decider_conditions={
+          first_signal=signal(selectsig),
+          comparator="=",
+          constant=selectval,
+          output_signal=signal(outputsig),
+          copy_count_from_input=true}},
+  	  connections = connections,
+      direction = dir,
+      name = "decider-combinator",
+      position = position
     }
-  count = count+1
-  return cc
-end 
-
---[[ DC() Creates the output decider combinator with the given connections ]]
-function DC(position,connections)
-  local dc = {
-    control_behavior={
-	   decider_conditions={
-		  first_signal=addrsignal,comparator="=",constant=0,
-		  output_signal={type="virtual",name="signal-everything"},
-		  copy_count_from_input=true
-		}
-	 },
-	 connections = connections ,
-    direction = 6,
-    entity_number = count,
-    name = "decider-combinator",
-    position = position
-  }
-  count = count+1
-  return dc
-end
-
---[[ AC() Creates the index arithmetic combinator with the given connections ]]
-function AC(position,connections)
-  local ac = {
-    control_behavior={
-      arithmetic_conditions={
-        first_signal=addrsignal,operation="-",constant=1,
-        output_signal=addrsignal
-    }
-    },
-    connections = connections ,
-    direction = 2,
-    entity_number = count,
-    name = "arithmetic-combinator",
-    position = position 
-  }
-  count = count+1
-  return ac
-end
-
---[[ indexdata() adds a sequential .index property to tables ]]
-function indexdata(data)
-  local indexed = {}
-  local i = 1
-  
-  for _,d in pairs(data) do
-    d.index = i
-    indexed[i]=d
-    i = i+1
+    table.insert(entities,dc)
+    count = count+1
+    return dc
   end
 
-  return indexed
-end
-
---[[ ROM0() Creates the first cell of ROM and associated support pieces ]]
-function ROM0(content,baseaddr)
-  table.insert(entities, { --[[ Input Connection Pole r:content g:request both connect to the first memory cell's decider ]]
-    connections = {} ,
-    entity_number = count,
-    name = "medium-electric-pole",
-    position = {x = 0,y = 1} 
-  })
-  count =count+1
-    
-  table.insert(entities, CC({x=1,y=-1}, indexdata{{count = baseaddr,signal = addrsignal}}, {}))
-  table.insert(entities, CC({x=2,y=0}, indexdata(content) , {["1"] = {red = {{entity_id = 2}}}}))
-  table.insert(entities, DC({x = 1.5,y = 1}, {
-    ["1"] = {green = {{entity_id = 1}},red = {{entity_id = 3}}} ,
-    ["2"] = {red = {{entity_id = 1}}} 
-    }))
-
-  local index={entity_id=2}
-  local output=4
-
-  return index,output
-end
-
---[[ ROMn() Creates successive memory cells ]]
-function ROMn(prevIndex,prevOutput,content,xpos)
-  local index={entity_id=count,circuit_id=2}
-  table.insert(entities, AC({x = xpos+0.5,y = -1},{["1"] = {green = {prevIndex}} , ["2"] = {}}))
-  table.insert(entities, CC({x = xpos+1,y = 0}, indexdata(content), {["1"] = {red = {{circuit_id = 2,entity_id = count-1}}}}))
-  local output=count
-  table.insert(entities, DC({x = xpos+0.5,y = 1},{
-      ["1"] = {
-        green = {{circuit_id = 1,entity_id = prevOutput}},
-        red = {{entity_id = count-1}} 
-      } ,
-      ["2"] = {
-        red = {{circuit_id = 2,entity_id = prevOutput}} 
-      } 
-    }))
-  return index,output
-end
+  function pole(pos,connections)
+    local p = {
+      connections = connections,
+      name = "medium-electric-pole",
+      position = pos
+    }
+    table.insert(entities,p)
+    count = count+1
+    return p
+  end
 
 
---[[ Generate ROM cells ]]
-local index,output = ROM0(table.remove(data,1),-rombase)
-local xpos=3
-while data[1] do
-  index,output = ROMn(index,output,table.remove(data,1),xpos)
-  xpos = xpos + 2
-end
+  pole({x=0,y=0},{})
 
+  local prevIn = {entity_id=1}
+  local prevOut = {entity_id=1}
+
+  local xpos = 1
+  for addr,ccdata in pairs(data) do
+
+    CC({x=xpos,y=-1},dir,addr,ccdata,{})
+
+    filterDC({x=xpos,y=0.5},dir,
+      {["1"]={green={prevIn},red={{entity_id=count-1}}},["2"]={red={prevOut}}},
+      addrsignal,0,"signal-everything")
+    prevIn = {entity_id=count-1,circuit_id=1}
+    prevOut = {entity_id=count-1,circuit_id=2}
+    xpos=xpos+1
+  end
 
 --[[ Assemble and return blueprint ]]
 local blueprintData = {
   entities = entities,
-  icons={
-    {index=1, signal={type="item",name="decider-combinator"}},
-    {index=2, signal={type="item",name="constant-combinator"}}
-  },
-  name = "ROMGen",
-  version = "0.1.2"
-} 
+  icons={{index=1, signal={type="item",name="constant-combinator"}}},
+  name = "ROM " .. name
+}
+
+--[[if game then game.write_file("ROMGEN.lua", serpent.block(blueprintData), false) end]]
 return blueprintData
 
 end

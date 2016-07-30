@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectGuid>{0C18B3A8-D5E3-4F8D-B4A6-9111406C8400}</ProjectGuid>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>compiler</RootNamespace>
+    <AssemblyName>compiler</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <NoWin32Manifest>False</NoWin32Manifest>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <NoStdLib>False</NoStdLib>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <BaseAddress>4194304</BaseAddress>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <FileAlignment>4096</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <Optimize>False</Optimize>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <StartAction>Project</StartAction>
+    <StartArguments>scripts\test.factorio</StartArguments>
+    <StartWorkingDirectory>.\</StartWorkingDirectory>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <Optimize>True</Optimize>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="KopiLua">
+      <HintPath>lib\KopiLua.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="NLua">
+      <HintPath>lib\NLua.dll</HintPath>
+    </Reference>
+    <Reference Include="QUT.ShiftReduceParser">
+      <HintPath>gp\QUT.ShiftReduceParser.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="compiler_Lexer.cs" />
+    <Compile Include="compiler_Parser.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TokenValues.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <gplex Include="compiler.lex" />
+  </ItemGroup>
+  <ItemGroup>
+    <gppg Include="compiler.y" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="CompileROM.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="compiler.lex" />
+    <None Include="compiler.y" />
+    <None Include="gp\gplex-input.pdf" />
+    <None Include="gp\gplex.exe" />
+    <None Include="gp\gplex.pdf" />
+    <None Include="gp\GPLEXcopyright.rtf" />
+    <None Include="gp\gppg.exe" />
+    <None Include="gp\gppg.pdf" />
+    <None Include="gp\GPPGcopyright.rtf" />
+    <None Include="gp\QUT.ShiftReduceParser.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\KopiLua.dll" />
+    <None Include="lib\NLua.dll" />
+    <None Include="ROMGen.blueprint.lua" />
+    <None Include="ScalarGen.blueprint.lua" />
+    <None Include="scripts\test.factorio" />
+    <None Include="serpent0272.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="gp" />
+    <Folder Include="lib" />
+    <Folder Include="scripts" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="BeforeBuild" DependsOnTargets="$(BeforeBuildDependsOn)" />
+  <PropertyGroup>
+    <BeforeBuildDependsOn>
+      gppg;
+      gplex;
+    </BeforeBuildDependsOn>
+  </PropertyGroup>
+  <Target Name="gppg" Inputs="@(gppg)" Outputs="@(gppg->'%(Filename)_Parser.cs')">
+    <Exec Command="$(ProjectDir)\gp\gppg.exe /gplex @(gppg) &gt; %(Filename)_Parser.cs" />
+  </Target>
+  <Target Name="gplex" Inputs="@(gplex)" Outputs="@(gplex->'%(Filename)_Lexer.cs')">
+    <Exec Command="$(ProjectDir)\gp\gplex.exe /out:%(Filename)_Lexer.cs @(gplex)" />
+  </Target>
+  <Target Name="BeforeClean">
+    <Delete Files="%(gplex.Filename)_Lexer.cs" />
+    <Delete Files="%(gppg.Filename)_Parser.cs" />
+  </Target>
+</Project>

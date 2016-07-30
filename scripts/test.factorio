@@ -1,0 +1,33 @@
+﻿"TEST PROGRAM"
+
+1001@
+begin:
+
+r1.signal-grey = hello
+call print
+
+{} // empty cell = HALT
+
+// Print string at r1.signal-grey until everything=0 to rNixie
+// uses r9 as temp
+print:
+  r9=[r1.signal-grey]
+  rNixie=r9
+  r1.signal-grey += 1
+  branch r9.signal-each 0
+  jump rStat.signal-green // '=' end of string, return
+  rjmp print // '<'
+  rjmp print // '>'
+
+
+hello:
+{.long-handed-inserter=1}                     // Clear display
+{.rail=1} & "HELLO WORLD"                     // HELLO WORLD in default color
+{.rail-chain-signal=1}                        // Advance Row
+{.rail=1,.signal-green=1} & "LETS "           // LETS in green
+{.rail=1,.signal-blue=1} & "PLAY"             // PLAY in blue
+{.rail-chain-signal=1}                        // Advance Row
+{.rail=1,.signal-yellow=1} & "FACTORIO"       // FACTORIO in yellow
+{}                                            // string terminator
+
+rNixie.rail = 1
