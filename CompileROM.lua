@@ -53,15 +53,43 @@ function signCC(position, direction, s1,s2)
   return CC(position, direction, f)
 end
 
+function splitFilters(infilters)
+  local filters,extrafilters={},{}
+  for _,f in pairs(infilters) do
+    if f.index <= 15 then
+      table.insert(filters,f)
+    else
+      f.index = f.index - 15
+      table.insert(extrafilters,f)
+    end
+  end
+  if #extrafilters == 0 then extrafilters = nil end
+  return filters,extrafilters
+end
+
+function extendCC(cc,filters)
+  local filters,extrafilters=splitFilters(filters)
+
+  local ecc = CC(
+    {x=cc.position.x,y=cc.position.y-1},
+    cc.direction,
+    filters,
+    {["1"]={red={{entity_id=cc.entity_number}}}}
+  )
+
+  return ecc,extrafilters
+end
+
 -- Generate a constant-combinator configured with the desginated data
-function CC(position, direction, filters)
+function CC(position, direction, filters,connections)
+  local filters,extrafilters=splitFilters(filters)
   local cc = {
-    connections ={} ,control_behavior={filters=filters},
+    connections = (connections or {}) ,control_behavior={filters=filters}, entity_number=count,
     name = "constant-combinator", direction=direction, position = position
     }
   table.insert(entities,cc)
   count = count+1
-  return cc
+  return cc,extrafilters
 end
 
 -- Generate the output filter for a given ROM site
@@ -115,7 +143,7 @@ function sign(pos,line1,line2)
   repeat
     s1,line1 = prefix(line1)
     s2,line2 = prefix(line2)
-    table.insert(entities, signCC({x = xpos,y = ypos},dir, s1, s2))
+    signCC({x = xpos,y = ypos},dir, s1, s2)
     count = count + 1
     xpos = xpos + 1
   until(
@@ -133,9 +161,14 @@ local prevOut = {entity_id=1}
 local xpos = 1
 for _,filters in pairs(romsites) do
   -- For each ROM site, generate a constant-combinator and an output filter
-  CC({x=xpos,y=-1},dir,filters)
+  local cc_id = count
+  local cc,extrafilters
+  cc,extrafilters = CC({x=xpos,y=-1},dir,filters)
+  while extrafilters and #extrafilters > 0 do
+    cc,extrafilters = extendCC(cc,extrafilters)
+  end
   filterDC({x=xpos,y=0.5},dir,
-    {["1"]={green={prevIn},red={{entity_id=count-1}}},["2"]={red={prevOut}}})
+    {["1"]={green={prevIn},red={{entity_id=cc_id}}},["2"]={red={prevOut}}})
   prevIn = {entity_id=count-1,circuit_id=1}
   prevOut = {entity_id=count-1,circuit_id=2}
   xpos=xpos+1

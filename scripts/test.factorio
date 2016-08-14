@@ -3,31 +3,53 @@
 1001@
 begin:
 
-r1.signal-grey = hello
-call print
+rNixie.signal-grey = 1
+rNixie.signal-grey = 1
+rNixie.signal-grey = 1
+rNixie.signal-grey = 1
+rNixie.signal-grey = 1
+call wait10
+rNixie = [helloworld]
+call wait10
+rNixie = rNixie * 4095
+call wait10
+rNixie = [factorio]
+call wait10
+rNixie.signal-grey = 1
+rNixie = [longstring]
+rNixie.signal-grey = 1
+rNixie = [alphabet]
+call wait10
+rNixie.signal-grey = 1
 
-{} // empty cell = HALT
+{}
 
-// Print string at r1.signal-grey until everything=0 to rNixie
-// uses r9 as temp
-print:
-  r9=[r1.signal-grey]
-  rNixie=r9
-  r1.signal-grey += 1
-  branch r9.signal-each 0
-  jump rStat.signal-green // '=' end of string, return
-  rjmp print // '<'
-  rjmp print // '>'
+wait10:
+r9.signal-0 = 3
+wait:
+branch r9.signal-0 0
+jump rStat.signal-green
+r9.signal-0 += r9.signal-0 * -1
+r9.signal-0 += -1
+rjmp wait
 
+helloworld: %"HELLO WORLD"
+factorio: %"FACTORIO"
+//            1234567890121234567890121234567
+longstring: %"VERY LONG   STRING AS A BLOCK "
+alphabet:   %"ABCDEFGHIJKLMNOPQRSTUVWXZY0123"
+            %"COLORS"
+            {
+              .signal-red=1 .signal-green=2 .signal-blue=4
+              .signal-cyan=8 .signal-pink=16 .signal-yellow=32
+            }
+            %"RED GREEN   BLUE"
+            {
+              .signal-red=7 .signal-green=496 .signal-blue=61440
+            }
+            %"CYAN PINK   YELLOW"
+            {
+              .signal-cyan=15 .signal-pink=480 .signal-yellow=258048
+            }
 
-hello:
-{.long-handed-inserter=1}                     // Clear display
-{.rail=1} & "HELLO WORLD"                     // HELLO WORLD in default color
-{.rail-chain-signal=1}                        // Advance Row
-{.rail=1,.signal-green=1} & "LETS "           // LETS in green
-{.rail=1,.signal-blue=1} & "PLAY"             // PLAY in blue
-{.rail-chain-signal=1}                        // Advance Row
-{.rail=1,.signal-yellow=1} & "FACTORIO"       // FACTORIO in yellow
-{}                                            // string terminator
-
-factorio: % "FACTORIO"
+nixie:500@extern

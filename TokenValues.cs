@@ -411,11 +411,10 @@ namespace compiler
 		public static DataList BinaryString(string s)
 		{
 			var chars = new Dictionary<char,int>();
-			int i = 1;
+			int i = 0;
 			foreach (var c in s) {
 				if(!chars.ContainsKey(c))chars.Add(c,0);
-				chars[c]+=i;
-				i*=2;
+				chars[c]+=1<<i++;
 			}
 			var dl = new DataList();
 			foreach (var c in chars) {

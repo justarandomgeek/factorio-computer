@@ -76,7 +76,8 @@ Registers store an entire circuit network frame, except `signal-black`. `signal-
 |12|rStat| CPU Status register <ul><li>`signal-blue`: PC</li><li>`signal-green`: last call's return site</li></ul>|
 |13|rOp| Current Op data|
 |14|rNixie| NixieTerm|
-|15+| r15-... | IO Expansion ports<br>Aditional devices may be connected to these registers <ul><li>Red wire: Read</li><li>Green wire: Write</li></ul>
+|15|rWireless| Wireless masts
+|16+| r16-... | IO Expansion ports<br>Aditional devices may be connected to these registers <ul><li>Red wire: Read</li><li>Green wire: Write</li></ul>
 
 
 ## Operations
@@ -149,14 +150,11 @@ Write the contents of R1 to the memory location or memory-mapped device selected
 
 ### NixieTerm
 
-NixieTerm is a multi-line Alpha Nixie display with a packet control interface. It is compatible with all three interfaces of this CPU (Register, Memory, IO), and is connected as a write-only register at r14 by default.
+NixieTerm is a multi-line Alpha Nixie display. It can be accessed as an array of bit-packed strings in memory starting at [500], or the lowermost row can be accessed as a rNixie, and shifted upward.
 
-NixieTerm takes the following command signals:
+Any signals written in register mode will be added to the sum for the lowermost row. Writing `signal-grey` will shift all rows upward and clear the lower row. Color signals may be bit-packed along with characters.
 
-* `rail`: Advance by one character. This advances the current row by one character. If accompanied by a character signal and optional color signal, the new character will be these, otherwise it will be blank.
-* `fast-inserter`: Clear Row. The current row is cleared
-* `rail-chain-signal`: Advance by one row. All rows are shifted up one space. The current row is cleared after being shifted up.
-* `long-handed-inserter`: Clear Display. The entire display is cleared.
+A numeric value may also be written to a row on `signal-white` which will display in the left column of the corresponding display row.
 
 NixieTerm supports all the characters supported by the Alpha Nixie:
 * A-Z0-9 as their correspnding signals
