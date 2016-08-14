@@ -15,9 +15,9 @@
 Major signals are labeled with floor concrete. Left side for green wire, right side for red wire. Power wires run on substations, signals wires run on poles.
 
 | Pole Color | Red Wire | Green Wire |
-|-
+|------------|----------|------------|
 |Purple      | Memory Read Response | Memory Read Request
-|Magenta     | Memory Write         ||
+|Magenta     | Memory Write         |
 |Blue        |                      | Scalar Result (`signal-grey`)
 |Cyan        | Vector Result        | R2
 |Green       | Scalars              | R1
@@ -67,15 +67,15 @@ Major signals are labeled with floor concrete. Left side for green wire, right s
 Registers store an entire circuit network frame, except `signal-black`. `signal-black` is used internally for various scalar and flag values throughout the machine, and cannot be stored in registers/memory, or expressed correctly in most mechanisms. All registers may be referred to by their number as r0,r1,r2,etc, and some registers may be referred to by name as listed in the table below.
 
 
-||Name|Purpose
-|-
-|0|Null|No Register selected
-|1-9|r1-r9| General Purpose data registers
-|10|rRed| IO Wire Red data since list transmitted
-|11|rGreen| IO Wire Green data since last transmitted
-|12|rStat| CPU Status register <ul><li>`signal-blue`: PC</li><li>`signal-green`: last call's return site</li></ul>
-|13|rOp| Current Op data
-|14|rNixie| NixieTerm
+| ID | Name | Purpose |
+|----|------|---------|
+|0|Null|No Register selected|
+|1-9|r1-r9| General Purpose data registers|
+|10|rRed| IO Wire Red data since list transmitted|
+|11|rGreen| IO Wire Green data since last transmitted|
+|12|rStat| CPU Status register <ul><li>`signal-blue`: PC</li><li>`signal-green`: last call's return site</li></ul>|
+|13|rOp| Current Op data|
+|14|rNixie| NixieTerm|
 |15+| r15-... | IO Expansion ports<br>Aditional devices may be connected to these registers <ul><li>Red wire: Read</li><li>Green wire: Write</li></ul>
 
 
@@ -103,8 +103,8 @@ Any undefined opcode will halt the machine, but Op=0 is specifically reserved fo
 #### 1-60: ALU Operations
 The ALU performs every possible operation in parallel, and returns the requested operation's result to Scalar Result or Vector Result.
 
-||Comparisons|Arithmetic
-|-
+|    |Comparisons|Arithmetic|
+|----|-----------|----------|
 |Output|<ul><li>0: Vector</li><li>24: Scalar</li></ul>|<ul><li>48: Vector</li><li>52: Scalar</li></ul></td>
 |Operator|<ul><li>1:`=`</li><li>2:`<`</li><li>3:`>`</li></ul>|<ul><li>1:`-`</li><li>2:`+`</li><li>3:`/`</li><li>4:`*`</li></ul>
 |Output Mode|<ul><li>0:`?=` Input Value</li><li>3:`?1` Flags</li></ul>||
