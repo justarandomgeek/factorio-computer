@@ -30,4 +30,4 @@ hello:
 {.rail=1,.signal-yellow=1} & "FACTORIO"       // FACTORIO in yellow
 {}                                            // string terminator
 
-rNixie.rail = 1
+factorio: % "FACTORIO"

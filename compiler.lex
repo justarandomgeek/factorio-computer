@@ -56,6 +56,7 @@ whitespace [ \n\r\t]+
 <PROGRAM> "("  {return (int)'(';}
 <PROGRAM> ")"  {return (int)')';}
 <PROGRAM> "&"  {return (int)'&';}
+<PROGRAM> "%"  {return (int)'%';}
 
 
 <PROGRAM> "r"("Null"|[0-9]+|"Red"|"Green"|"Stat"|"Op"|"Nixie") {

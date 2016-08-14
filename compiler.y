@@ -4,14 +4,14 @@
 			internal int iVal;
 			internal string sVal;
 			internal bool bVal;
-			
+
 			internal RegSpec regVal;
 			internal ArithSpec arithVal;
 			internal CompSpec compVal;
-						
+
 			internal AddrSpec addrVal;
 			internal SignalSpec sigVal;
-			
+
 			internal DataItem dVal;
 			internal DataList dlVal;
 }
@@ -51,12 +51,12 @@ addrspec: INTEGER { $$=$1; };
 addrspec: IDENT   { $$=$1; };
 
 statement: JUMP  signalspec { $$ = DataList.Jump($2, false, false); };
-statement: RJUMP signalspec { $$ = DataList.Jump($2, true,  false); }; 
-statement: CALL  signalspec { $$ = DataList.Jump($2, false, true ); }; 
+statement: RJUMP signalspec { $$ = DataList.Jump($2, true,  false); };
+statement: CALL  signalspec { $$ = DataList.Jump($2, false, true ); };
 statement: RCALL signalspec { $$ = DataList.Jump($2, true,  true ); };
 statement: JUMP  addrspec   { $$ = DataList.Jump($2, false, false); };
-statement: RJUMP addrspec   { $$ = DataList.Jump($2, true,  false); }; 
-statement: CALL  addrspec   { $$ = DataList.Jump($2, false, true ); }; 
+statement: RJUMP addrspec   { $$ = DataList.Jump($2, true,  false); };
+statement: CALL  addrspec   { $$ = DataList.Jump($2, false, true ); };
 statement: RCALL addrspec   { $$ = DataList.Jump($2, true,  true ); };
 statement: BRANCH     signalspec signalspec { $$ = DataList.Branch($2, $3, false); };
 statement: BRANCHCALL signalspec signalspec { $$ = DataList.Branch($2, $3, true ); };
@@ -96,5 +96,6 @@ dataitem: SIGNAL ASSIGN addrspec { $$ = new DataItem($1, $3); };
 datalist: datalist dataitem      { $$ = $1; $$.Add($2); };
 datalist: dataitem               { $$ = $1; };
 datastatement: '{' datalist '}'      { $$ = $2; };
-datastatement: '{' '}'               { $$ = new DataList(); }; 
+datastatement: '{' '}'               { $$ = new DataList(); };
+datastatement: '%' STRING            { $$ = DataList.BinaryString($2); };
 statement: datastatement { $$ = $1; };

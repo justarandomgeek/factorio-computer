@@ -140,13 +140,35 @@ namespace compiler
 	public class SignalSpec
 	{
 		public static Dictionary<string,int> signalMap = new Dictionary<string, int>();
+		static readonly Dictionary<char,SignalSpec> charMap = new Dictionary<char,SignalSpec>{
+        	{'1',"signal-1"},{'2',"signal-2"},{'3',"signal-3"},{'4',"signal-4"},{'5',"signal-5"},
+        	{'6',"signal-6"},{'7',"signal-7"},{'8',"signal-8"},{'9',"signal-9"},{'0',"signal-0"},
+        	{'A',"signal-A"},{'B',"signal-B"},{'C',"signal-C"},{'D',"signal-D"},{'E',"signal-E"},
+			{'F',"signal-F"},{'G',"signal-G"},{'H',"signal-H"},{'I',"signal-I"},{'J',"signal-J"},
+			{'K',"signal-K"},{'L',"signal-L"},{'M',"signal-M"},{'N',"signal-N"},{'O',"signal-O"},
+			{'P',"signal-P"},{'Q',"signal-Q"},{'R',"signal-R"},{'S',"signal-S"},{'T',"signal-T"},
+			{'U',"signal-U"},{'V',"signal-V"},{'W',"signal-W"},{'X',"signal-X"},{'Y',"signal-Y"},
+			{'Z',"signal-Z"},{'-',"fast-splitter"},{'.',"train-stop"}};
+		
+		public SignalSpec(char c)
+        {
+			if(charMap.ContainsKey(c))
+			{
+				this.signal = charMap[c].signal;
+			}	
+        }
 		public AddrSpec sigval{
 			get { return signalMap.ContainsKey(this.signal)?signalMap[this.signal]:0; }
 		}
 		
 		public static Dictionary<string,string> typeMap = new Dictionary<string, string>();
 		public string type {
-			get { return typeMap.ContainsKey(this.signal)?typeMap[this.signal]:"virtual"; } 
+			get 
+			{
+				if(string.IsNullOrEmpty(this.signal)) return "virtual";
+				if(!typeMap.ContainsKey(this.signal)) return "virtual";
+				return typeMap[this.signal];
+			}
 		}
 		
 		public RegSpec reg;
@@ -205,6 +227,7 @@ namespace compiler
 		public SignalSpec signal;
 		public AddrSpec addr;
 		
+		public DataItem(char c,AddrSpec addr):this(new SignalSpec(c),addr){}
 		public DataItem(SignalSpec signal, AddrSpec addr)
 		{
 			this.signal =  signal;
@@ -224,7 +247,7 @@ namespace compiler
 		
 		public DataList(DataItem data){this.Add(data);}
 		public static implicit operator DataList(DataItem data){return new DataList(data);}
-		public DataList(char c, Dictionary<char,SignalSpec> charMap):this(new DataItem(charMap[c],1)){}
+		public DataList(char c,AddrSpec addr):this(new DataItem(c,addr)){}
 		
 		public void Add(DataItem data)
 		{
@@ -239,15 +262,10 @@ namespace compiler
 			InputMode im;
 			switch (S1.signal) {
 				case "signal-each":
-				case "each":
 					im=InputMode.Each; break;
 				case "signal-anything":
-				case "anything":
-				case "any":
 					im=InputMode.Any; break;
 				case "signal-everything":
-				case "everything":
-				case "every":
 					im=InputMode.Every; break;
 				default:
 					im=InputMode.Scalar; break;
@@ -387,6 +405,22 @@ namespace compiler
 		{
 			var dl = Branch(S1,new SignalSpec(RegSpec.rOp,InternalSignals.imm2),call);
 			dl.Imm2 = Imm2;
+			return dl;
+		}
+		
+		public static DataList BinaryString(string s)
+		{
+			var chars = new Dictionary<char,int>();
+			int i = 1;
+			foreach (var c in s) {
+				if(!chars.ContainsKey(c))chars.Add(c,0);
+				chars[c]+=i;
+				i*=2;
+			}
+			var dl = new DataList();
+			foreach (var c in chars) {
+				dl.Add(new SignalSpec(c.Key),c.Value);
+			}
 			return dl;
 		}
 		

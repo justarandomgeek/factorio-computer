@@ -38,15 +38,6 @@ namespace compiler
     {
         new Scanner Scanner { get { return (Scanner)base.Scanner; } set { base.Scanner = value; } }
 
-        readonly Dictionary<char,SignalSpec> charMap = new Dictionary<char,SignalSpec>{
-        	{'1',"signal-1"},{'2',"signal-2"},{'3',"signal-3"},{'4',"signal-4"},{'5',"signal-5"},
-        	{'6',"signal-6"},{'7',"signal-7"},{'8',"signal-8"},{'9',"signal-9"},{'0',"signal-0"},
-        	{'A',"signal-A"},{'B',"signal-B"},{'C',"signal-C"},{'D',"signal-D"},{'E',"signal-E"},
-			{'F',"signal-F"},{'G',"signal-G"},{'H',"signal-H"},{'I',"signal-I"},{'J',"signal-J"},
-			{'K',"signal-K"},{'L',"signal-L"},{'M',"signal-M"},{'N',"signal-N"},{'O',"signal-O"},
-			{'P',"signal-P"},{'Q',"signal-Q"},{'R',"signal-R"},{'S',"signal-S"},{'T',"signal-T"},
-			{'U',"signal-U"},{'V',"signal-V"},{'W',"signal-W"},{'X',"signal-X"},{'Y',"signal-Y"},
-			{'Z',"signal-Z"},{'-',"fast-splitter"},{'.',"train-stop"}};
         Dictionary<int,DataList> programData = new Dictionary<int, DataList>();
         
         Lua lua = new Lua();
@@ -82,13 +73,19 @@ namespace compiler
         }
 
         
-        public SignalSpec mapChar(string s){
-        	char c = s!=""?s[0]:' ';
-        	return mapChar(c);
+        public SignalSpec mapChar(string s)
+        {
+        	if(string.IsNullOrEmpty(s)) return mapChar(' ');
+        	return mapChar(s[0]);
         }
         public SignalSpec mapChar(char c)
         {
-        	return charMap.ContainsKey(c)?charMap[c]:new SignalSpec("signal-blue");
+        	SignalSpec s = new SignalSpec(c);
+        	if(string.IsNullOrEmpty(s.signal))
+        	{
+        		s.signal="signal-blue";
+        	}
+        	return s;
         }
         
         public void MakeROM()
@@ -142,15 +139,9 @@ namespace compiler
 		void Add(string s, DataList dl)
 		{
 			foreach (char c in s) {
-				DataList cdat;
-				if(charMap.ContainsKey(c))
-				{
-					cdat = new DataList(c,charMap);
-					foreach (var element in dl) {
-						cdat.Add(element.Key,element.Value);
-					}
-				} else {
-					cdat = dl;
+				DataList cdat = new DataList(c,1);
+				foreach (var element in dl) {
+				  cdat.Add(element.Key,element.Value);
 				}
 				Add(cdat);
 			}
