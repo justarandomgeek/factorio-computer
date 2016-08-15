@@ -30,7 +30,7 @@
     'match': '-?\\d+'
     'name': 'constant.numeric.factorio'
   'string':
-    'begin': '"'
+    'begin': '[&%]?"'
     'beginCaptures':
       '0':
         'name': 'punctuation.definition.string.begin.factorio'

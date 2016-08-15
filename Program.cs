@@ -38,7 +38,7 @@ namespace compiler
     {
         new Scanner Scanner { get { return (Scanner)base.Scanner; } set { base.Scanner = value; } }
 
-        Dictionary<int,DataList> programData = new Dictionary<int, DataList>();
+        public Dictionary<int,DataList> programData = new Dictionary<int, DataList>();
         
         Lua lua = new Lua();
         
@@ -88,29 +88,26 @@ namespace compiler
         	return s;
         }
         
-        public void MakeROM()
+        public void PrintCompressed(string s)
         {
-			Console.WriteLine("ROM:");
-			lua["name"]=Name;
-			lua["map"]=AddrSpec.map;
-			lua["programdata"]=programData;
-			lua["parser"]=this;
-			
-			
-			
-			
-			var compileROM = lua.LoadFile("compileROM.lua");
-			var luaprint = (string)compileROM.Call()[0];
-			
-			
-			var ms = new MemoryStream();
+        	var ms = new MemoryStream();
         	var sw = new GZipStream(ms, CompressionMode.Compress);
 			
-        	var byteprint = Encoding.UTF8.GetBytes(luaprint);
+        	var byteprint = Encoding.UTF8.GetBytes(s);
         	sw.Write(byteprint, 0, byteprint.Length);
         	sw.Close();
         	
         	Console.WriteLine(Convert.ToBase64String(ms.ToArray()));			
+        }
+        
+        public void MakeROM()
+        {
+			Console.WriteLine("Compiling ROM:");
+			lua["map"]=AddrSpec.map;
+			lua["parser"]=this;
+			
+			var compileROM = lua.LoadFile("compileROM.lua");
+			compileROM.Call();
         }
 
 

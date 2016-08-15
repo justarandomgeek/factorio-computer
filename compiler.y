@@ -79,7 +79,7 @@ sexpr: COND signalspec COMPARE signalspec   { $$ = DataList.CondOp(true,$1,$2,$3
 sexpr: signalspec ARITH   addrspec          { $$ = DataList.ArithOp($1,$2,$3);};
 sexpr: signalspec ARITH   signalspec        { $$ = DataList.ArithOp($1,$2,$3);};
 sexpr: signalspec                           { $$ = DataList.ArithOp($1,ArithSpec.Add,0);};
-sexpr: addrspec                             { $$ = DataList.ArithOp(new SignalSpec(RegSpec.rNull,""),ArithSpec.Add,$1);};
+sexpr: addrspec                             { $$ = DataList.ArithOp($1,ArithSpec.Add,0);};
 
 statement: REGISTER   ASSIGN vexpr { $$ = $3.AssignOp($1,false); };
 statement: REGISTER   APPEND vexpr { $$ = $3.AssignOp($1,true);  };
@@ -98,4 +98,5 @@ datalist: dataitem               { $$ = $1; };
 datastatement: '{' datalist '}'      { $$ = $2; };
 datastatement: '{' '}'               { $$ = new DataList(); };
 datastatement: '%' STRING            { $$ = DataList.BinaryString($2); };
+datastatement: datastatement '&' datastatement   { $$ = $1; $$.Add($3);};
 statement: datastatement { $$ = $1; };

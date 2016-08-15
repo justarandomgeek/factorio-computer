@@ -158,7 +158,15 @@ namespace compiler
 			}	
         }
 		public AddrSpec sigval{
-			get { return signalMap.ContainsKey(this.signal)?signalMap[this.signal]:0; }
+			get 
+			{
+				if(signalMap.ContainsKey(this.signal)){
+					return signalMap[this.signal];
+				}else{
+					Console.WriteLine("Warning: undefined signal name '{0}'",this.signal);
+					return 0;
+				}
+			}
 		}
 		
 		public static Dictionary<string,string> typeMap = new Dictionary<string, string>();
@@ -166,7 +174,11 @@ namespace compiler
 			get 
 			{
 				if(string.IsNullOrEmpty(this.signal)) return "virtual";
-				if(!typeMap.ContainsKey(this.signal)) return "virtual";
+				if(!typeMap.ContainsKey(this.signal))
+				{
+					Console.WriteLine("Warning: undefined type for signal '{0}'",this.signal);
+					return "virtual";
+				}
 				return typeMap[this.signal];
 			}
 		}
@@ -253,7 +265,13 @@ namespace compiler
 		{
 			this.Add(data.signal,data.addr);
 		}
-		
+		public void Add(DataList data)
+		{
+			foreach (var element in data) {
+				//TODO: do this better. this fails if both DataLists contain a signal.
+				this.Add(element.Key,element.Value);
+			}
+		}
 		
 		public static DataList CondOp(bool sOut, bool flags, SignalSpec S1, CompSpec comp, SignalSpec S2)
 		{
@@ -314,6 +332,16 @@ namespace compiler
 		public static DataList ArithOp(SignalSpec S1, ArithSpec Op, AddrSpec Imm2)
 		{
 			var dl = ArithOp(S1,Op,new SignalSpec(RegSpec.rOp,InternalSignals.imm2));
+			dl.Imm2 = Imm2;
+			return dl;
+		}
+		public static DataList ArithOp(AddrSpec Imm1, ArithSpec Op, AddrSpec Imm2)
+		{
+			var dl = ArithOp(
+				new SignalSpec(RegSpec.rOp,InternalSignals.imm1),
+				Op,
+				new SignalSpec(RegSpec.rOp,InternalSignals.imm2));
+			dl.Imm1 = Imm1;
 			dl.Imm2 = Imm2;
 			return dl;
 		}

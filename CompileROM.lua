@@ -12,7 +12,7 @@ local romsites = {}
 -- a single ROM location.
 
 --TODO: make pairs() work nicely on IEnumerable to make this cleaner? or proper Lua types...
-local enumerator = programdata:GetEnumerator()
+local enumerator = parser.programData:GetEnumerator()
 while enumerator:MoveNext() do
   local addr = enumerator.Current.Key
 
@@ -175,7 +175,7 @@ for _,filters in pairs(romsites) do
 end
 
 --Put program name sign above the ROM
-sign({x=1,y=-2},string.upper(name),nil)
+sign({x=1,y=-2},string.upper(parser.Name),nil)
 
 -- Generate address table below the ROM
 local prevsign
@@ -185,7 +185,6 @@ while mapenum:MoveNext() do
   local label = mapenum.Current.Key
   local addr = mapenum.Current.Value
 
-  --TODO: make two-line signs to save space
   local thissign = string.upper(string.format("%4d %s", addr, label))
   if prevsign then
     sign({x=1,y=ypos},prevsign,thissign)
@@ -201,7 +200,11 @@ end
 
 
 
-return serpent.dump({name=name,
-entities=entities,
-icons={{index=1, signal={type="item",name="constant-combinator"}}}
-});
+-- I could print multiple prints here if I wanted!
+parser:PrintCompressed(
+  serpent.dump(
+  {
+    name=parser.Name,
+    entities=entities,
+    icons={{index=1, signal={type="item",name="constant-combinator"}}}
+  }));
