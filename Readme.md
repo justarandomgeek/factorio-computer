@@ -64,20 +64,20 @@ Major signals are labeled with floor concrete. Left side for green wire, right s
 
 ## Registers
 
-Registers store an entire circuit network frame, except `signal-black`. `signal-black` is used internally for various scalar and flag values throughout the machine, and cannot be stored in registers/memory, or expressed correctly in most mechanisms. All registers may be referred to by their number as r0,r1,r2,etc, and some registers may be referred to by name as listed in the table below.
+Registers store an entire circuit network frame, except `signal-black`. `signal-black` is used internally for various scalar and flag values throughout the machine, and cannot be stored in registers/memory, or expressed correctly in most mechanisms. All registers may be referred to by their number as `r0`,`r1`,`r2`,etc, and some registers may be referred to by name as listed in the table below.
 
 
 | ID | Name | Purpose |
 |----|------|---------|
-|0|Null|No Register selected|
-|1-9|r1-r9| General Purpose data registers|
-|10|rRed| IO Wire Red data since list transmitted|
-|11|rGreen| IO Wire Green data since last transmitted|
-|12|rStat| CPU Status register <ul><li>`signal-blue`: PC</li><li>`signal-green`: last call's return site</li></ul>|
-|13|rOp| Current Op data|
-|14|rNixie| NixieTerm|
-|15|rWireless| Wireless masts
-|16+| r16-... | IO Expansion ports<br>Aditional devices may be connected to these registers <ul><li>Red wire: Read</li><li>Green wire: Write</li></ul>
+|0|`rNull`|No Register selected|
+|1-9|`r1`-`r9`| General Purpose data registers|
+|10|`rRed`| IO Wire Red data since list transmitted|
+|11|`rGreen`| IO Wire Green data since last transmitted|
+|12|`rStat`| CPU Status register <ul><li>`signal-blue`: PC</li><li>`signal-green`: last call's return site</li></ul>|
+|13|`rOp`| Current Op data|
+|14|`rNixie`| NixieTerm|
+|15,16|`r15`,`r16`| Wireless masts
+|17+| `r17`-... | IO Expansion ports<br>Aditional devices may be connected to these registers <ul><li>Red wire: Read</li><li>Green wire: Write</li></ul>
 
 
 ## Operations
@@ -86,7 +86,7 @@ The following signals are used to select registers and signals:
 |Signal  |Purpose|
 |--------|-------|
 |signal-0|Op|
-|signal-A| *Accumulate* |
+|signal-A| Accumulate |
 |signal-R|R1|
 |signal-S|S1|
 |signal-T|R2|
@@ -96,7 +96,7 @@ The following signals are used to select registers and signals:
 |signal-grey|R1.S1, Imm1 in ROM, Scalar Result|
 |signal-white|R2.S2, Imm2 in ROM|
 
-If Rd is set, the selected register will be cleared as Op Pulse is triggered unless *Accumulate* is also set (>0), even if the current operation does not actually assign to it. The whole register will be cleared, even in scalar operations.
+If Rd is set, the selected register will be cleared as Op Pulse is triggered unless Accumulate is also set (>0), even if the current operation does not actually assign to it. The whole register will be cleared, even in scalar operations.
 
 #### 0: Halt
 Any undefined opcode will halt the machine, but Op=0 is specifically reserved for doing so.
@@ -114,12 +114,12 @@ The ALU performs every possible operation in parallel, and returns the requested
 Add one value from each cell of a column to form an instruction.
 
 #### 70-79 Control Flow
-* 70: jump
-* 71: call
-* 72: rjump
-* 73: rcall
-* 74: branch
-* 75: branchcall
+* 70: `jump`
+* 71: `call`
+* 72: `rjump`
+* 73: `rcall`
+* 74: `branch`
+* 75: `branchcall`
 
 `call` variants store a return site in the Green signal of the status register. For `call` and `rcall` this is PC+1, for `branchcall` it is PC+4.
 
@@ -133,7 +133,7 @@ Add one value from each cell of a column to form an instruction.
 
 
 #### 80: Wire
-Write a packet to a two-wire network, and clear the receive registers for a response. To leave either wire untouched, select rNull for it. rRed and rGreen are cleared on the same frame the selected signals are transmitted. Write rNull to both wires to clear the receive buffer without transmitting anything.
+Write a packet to a two-wire network, and clear the receive registers for a response. To leave either wire untouched, select `rNull` for it. `rRed` and `rGreen` are cleared on the same frame the selected signals are transmitted. Write `rNull` to both wires to clear the receive buffer without transmitting anything.
 * R1=>Red Wire
 * R2=>Green Wire
 * 0=>rRed,rGreen
@@ -150,7 +150,7 @@ Write the contents of R1 to the memory location or memory-mapped device selected
 
 ### NixieTerm
 
-NixieTerm is a multi-line Alpha Nixie display. It can be accessed as an array of bit-packed strings in memory starting at [500], or the lowermost row can be accessed as a rNixie, and shifted upward.
+NixieTerm is a multi-line Alpha Nixie display. It can be accessed as an array of bit-packed strings in memory starting at `[500]`, or the lowermost row can be accessed as a `rNixie`, and shifted upward.
 
 Any signals written in register mode will be added to the sum for the lowermost row. Writing `signal-grey` will shift all rows upward and clear the lower row. Color signals may be bit-packed along with characters.
 
@@ -160,3 +160,7 @@ NixieTerm supports all the characters supported by the Alpha Nixie:
 * A-Z0-9 as their correspnding signals
 * . as `train-stop`
 * \- as `fast-splitter`
+
+### Wireless
+
+A cluster of wireless masts are connected on `r15` and `r16`. `r15` reads the current values on the wireless. `r16` is a memory cell which is connected to transmit to the wireless. There are 12 masts connected, by default configured to relay all virtual signals except `signal-black`, leaving 16 slots available for custom configuration. Additional masts may be wired in as needed.
