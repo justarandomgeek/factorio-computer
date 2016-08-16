@@ -3,39 +3,69 @@
 1001@
 begin:
 
+// Chear Display
 rNixie.signal-grey = 1
 rNixie.signal-grey = 1
 rNixie.signal-grey = 1
 rNixie.signal-grey = 1
 rNixie.signal-grey = 1
-call wait10
+
+// Print helloworld
 rNixie = [helloworld]
-call wait10
-rNixie = rNixie * 4095
-call wait10
-rNixie = [factorio]
-call wait10
-rNixie.signal-grey = 1
-rNixie = [longstring]
-rNixie.signal-grey = 1
-rNixie = [alphabet]
-call wait10
+
+// Print a color demo
 rNixie.signal-grey = 1
 r1.signal-grey = colors
 rNixie = [r1.signal-grey]
 r1.signal-grey+=1
-call wait10
 rNixie.signal-grey = 1
 rNixie = [r1.signal-grey]
 r1.signal-grey+=1
 rNixie.signal-grey = 1
 rNixie = [r1.signal-grey]
 r1.signal-grey+=1
+call delay
 
+
+rNixie.signal-grey = 1
+rNixie.signal-grey = 1
+rNixie.signal-grey = 1
+rNixie.signal-grey = 1
+rNixie.signal-grey = 1
+
+mathdemo:
+// nn FACTORIAL
+// nn SQUARE
+// ii NUMBER
+// xx ..... progress
+r1.signal-white = 1
+r1+=[number]
+r3.signal-white = 1
+
+mathdemoloop:
+[nixie]=r1
+
+r2.signal-white = r1.signal-white * r1.signal-white
+r2+=[square]
+[nixie1]=r2
+
+r3.signal-white = r3.signal-white * r1.signal-white
+r3+=[factorialstr]
+[nixie2]=r3
+
+r1.signal-white += 1
+branch r1.signal-white 10
+rjmp mathdemoloop
+rjmp mathdemoloop
+{}
+
+
+// TODO: Do something interesting with wireless?
+// TODO: Print station contents
 
 {}
 
-wait10:
+delay:
 r9.signal-0 = 3
 wait:
 branch r9.signal-0 0
@@ -44,20 +74,23 @@ r9.signal-0 += r9.signal-0 * -1
 r9.signal-0 += -1
 rjmp wait
 
+// Data section at end of program
 helloworld: %"HELLO WORLD"
-factorio: %"FACTORIO"
-//            1234567890121234567890121234567
-longstring: %"VERY LONG   STRING AS A BLOCK  "
-alphabet:   %"ABCDEFGHIJKLMNOPQRSTUVWXZY01234"
-colors:     {
-              .signal-red=1 .signal-green=2 .signal-blue=4
+colors:     { .signal-red=1 .signal-green=2 .signal-blue=4
               .signal-cyan=8 .signal-pink=16 .signal-yellow=32
             }&%"COLORS"
-
             {.signal-red=7 .signal-green=496 .signal-blue=61440
             }&%"RED GREEN   BLUE"
-
             {.signal-cyan=15 .signal-pink=480 .signal-yellow=258048
             }&%"CYAN PINK   YELLOW"
+number:     %"NUMBER"
+square:     %"SQUARE"
+factorialstr:  %"FACTORIAL"
 
+// External devices
+// nixies - [500] is rNixie, succesive lines above
 nixie:500@extern
+nixie1:extern
+nixie2:extern
+nixie3:extern
+nixie4:extern
