@@ -1,5 +1,14 @@
 local serpent = require "serpent0272"
 
+-- This file is called by compiler.exe to generate a ROM.
+-- Globals:
+-- parser - the parser instance
+--   .programData - Dictionary<int,DataList>
+--   :mapChar(c) - converts a character to a SignalSpec
+--   :PrintCompressed(s) - Prints a string to the console gzipped and base64'd.
+--      Use with serpent to produce blueprints.
+
+
 local addrsignal ={name="signal-black",type="virtual"}
 local dir = 4
 
@@ -177,30 +186,7 @@ end
 --Put program name sign above the ROM
 sign({x=1,y=-2},string.upper(parser.Name),nil)
 
--- Generate address table below the ROM
-local prevsign
-ypos = 2
-local mapenum = map:GetEnumerator()
-while mapenum:MoveNext() do
-  local label = mapenum.Current.Key
-  local addr = mapenum.Current.Value
-
-  local thissign = string.upper(string.format("%4d %s", addr, label))
-  if prevsign then
-    sign({x=1,y=ypos},prevsign,thissign)
-    ypos=ypos+1
-    prevsign=nil
-  else
-    prevsign = thissign
-  end
-end
-if prevsign then
-  sign({x=1,y=ypos},prevsign,"@@")
-end
-
-
-
--- I could print multiple prints here if I wanted!
+print("Program ROM:")
 parser:PrintCompressed(
   serpent.dump(
   {
@@ -208,3 +194,38 @@ parser:PrintCompressed(
     entities=entities,
     icons={{index=1, signal={type="item",name="constant-combinator"}}}
   }));
+print("")
+
+
+entities = {}
+count = 1
+-- Generate address table sign array
+local prevsign
+ypos = 0
+local mapenum = map:GetEnumerator()
+while mapenum:MoveNext() do
+  local label = mapenum.Current.Key
+  local addr = mapenum.Current.Value
+
+  local thissign = string.upper(string.format("%4d %s", addr, label))
+  if prevsign then
+    sign({x=0,y=ypos},prevsign,thissign)
+    ypos=ypos+1
+    prevsign=nil
+  else
+    prevsign = thissign
+  end
+end
+if prevsign then
+  sign({x=0,y=ypos},prevsign,"@@")
+end
+
+print("Address Table:")
+parser:PrintCompressed(
+  serpent.dump(
+  {
+    name=parser.Name .. " Addr Table",
+    entities=entities,
+    icons={{index=1, signal={type="item",name="constant-combinator"}}}
+  }));
+print("")
