@@ -21,7 +21,9 @@ namespace compiler
 		public static void Main(string[] args)
 		{
 
-			string sourcetext = new StreamReader(args[0]).ReadToEnd();
+			var reader = new StreamReader(args[0]);
+			string sourcetext = reader.ReadToEnd();
+			reader.Close();
 
             var parser = new Parser();
             parser.ReadMachineDesc("scalarmap.lua");
