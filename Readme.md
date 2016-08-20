@@ -14,17 +14,17 @@
 
 Major signals are labeled with floor concrete. Left side for green wire, right side for red wire. Power wires run on substations, signals wires run on poles.
 
-| Pole Color | Red Wire | Green Wire |
-|------------|----------|------------|
-|Purple      | Memory Read Response | Memory Read Request
-|Magenta     | Memory Write         |
-|Blue        |                      | Scalar Result (`signal-grey`)
-|Cyan        | Vector Result        | R2
-|Green       | Scalars              | R1
-|Yellow      | To PC                | Op
-|Orange      | Status               | Op Pulse
-|Hazard      | IO Wire | IO Wire
-|FireHazard  | IO Wire Register | IO Wire Register
+| Pole Color | Green Wire | Red Wire |
+|------------|------------|----------|
+|Purple      | Memory Read Request           | Memory Read Response |
+|Magenta     |                               | Memory Write         |
+|Blue        | Scalar Result (`signal-grey`) |                      |
+|Cyan        | R2                            | Vector Result        |
+|Green       | R1                            | Scalars              |
+|Yellow      | Op                            | To PC                |
+|Orange      | Op Pulse                      | Status               |
+|Hazard      | IO Wire                       | IO Wire              |
+|FireHazard  | IO Wire Register              | IO Wire Register     |
 
 * Scalars
 	* signal-grey: R1.s1
@@ -77,7 +77,8 @@ Registers store an entire circuit network frame, except `signal-black`. `signal-
 |13|`rOp`| Current Op data|
 |14|`rNixie`| NixieTerm|
 |15,16|`r15`,`r16`| Wireless masts
-|17+| `r17`-... | IO Expansion ports<br>Aditional devices may be connected to these registers <ul><li>Red wire: Read</li><li>Green wire: Write</li></ul>
+|17|`r17`| Keyboard interface. Reads a single buffered key. Clear buffer with `signal-grey`.
+|18+| `r18`-... | IO Expansion ports<br>Aditional devices may be connected to these registers <ul><li>Red wire: Read</li><li>Green wire: Write</li></ul>
 
 
 ## Operations

@@ -186,16 +186,14 @@ end
 --Put program name sign above the ROM
 sign({x=1,y=-2},string.upper(parser.Name),nil)
 
-print("Program ROM:")
-parser:PrintCompressed(
+parser:returnBlueprint(
+  parser.Name,
   serpent.dump(
   {
     name=parser.Name,
     entities=entities,
     icons={{index=1, signal={type="item",name="constant-combinator"}}}
-  }));
-print("")
-
+  }))
 
 entities = {}
 count = 1
@@ -220,12 +218,12 @@ if prevsign then
   sign({x=0,y=ypos},prevsign,"@@")
 end
 
-print("Address Table:")
-parser:PrintCompressed(
+
+parser:returnBlueprint(
+  parser.Name .. " Addr Table",
   serpent.dump(
   {
     name=parser.Name .. " Addr Table",
     entities=entities,
     icons={{index=1, signal={type="item",name="constant-combinator"}}}
-  }));
-print("")
+  }))

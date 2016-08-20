@@ -1,0 +1,7 @@
+cmd: "echo foo"
+targets:
+  blueprint:
+    cmd: 'bin\\debug\\compiler.exe'
+    name: "*.factorio"
+    args:
+      - '{FILE_ACTIVE}'

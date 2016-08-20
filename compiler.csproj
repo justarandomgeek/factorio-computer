@@ -16,6 +16,7 @@
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <WarningLevel>4</WarningLevel>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -45,6 +46,9 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine">
+      <HintPath>packages\CommandLineParser.1.9.71\lib\net40\CommandLine.dll</HintPath>
+    </Reference>
     <Reference Include="KopiLua">
       <HintPath>lib\KopiLua.dll</HintPath>
     </Reference>
@@ -56,6 +60,9 @@
     </Reference>
     <Reference Include="QUT.ShiftReduceParser">
       <HintPath>gp\QUT.ShiftReduceParser.dll</HintPath>
+    </Reference>
+    <Reference Include="SourceRconLib">
+      <HintPath>lib\SourceRconLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -69,6 +76,7 @@
   <ItemGroup>
     <Compile Include="compiler_Lexer.cs" />
     <Compile Include="compiler_Parser.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TokenValues.cs" />
@@ -81,9 +89,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="CompileROM.lua">
+    <EmbeddedResource Include="CompileROM.lua">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </EmbeddedResource>
     <None Include="compiler.lex" />
     <None Include="compiler.y" />
     <None Include="gp\gplex-input.pdf" />
@@ -98,14 +106,21 @@
     </None>
     <None Include="lib\KopiLua.dll" />
     <None Include="lib\NLua.dll" />
+    <None Include="lib\SourceRconLib.dll" />
+    <None Include="packages.config" />
     <None Include="ROMGen.blueprint.lua" />
     <None Include="ScalarGen.blueprint.lua" />
+    <EmbeddedResource Include="scalarmap.lua">
+      <LogicalName>scalarmap</LogicalName>
+    </EmbeddedResource>
     <None Include="scripts\test.factorio" />
-    <None Include="serpent0272.lua">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="serpent0272.lua">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <LogicalName>serpent</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="FactorioRConV1" />
     <Folder Include="gp" />
     <Folder Include="lib" />
     <Folder Include="scripts" />
