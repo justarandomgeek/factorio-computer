@@ -12,24 +12,11 @@ do local script=true
   local srsignal = {name = "signal-grey",type = "virtual"}
 
   local map={
-    --[[There's no current way to get these automatically. RSeding said he'd add it though! ]]
-    {name='signal-1',type='virtual'},{name='signal-2',type='virtual'},{name='signal-3',type='virtual'},
-    {name='signal-4',type='virtual'},{name='signal-5',type='virtual'},{name='signal-6',type='virtual'},
-    {name='signal-7',type='virtual'},{name='signal-8',type='virtual'},{name='signal-9',type='virtual'},
-    {name='signal-0',type='virtual'},{name='signal-A',type='virtual'},{name='signal-B',type='virtual'},
-    {name='signal-C',type='virtual'},{name='signal-D',type='virtual'},{name='signal-E',type='virtual'},
-    {name='signal-F',type='virtual'},{name='signal-G',type='virtual'},{name='signal-H',type='virtual'},
-    {name='signal-I',type='virtual'},{name='signal-J',type='virtual'},{name='signal-K',type='virtual'},
-    {name='signal-L',type='virtual'},{name='signal-M',type='virtual'},{name='signal-N',type='virtual'},
-    {name='signal-O',type='virtual'},{name='signal-P',type='virtual'},{name='signal-Q',type='virtual'},
-    {name='signal-R',type='virtual'},{name='signal-S',type='virtual'},{name='signal-T',type='virtual'},
-    {name='signal-U',type='virtual'},{name='signal-V',type='virtual'},{name='signal-W',type='virtual'},
-    {name='signal-X',type='virtual'},{name='signal-Y',type='virtual'},{name='signal-Z',type='virtual'},
-    {name='signal-red',type='virtual'},{name='signal-green',type='virtual'},{name='signal-blue',type='virtual'},
-    {name='signal-yellow',type='virtual'},{name='signal-pink',type='virtual'},{name='signal-cyan',type='virtual'},
-    {name='signal-white',type='virtual'},{name='signal-grey',type='virtual'},{name='signal-each',type='virtual'}
+    --[[signal-each stands in for "sum of all signals"]]
+    {name='signal-each',type='virtual'}
   }
 
+  for _,v in pairs(game.virtual_signal_prototypes) do if not v.special then table.insert(map,{name=v.name,type="virtual"}) end end
   for _,f in pairs(game.fluid_prototypes) do table.insert(map,{name=f.name,type="fluid"}) end
   for _,i in pairs(game.item_prototypes)  do if not i.has_flag("hidden") then table.insert(map,{name=i.name,type="item"}) end end
 
