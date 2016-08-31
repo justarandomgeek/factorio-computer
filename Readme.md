@@ -5,8 +5,10 @@
 `compiler.*`: A compiler (in C# and Lua) that transforms source files into blueprint strings for a strips of constant combinators configured as a ROM.
 
 
-[![Image](http://static.justarandomgeek.com/factorio/screenshot+2016+07+15_800.png)
-(Click to embiggen)](http://static.justarandomgeek.com/factorio/screenshot+2016+07+15.png)
+![Image](screenshot_30924151.png)
+![Image](screenshot_30933153.png)
+
+
 
 ## Machine Structure
 
