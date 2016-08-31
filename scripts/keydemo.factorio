@@ -31,7 +31,7 @@ rjmp checkcolor // =
 rjmp keyloop // <
 rNixie.signal-grey=1 // >
 r3=rNull
-r4.signal-grey+=r4.signal-grey
+r4.signal-grey=1
 rjmp keyloop
 
 checkcolor:
@@ -39,7 +39,7 @@ checkcolor:
 r2.signal-grey =r1.signal-red+r1.signal-green
 r2.signal-grey+=r1.signal-blue+r1.signal-cyan
 r2.signal-grey+=r1.signal-pink+r1.signal-yellow
-branch r1.signal-grey
+branch r2.signal-grey
 rjmp checkletter // =
 rjmp keyloop // <
 r3+=r1 // >
