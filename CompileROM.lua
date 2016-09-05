@@ -1,18 +1,14 @@
-local serpent = require "serpent0272"
-
 -- This file is called by compiler.exe to generate a ROM.
 -- Globals:
 -- parser - the parser instance
---   .programData - Dictionary<int,DataList>
+--   .programData - List<DataList>
+--   .programData.symbols - Dictionary<int,DataList>
 --   :mapChar(c) - converts a character to a SignalSpec
---   :PrintCompressed(s) - Prints a string to the console gzipped and base64'd.
---      Use with serpent to produce blueprints.
-
+-- serpent - the included serpent library
 
 local addrsignal ={name="signal-black",type="virtual"}
 local dir = 4
 
--- globals: name romdata<int,DataList<SignalSpec,AddrSpec>>
 
 local romsites = {}
 
@@ -21,23 +17,29 @@ local romsites = {}
 -- a single ROM location.
 
 --TODO: make pairs() work nicely on IEnumerable to make this cleaner? or proper Lua types...
+local addr = parser.programData.Offset
 local enumerator = parser.programData:GetEnumerator()
 while enumerator:MoveNext() do
-  local addr = enumerator.Current.Key
-
   local i = 1
   local d = {}
   table.insert(d,{index=i,count=-addr,signal=addrsignal})
 
-  local dataen = enumerator.Current.Value:GetEnumerator()
+  local dataen = enumerator.Current:GetEnumerator()
   while dataen:MoveNext() do
     local signal = dataen.Current.Key
     local val = dataen.Current.Value
     i=i+1
-    table.insert(d,{index=i,count=val:resolve(addr),signal={name=signal.signal,type=signal.type}})
+    table.insert(d,
+      {
+        index=i,
+        count=val:resolve(addr,parser.programData.symbols),
+        signal={name=signal.signal,type=signal.type}
+      })
   end
   table.insert(romsites,d)
+  addr=addr+1
 end
+
 
 local entities = {}
 local count = 1
@@ -195,17 +197,19 @@ parser:returnBlueprint(
     icons={{index=1, signal={type="item",name="constant-combinator"}}}
   }))
 
+
 entities = {}
 count = 1
 -- Generate address table sign array
+
 local prevsign
 ypos = 0
-local mapenum = map:GetEnumerator()
+local mapenum = parser.programData.symbols:GetEnumerator()
 while mapenum:MoveNext() do
-  local label = mapenum.Current.Key
+  local symbol = mapenum.Current.Key
   local addr = mapenum.Current.Value
 
-  local thissign = string.upper(string.format("%4d %s", addr, label))
+  local thissign = string.upper(string.format("%4d %s", addr, symbol.name))
   if prevsign then
     sign({x=0,y=ypos},prevsign,thissign)
     ypos=ypos+1
@@ -218,7 +222,6 @@ if prevsign then
   sign({x=0,y=ypos},prevsign,"@@")
 end
 
-
 parser:returnBlueprint(
   parser.Name .. " Addr Table",
   serpent.dump(
@@ -227,3 +230,5 @@ parser:returnBlueprint(
     entities=entities,
     icons={{index=1, signal={type="item",name="constant-combinator"}}}
   }))
+
+  -- ]]

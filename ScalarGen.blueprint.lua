@@ -16,7 +16,7 @@ do local script=true
     {name='signal-each',type='virtual'}
   }
 
-  for _,v in pairs(game.virtual_signal_prototypes) do if not v.special then table.insert(map,{name=v.name,type="virtual"}) end end
+  for _,v in pairs(game.virtual_signal_prototypes) do if (not v.special) and v.name~="signal-black" then table.insert(map,{name=v.name,type="virtual"}) end end
   for _,f in pairs(game.fluid_prototypes) do table.insert(map,{name=f.name,type="fluid"}) end
   for _,i in pairs(game.item_prototypes)  do if not i.has_flag("hidden") then table.insert(map,{name=i.name,type="item"}) end end
 
@@ -183,7 +183,7 @@ do local script=true
     end
   end
 
-  game.write_file("scalarmap.lua", serpent.dump(siglist), false)
+  game.write_file("scalarmap.lua", "return " .. serpent.block(siglist), false)
 
   --[[ Assemble and return blueprint ]]
   local blueprintData = {

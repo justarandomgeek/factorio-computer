@@ -1,144 +1,80 @@
-﻿"TEST PROGRAM"
-
-2001@
-begin:
-
-// Chear Display
-rNixie.signal-grey = 1
-rNixie.signal-grey = 1
-rNixie.signal-grey = 1
-rNixie.signal-grey = 1
-rNixie.signal-grey = 1
-
+﻿program "TEST PROGRAM"
+rIndex.signal-red = 50
+call CLRDISP
 // Print helloworld
 rNixie = [helloworld]
 
-// Print a color demo
-rNixie.signal-grey = 1
-r1.signal-grey = colors
-rNixie = [r1.signal-grey]
-r1.signal-grey+=1
-rNixie.signal-grey = 1
-rNixie = [r1.signal-grey]
-r1.signal-grey+=1
-rNixie.signal-grey = 1
-rNixie = [r1.signal-grey]
-r1.signal-grey+=1
-call delay
-
-
-rNixie.signal-grey = 1
-rNixie.signal-grey = 1
-rNixie.signal-grey = 1
-rNixie.signal-grey = 1
-rNixie.signal-grey = 1
-
-mathdemo:
-// nn FACTORIAL
-// nn SQUARE
-// ii NUMBER
-r1.signal-white = 1
-r1+=[number]
-r3.signal-white = 1
-
-mathdemoloop:
-[nixie]=r1
-
-r2.signal-white = r1.signal-white * r1.signal-white
-r2+=[square]
-[nixie1]=r2
-
-r3.signal-white = r3.signal-white * r1.signal-white
-r3+=[factorialstr]
-[nixie2]=r3
-
-r1.signal-white += 1
-branch r1.signal-white 10
-rjmp mathdemoloop
-rjmp mathdemoloop
+call COLORDEMO
+call CLRDISP
+call MATHDEMO
 {}
 
+helloworld: "HELLO WORLD"
 
-// TODO: Do something interesting with wireless?
-// TODO: Print station contents
-
-{}
-keydemo:
-r3=rNull
-r4.signal-grey = 1
-
-keyloop:
-// read last key, clear buffer for next
-r1=r17
-
-// if no key was pressed, loop back to read again
-branch r1.signal-each
-rjmp keyloop
-rjmp keyloop
-
-// clear the recieved key
-r17.signal-grey=1
-
-//TODO: if grey, shift rows
-branch r1.signal-grey
-rjmp checkcolor // =
-rjmp keyloop // <
-rNixie.signal-grey=1 // >
-rjmp keyloop
+function CLRDISP:
+  // Chear Display
+  rNixie.signal-grey = 1
+  rNixie.signal-grey = 1
+  rNixie.signal-grey = 1
+  rNixie.signal-grey = 1
+  rNixie.signal-grey = 1
+end
 
 
-checkcolor:
-//TODO: if color, add to register and loop
-r2.signal-grey =r1.signal-red+r1.signal-green
-r2.signal-grey+=r1.signal-blue+r1.signal-cyan
-r2.signal-grey+=r1.signal-pink+r1.signal-yellow
-branch r1.signal-grey
-rjmp checkletter // =
-rjmp keyloop // <
-r3+=r1 // >
-rjmp keyloop
-
-checkletter:
-//else, shift rNixie and add
-branch r1.signal-each
-rjmp keyloop
-rjmp keyloop
-r3+=r1
-r3 = r3*r4.signal-grey
-rNixie=r3
-r3=rNull
-r4.signal-grey+=r4.signal-grey
-rjmp keyloop
-
-{}
-
-
-delay:
-r9.signal-0 = 3
-wait:
-branch r9.signal-0 0
-jump rStat.signal-green
-r9.signal-0 += r9.signal-0 * -1
-r9.signal-0 += -1
-rjmp wait
-
-// Data section at end of program
-helloworld: %"HELLO WORLD"
-colors:     { .signal-red=1 .signal-green=2 .signal-blue=4
+function COLORDEMO:
+  // Print a color demo
+  rIndex.signal-green += colors
+  rNixie.signal-grey = 1
+  pop 2 rNixie
+  rNixie.signal-grey = 1
+  pop 2 rNixie
+  rNixie.signal-grey = 1
+  pop 2 rNixie
+  return
+  colors:   { .signal-red=1 .signal-green=2 .signal-blue=4
               .signal-cyan=8 .signal-pink=16 .signal-yellow=32
-            }&%"COLORS"
+            }&"COLORS"
             {.signal-red=7 .signal-green=496 .signal-blue=61440
-            }&%"RED GREEN   BLUE"
+            }&"RED GREEN   BLUE"
             {.signal-cyan=15 .signal-pink=480 .signal-yellow=258048
-            }&%"CYAN PINK   YELLOW"
-number:     %"NUMBER"
-square:     %"SQUARE"
-factorialstr:  %"FACTORIAL"
+            }&"CYAN PINK   YELLOW"
+end
+
+
+function MATHDEMO:
+  // nn FACTORIAL
+  // nn SQUARE
+  // ii NUMBER
+  r1.signal-white = 1
+  r1+=[number]
+  r3.signal-white = 1
+
+  while r1.signal-white < 11 //TODO: convert this to do/while?
+    [500]=r1
+
+    r2.signal-white = r1.signal-white * r1.signal-white
+    r2+=[square]
+    [501]=r2
+
+    r3.signal-white = r3.signal-white * r1.signal-white
+    r3+=[factorialstr]
+    [502]=r3
+
+    r1.signal-white += 1
+  end
+  return
+
+  number:        "NUMBER"
+  square:        "SQUARE"
+  factorialstr:  "FACTORIAL"
+end
+
 
 // External devices
 // nixies - [500] is rNixie, succesive lines above
-nixie:500@extern
-nixie1:extern
-nixie2:extern
-nixie3:extern
-nixie4:extern
+//nixie:500@extern
+//nixie1:extern
+//nixie2:extern
+//nixie3:extern
+//nixie4:extern
+// */

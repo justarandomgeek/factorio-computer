@@ -40,24 +40,23 @@ namespace compiler
 					{
 						parser.Parse(reader.ReadToEnd());
 						Console.WriteLine("Program Name: {0}", parser.Name);
+						parser.programData.Relocate(1001);
 			            parser.PrintAddrMap();
+			            parser.PrintListing();
 			            parser.MakeROM();
+			            
 					}
-		
 	            }
-	            
 			}
-
-			
 		}
-		
 	}
 
 	partial class Parser
     {
         new Scanner Scanner { get { return (Scanner)base.Scanner; } set { base.Scanner = value; } }
 
-        public Dictionary<int,DataList> programData = new Dictionary<int, DataList>();
+        public StatementList programData;
+        public string Name {get; private set;}
         
         Lua lua = new Lua();
         
@@ -84,11 +83,18 @@ namespace compiler
 
         public void PrintAddrMap(){
         	Console.WriteLine("Labels:");
-        	foreach (var label in AddrSpec.map) {
-        		Console.WriteLine("{0}: {1}@",label.Key,label.Value);
+        	foreach (var sym in programData.symbols) {
+        		Console.WriteLine(sym);
         	}
         	Console.WriteLine("");
 
+        }
+        
+        public void PrintListing()
+        {
+        	for (int i = 0; i < programData.Count; i++) {
+        		Console.WriteLine("{0}:\t{1}",i+programData.Offset,programData[i]);        			
+        	}
         }
 
       
@@ -127,6 +133,7 @@ namespace compiler
         	var options = Options.Current;
         	if(options.rconplayer != null)
         	{
+        		//TODO: rework this for updated Foreman API.
         		var rcon = new Rcon();
         		var rconhost = new System.Net.IPEndPoint(
 	        		System.Net.Dns.GetHostEntry(options.rconhost).AddressList[0],
@@ -146,7 +153,6 @@ namespace compiler
         public void MakeROM()
         {
 			Console.WriteLine("Compiling ROM:");
-			lua["map"]=AddrSpec.map;
 			lua["parser"]=this;
 			
 			var compileROM = lua.LoadFile("compileROM.lua");
@@ -168,53 +174,6 @@ namespace compiler
             this.Parse();
         }
 
-        public string Name {get; private set;}
-		int nextAddr=1;
-		List<string> nextLabels = new List<string>();
-
-
-		void Add(string s)
-		{
-			Add(s,new DataList());
-		}
-
-		void Add(string s, DataList dl)
-		{
-			foreach (char c in s) {
-				DataList cdat = new DataList(c,1);
-				foreach (var element in dl) {
-				  cdat.Add(element.Key,element.Value);
-				}
-				Add(cdat);
-			}
-		}
-
-
-
-		void Add(DataList d)
-		{
-			programData.Add(nextAddr,d);
-			AddExtern();
-		}
-
-		void AddExtern()
-		{
-			foreach (var label in nextLabels) {
-				AddrSpec.map.Add(label,nextAddr);
-			}
-			nextLabels.Clear();
-			nextAddr++;
-		}
-
-		void AddLabel(string s)
-		{
-			nextLabels.Add(s);
-		}
-
-		void SetNext(int i)
-		{
-			nextAddr = i;
-		}
 
     }
 

@@ -21,7 +21,9 @@ whitespace [ \n\r\t]+
 
 <*> {whitespace};       /* ignore whitespace between tokens */
 
-<PROGRAM> "extern"        {return (int)Tokens.EXTERN;}
+<PROGRAM> "program"   {return (int)Tokens.PROGRAM;}
+<PROGRAM> "function"  {return (int)Tokens.FUNCTION;}
+<PROGRAM> "extern"    {return (int)Tokens.EXTERN;}
 
 <PROGRAM> "jump"|"jmp"    {return (int)Tokens.JUMP;}
 <PROGRAM> "rjump"|"rjmp"  {return (int)Tokens.RJUMP;}
@@ -31,8 +33,19 @@ whitespace [ \n\r\t]+
 <PROGRAM> "branch"        {return (int)Tokens.BRANCH;}
 <PROGRAM> "branchcall"    {return (int)Tokens.BRANCHCALL;}
 
+<PROGRAM> "do"        {return (int)Tokens.DO;}
+<PROGRAM> "while"     {return (int)Tokens.WHILE;}
+<PROGRAM> "if"        {return (int)Tokens.IF;}
+<PROGRAM> "else"      {return (int)Tokens.ELSE;}
+<PROGRAM> "end"       {return (int)Tokens.END;}
+
+<PROGRAM> "exec"       {return (int)Tokens.EXEC;}
+
+<PROGRAM> "push"       {return (int)Tokens.PUSH;}
+<PROGRAM> "pop"       {return (int)Tokens.POP;}
+<PROGRAM> "return"       {return (int)Tokens.RETURN;}
+
 <PROGRAM> "wire"        {return (int)Tokens.WIRE;}
-<PROGRAM> "memcpy"        {return (int)Tokens.MEMCPY;}
 
 <PROGRAM> "?1" {yylval.bVal = true; return (int)Tokens.COND;}
 <PROGRAM> "?=" {yylval.bVal = false;  return (int)Tokens.COND;}
@@ -59,7 +72,7 @@ whitespace [ \n\r\t]+
 <PROGRAM> "%"  {return (int)'%';}
 
 
-<PROGRAM> "r"("Null"|[0-9]+|"Red"|"Green"|"Stat"|"Op"|"Nixie") {
+<PROGRAM> "r"("Null"|[0-9]+|"Red"|"Green"|"Stat"|"Op"|"Nixie"|"Index"|"Wireless"[TR]"X") {
 	if(!Enum.TryParse<RegSpec>(yytext,out yylval.regVal))
 	{
 		yylval.regVal=(RegSpec)int.Parse(yytext.TrimStart('r'));
@@ -82,14 +95,8 @@ whitespace [ \n\r\t]+
 	return (int)Tokens.LABEL;
 }
 
-<PROGRAM> {identifier}\+{digit}+ {
-	var s = yytext.Split('+');
-	yylval.addrVal = new AddrSpec{ identifier=s[0], identifierOffset=Int32.Parse(s[1]) };
-	return (int)Tokens.IDENT;
-}
-
 <PROGRAM> {identifier} {
-	yylval.addrVal = new AddrSpec{identifier=yytext};
+	yylval.sVal = yytext;
 	return (int)Tokens.IDENT;
 }
 
