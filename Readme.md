@@ -89,6 +89,10 @@ Stack 1 is used as the call stack, and `r8` is used in saving/restoring the call
 Registers `r1-r4` must be preserved by the callee. Registers `r5-r8` may be used freely.
 Stack 2 must be preserved by the callee, Stacks 3-4 may be used freely.
 
+Call arguments and return values are passed in `r5-r8`, starting with `r5`.
+Pointer arguments and return values are passed in rIndex stacks 3, then 4.
+If more than three frames of data are needed, it may be spilled to the call stack, or to RAM and indicated with a pointer.
+
 ### Operations
 The following signals are used to select registers and signals:
 
@@ -174,7 +178,7 @@ Retrieve a frame to one of the stacks in rIndex. Stacks are selected as describe
 * rIndex.stack++
 
 
-#### 85:
+#### 85: (not currently implemented)
 Store a frame to an array in one of the index pointers. Arrays are selected as described for Push. R1 must also be set to rIndex.
 
 * R2 -> [rIndex.stack++]
