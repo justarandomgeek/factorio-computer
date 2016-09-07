@@ -70,10 +70,10 @@ Registers store an entire circuit network frame, except `signal-black`. `signal-
 
 | ID | Name | Purpose |
 |----|------|---------|
-|0|`rNull`|No Register selected|
-|1-7|`r1`-`r7`| General Purpose data registers|
-|8|`r8`| Scratch register for compiler usage. Identical to 1-7 functionally.|
-|9|`rIndex`| Indexing regiser. Support auto-indexing memory operations.|
+|0|`rNull`|No Register selected. Returns 0 on every signal.|
+|1-4|`r1`-`r4`| General Purpose data registers. Callee saved. |
+|5-8|`r5`-`r8`| General Purpose data registers. Callee scratch regisers. |
+|9|`rIndex`| Indexing regiser. Supports auto-indexing memory operations.|
 |10|`rRed`| IO Wire Red data since list transmitted|
 |11|`rGreen`| IO Wire Green data since last transmitted|
 |12|`rStat`| CPU Status register <ul><li>`signal-blue`: PC</li><li>`signal-green`: last call's return site</li></ul>|
@@ -83,6 +83,11 @@ Registers store an entire circuit network frame, except `signal-black`. `signal-
 |17|`rKeyboard`| Keyboard interface. Reads a single buffered key. Clear buffer with `signal-grey`.
 |18+| `r18`-... | IO Expansion ports<br>Aditional devices may be connected to these registers
 
+#### Calling Conventions
+
+Stack 1 is used as the call stack, and `r8` is used in saving/restoring the callsite.
+Registers `r1-r4` must be preserved by the callee. Registers `r5-r8` may be used freely.
+Stack 2 must be preserved by the callee, Stacks 3-4 may be used freely.
 
 ### Operations
 The following signals are used to select registers and signals:
@@ -151,12 +156,12 @@ Read the memory location or memory-mapped device selected by R1.s1 into Rd.
 #### 83: Push
 Store a frame to one of the stacks in rIndex. Stacks are selected by `signal-S`, but have a different mapping from usual signals. R1 must also be set to rIndex.
 
-|  S  |Signal|
-|-----|------|
-|  1  |`signal-red`|
-|  2  |`signal-green`|
-|  3  |`signal-blue`|
-|  4  |`signal-red`|
+|  S  |Signal        | Usage      |
+|-----|--------------|------------|
+|  1  |`signal-red`  | Call Stack |
+|  2  |`signal-green`| Callee Preserved |
+|  3  |`signal-blue` | Callee argument/scratch |
+|  4  |`signal-red`  | Callee argument/scratch |
 
 * R2 -> [rIndex.stack-1]
 * rIndex.stack--
@@ -168,6 +173,11 @@ Retrieve a frame to one of the stacks in rIndex. Stacks are selected as describe
 * [rIndex.stack] -> Rd
 * rIndex.stack++
 
+
+#### 85:
+Store a frame to an array in one of the index pointers. Arrays are selected as described for Push. R1 must also be set to rIndex.
+
+* R2 -> [rIndex.stack++]
 
 ## IO Devices
 
