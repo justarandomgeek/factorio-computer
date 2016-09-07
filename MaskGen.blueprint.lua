@@ -149,48 +149,47 @@ do local script=true
     table.insert(entities, convertAC(
       {x=xpos,y=ypos}, defines.direction.south,
       {
-        ["1"] = {red = {{entity_id=count-1,circuit_id=2}},
-        ["2"] = {green={mul}}
-      }},
+        [1] = {red = {{entity_id=count-1,circuit_id=2}}},
+        [2] = {green={mul}}
+      },
       rdsignal,signal))
     ypos=ypos+2
 
     local addAC = convertAC(
       {x=xpos,y=ypos}, defines.direction.south,
       {["1"] = {red = {
-        {entity_id=count-1,circuit_id=2},
-        {entity_id=count-2,circuit_id=2},
+        {entity_id=count-2,circuit_id=1},
       }}},
       r1signal,rdsignal)
     addAC.control_behavior.arithmetic_conditions.second_signal=r2signal
     table.insert(entities,addAC)
     ypos=ypos+2
 
-    local newmul={entity_id=count,circuit_id=2}
+    local newadd={entity_id=count,circuit_id=2}
     table.insert(entities, convertAC(
       {x=xpos,y=ypos}, defines.direction.south,
       {
-        ["1"] = {red = {{entity_id=count-1,circuit_id=2}},
-        ["2"] = {green={mul}}
-      }},
+        ["1"] = {red = {{entity_id=count-1,circuit_id=2}}},
+        ["2"] = {green={add}}
+      },
       rdsignal,signal))
     ypos=ypos+2
 
     return newr1,newr2,newmul,newadd
   end
 
-  local buspoles,r1,r2,mul,add = bus({x=0,y=0})
+  local buspoles,lastr1,lastr2,lastmul,lastadd = bus({x=0,y=0})
 
   local sigcount = 1
   local pos = {x=6,y=-1.5}
   for _,signal in pairs(map) do
-    r1,r2,mul,add = doSig(pos,r1,r2,mul,add,signal)
+    lastr1,lastr2,lastmul,lastadd = doSig(pos,lastr1,lastr2,lastmul,lastadd,signal)
     sigcount = sigcount + 1
     pos.x = pos.x + 1
     if sigcount % 100 == 0 then
       pos.x = 6
       pos.y = pos.y + 14
-      buspoles,r1,r2,mul,add = bus({x=0,y=pos.y+1.5},buspoles)
+      buspoles,lastr1,lastr2,lastmul,lastadd = bus({x=0,y=pos.y+1.5},buspoles)
     end
   end
   --[[ Assemble and return blueprint ]]

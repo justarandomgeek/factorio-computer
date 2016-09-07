@@ -39,14 +39,14 @@ namespace compiler
 					case 61:
 						return string.Format("VMUL {0} {1} => {2}",
 						                     this.R1.GetValueOrDefault(),
-						                     this.R1.GetValueOrDefault(),
-						                     this.R1.GetValueOrDefault()
+						                     this.R2.GetValueOrDefault(),
+						                     this.RD.GetValueOrDefault()
 						                     );
 					case 62:
 						return string.Format("VADD {0} {1} => {2}",
 						                     this.R1.GetValueOrDefault(),
-						                     this.R1.GetValueOrDefault(),
-						                     this.R1.GetValueOrDefault()
+						                     this.R2.GetValueOrDefault(),
+						                     this.RD.GetValueOrDefault()
 						                     );
 					case 70:
 						return string.Format("{0}{1} {2} | {3}", 

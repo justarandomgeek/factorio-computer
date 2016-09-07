@@ -43,16 +43,37 @@ function READLINE:
   r3.signal-grey = 1
   call READKEY
   while r4.signal-grey == 0
-    r5.signal-grey = r4.signal-red+r4.signal-green
-    r5.signal-grey+=r4.signal-blue+r4.signal-cyan
-    r5.signal-grey+=r4.signal-pink+r4.signal-yellow
     rNixie=r4*r3.signal-grey
-    if r5.signal-grey == 0
+    r5=[colormask]
+    r4 = r4*r8
+    if r4.signal-each == 0
       r3.signal-grey+=r3.signal-grey
     end
     call READKEY
   end
   pop 1 r3
+  return
+  colormask: { .signal-red=1  .signal-green=1 .signal-blue=1
+               .signal-cyan=1 .signal-pink=1  .signal-yellow=1
+            }
+end
+
+function READINT:
+  call READKEY
+  while r4.signal-grey == 0
+    r5.signal-grey = r4.signal-0+r4.signal-1
+    r5.signal-grey+= r4.signal-2+r4.signal-3
+    r5.signal-grey+= r4.signal-4+r4.signal-5
+    r5.signal-grey+= r4.signal-6+r4.signal-7
+    r5.signal-grey+= r4.signal-8+r4.signal-9
+
+    if r5.signal-grey == 1
+      rNixie.signal-white=rNixie.signal-white*9
+      rNixie.signal-white=r5.signal-grey
+    end
+    call READKEY
+  end
+  r4.signal-white=rNixie.signal-white
 end
 
 function KEYDEMO:
