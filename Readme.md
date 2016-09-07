@@ -117,23 +117,20 @@ The ALU performs every possible operation in parallel, and returns the requested
 
 Add one value from each cell of a column to form an instruction.
 
-#### 70-79 Control Flow
-* 70: `jump`
-* 71: `branch`
+#### 70: Jump
+Jump to R1.s1 if `signal-green`=0 or PC+R1.s1 if `signal-green`=1. Return PC+1 to Rd.Sd.
 
-Both instructions return PC+1 to Rd.sd, if selected.
+#### 71: Branch
 
-`jump` will jump to R1.s1 if `signal-green`=0 or PC+R1.s1 if `signal-green`=1
-
-`branch` compares R1.s1 to R2.s2, and makes the following jumps:
+Returns PC+1 to Rd.sd. Compares R1.s1 to R2.s2, and makes the following jumps:
 
 * `=` PC+rOp.1
 * `<` PC+rOp.2
 * `>` PC+rOp.3
 
-* 72: `exec`
+#### 72: Exec
 
-`exec` will execute the contents of R1 as an instruction, as if it were at this PC value.
+Execute the contents of R1 as an instruction, at the current PC value.
 
 #### 80: Wire
 Write a packet to a two-wire network, and clear the receive registers for a response. To leave either wire untouched, select `rNull` for it. `rRed` and `rGreen` are cleared on the same frame the selected signals are transmitted. Write `rNull` to both wires to clear the receive buffer without transmitting anything.
