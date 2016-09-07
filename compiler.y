@@ -101,6 +101,7 @@ vexpr: COND signalspec COMPARE addrspec     { $$ = DataList.CondOp(false,$1,$2,$
 vexpr: COND signalspec COMPARE signalspec   { $$ = DataList.CondOp(false,$1,$2,$3,$4); };
 vexpr: REGISTER ARITH   addrspec            { $$ = DataList.ArithOp($1,$2,$3);};
 vexpr: REGISTER ARITH   signalspec          { $$ = DataList.ArithOp($1,$2,$3);};
+vexpr: REGISTER ARITH   REGISTER            { $$ = DataList.ArithOp($1,$2,$3);};
 vexpr: REGISTER                             { $$ = DataList.ArithOp($1,ArithSpec.Add,0);};
 vexpr: '[' signalspec ']'					{ $$ = DataList.ReadMemory($2); };
 vexpr: '[' addrspec   ']'					{ $$ = DataList.ReadMemory($2); };

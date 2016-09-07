@@ -36,6 +36,18 @@ namespace compiler
 				}
 				
 				switch (op) {
+					case 61:
+						return string.Format("VMUL {0} {1} => {2}",
+						                     this.R1.GetValueOrDefault(),
+						                     this.R1.GetValueOrDefault(),
+						                     this.R1.GetValueOrDefault()
+						                     );
+					case 62:
+						return string.Format("VADD {0} {1} => {2}",
+						                     this.R1.GetValueOrDefault(),
+						                     this.R1.GetValueOrDefault(),
+						                     this.R1.GetValueOrDefault()
+						                     );
 					case 70:
 						return string.Format("{0}{1} {2} | {3}", 
 						                     i2.addr==1?"R":"",
@@ -180,6 +192,21 @@ namespace compiler
 			dl.Imm2 = Imm2;
 			return dl;
 		}
+		public static DataList ArithOp(RegSpec R1, ArithSpec Op, RegSpec R2){
+			var dl = new DataList();
+			switch (Op) {
+				case ArithSpec.Multiply:
+					dl.Op=61;
+					break;
+				case ArithSpec.Add:
+					dl.Op=62;
+					break;
+			}
+			dl.R1 = R1;
+			dl.R2 = R2;
+			return dl;
+		}
+		
 		
 		public DataList AssignOp(RegSpec RD, bool Append)
 		{

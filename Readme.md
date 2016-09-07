@@ -126,6 +126,12 @@ The ALU performs every possible operation in parallel, and returns the requested
 
 Add one value from each cell of a column to form an instruction.
 
+#### 61: Pairwise Vector Multiply
+R1.each * R2.each pairwise => Rd
+
+#### 62: Pairwise Vector Add
+R1.each + R2.each pairwise => Rd
+
 #### 70: Jump
 Jump to R1.s1 if `signal-green`=0 or PC+R1.s1 if `signal-green`=1. Return PC+1 to Rd.Sd.
 
