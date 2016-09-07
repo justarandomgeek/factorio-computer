@@ -72,7 +72,7 @@ whitespace [ \n\r\t]+
 <PROGRAM> "%"  {return (int)'%';}
 
 
-<PROGRAM> "r"("Null"|[0-9]+|"Red"|"Green"|"Stat"|"Op"|"Nixie"|"Index"|"Wireless"[TR]"X") {
+<PROGRAM> "r"("Null"|[0-9]+|"Red"|"Green"|"Stat"|"Op"|"Nixie"|"Index"|"Flan"[TR]"X"|"Keyboard") {
 	if(!Enum.TryParse<RegSpec>(yytext,out yylval.regVal))
 	{
 		yylval.regVal=(RegSpec)int.Parse(yytext.TrimStart('r'));
