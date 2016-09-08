@@ -1,0 +1,18 @@
+﻿program "LIST SIGNALS"
+//r4 = signals to list
+//r5 = seekop, .signal-S == current signal
+//r6 = .signal-white=result of seekop
+r4 = r18 // r18 connected to read a roboport
+r5 = [seekop]
+while r5.signal-S<300
+  exec r5 //r6.signal-white = r4.S
+  if r6.signal-white > 0
+    rNixie.signal-grey=1
+    rNixie.signal-white = r6.signal-white
+    r6.signal-grey += r5.signal-S + 10000
+    rNixie = [r6.signal-grey]
+  end
+  r5.signal-S+=1
+end
+{}
+seekop: {.signal-0=58,.signal-R=4,.signal-S=1,.signal-V=6,.signal-W=44}

@@ -80,6 +80,7 @@ do local script=true
       {x=pos.x+3.5,y=pos.y+4}, defines.direction.east,
       {["1"] = {green = {buspoles[1]}}},
       opsignal,61,addrsignal))
+    entities[#entities].control_behavior.decider_conditions.copy_count_from_input=false
 
     table.insert(entities, filterDC(
       {x=pos.x+3.5,y=pos.y+5}, defines.direction.west,
@@ -98,6 +99,7 @@ do local script=true
       {x=pos.x+3.5,y=pos.y+8}, defines.direction.east,
       {["1"] = {green = {{entity_id = count-3, circuit_id=1}}}},
       opsignal,62,addrsignal))
+    entities[#entities].control_behavior.decider_conditions.copy_count_from_input=false
 
     table.insert(entities, filterDC(
       {x=pos.x+3.5,y=pos.y+9}, defines.direction.west,
