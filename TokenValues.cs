@@ -68,7 +68,7 @@ namespace compiler
 		Internal,
 	}
 	
-	public struct SymbolDef
+	public struct Symbol
 	{
 		public string name;
 		public SymbolType type;
@@ -77,10 +77,10 @@ namespace compiler
 		#region Equals and GetHashCode implementation
 		public override bool Equals(object obj)
 		{
-			return (obj is SymbolDef) && Equals((SymbolDef)obj);
+			return (obj is Symbol) && Equals((Symbol)obj);
 		}
 
-		public bool Equals(SymbolDef other)
+		public bool Equals(Symbol other)
 		{
 			return (this.name == other.name) 
 				&& (this.type == SymbolType.Unspecified || other.type == SymbolType.Unspecified || this.type == other.type);
@@ -91,22 +91,22 @@ namespace compiler
 			return name.GetHashCode();
 		}
 
-		public static bool operator ==(SymbolDef lhs, SymbolDef rhs) {
+		public static bool operator ==(Symbol lhs, Symbol rhs) {
 			return lhs.Equals(rhs);
 		}
 
-		public static bool operator !=(SymbolDef lhs, SymbolDef rhs) {
+		public static bool operator !=(Symbol lhs, Symbol rhs) {
 			return !(lhs == rhs);
 		}
 
 		#endregion
 		
-		public static SymbolDef Block = new SymbolDef{name="__block",type=SymbolType.Internal};
-		public static SymbolDef TrueBlock = new SymbolDef{name="__trueblock",type=SymbolType.Internal};
-		public static SymbolDef FalseBlock = new SymbolDef{name="__falseblock",type=SymbolType.Internal};
-		public static SymbolDef Loop = new SymbolDef{name="__loop",type=SymbolType.Internal};
-		public static SymbolDef End = new SymbolDef{name="__end",type=SymbolType.Internal};
-		public static SymbolDef Return = new SymbolDef{name="__return",type=SymbolType.Internal};
+		public static Symbol Block = new Symbol{name="__block",type=SymbolType.Internal};
+		public static Symbol TrueBlock = new Symbol{name="__trueblock",type=SymbolType.Internal};
+		public static Symbol FalseBlock = new Symbol{name="__falseblock",type=SymbolType.Internal};
+		public static Symbol Loop = new Symbol{name="__loop",type=SymbolType.Internal};
+		public static Symbol End = new Symbol{name="__end",type=SymbolType.Internal};
+		public static Symbol Return = new Symbol{name="__return",type=SymbolType.Internal};
 		
 		public override string ToString()
 		{
@@ -115,41 +115,41 @@ namespace compiler
 
 	}
 	
-	public struct AddrSpec
+	public struct SymbolRef
 	{
 		
-		public int? addr;
-		public SymbolDef identifier;
+		public int? value;
+		public Symbol identifier;
 		public int identifierOffset;
 		public bool relative;
 		
-		public int resolve(int atAddr, Dictionary<SymbolDef,int> symbols)
+		public int resolve(int atAddr, Dictionary<Symbol,int> symbols)
 		{
-			if(addr.HasValue){
-				return this.addr.Value - (relative?atAddr:0);
+			if(value.HasValue){
+				return this.value.Value - (relative?atAddr:0);
 			} else {
 				return symbols[this.identifier] + this.identifierOffset - (relative?atAddr:0);
 			}			
 		}
 		
-		public static implicit operator AddrSpec(int i){ return new AddrSpec{addr=i}; }
-		public static implicit operator AddrSpec(RegSpec r){ return new AddrSpec{addr=(int)r}; }
-		public static implicit operator AddrSpec(string s){ return new AddrSpec{identifier=new SymbolDef{name=s}}; }
-		public static implicit operator AddrSpec(SymbolDef sym){ return new AddrSpec{identifier=sym};}
+		public static implicit operator SymbolRef(int i){ return new SymbolRef{value=i}; }
+		public static implicit operator SymbolRef(RegSpec r){ return new SymbolRef{value=(int)r}; }
+		public static implicit operator SymbolRef(string s){ return new SymbolRef{identifier=new Symbol{name=s}}; }
+		public static implicit operator SymbolRef(Symbol sym){ return new SymbolRef{identifier=sym};}
 		
-		public static AddrSpec operator +(AddrSpec a1, AddrSpec a2)
+		public static SymbolRef operator +(SymbolRef a1, SymbolRef a2)
 		{
-			if (a2.addr.HasValue) return a1 + a1.addr.Value;
-			if (a1.addr.HasValue) return a2 + a1.addr.Value;
+			if (a2.value.HasValue) return a1 + a1.value.Value;
+			if (a1.value.HasValue) return a2 + a1.value.Value;
 			//TODO: handle more cases?
 			throw new ArgumentException(string.Format("Cannot add these AddrSpecs: {0},{1}",a1,a2));
 		}
 		
-		public static AddrSpec operator +(AddrSpec a, int i)
+		public static SymbolRef operator +(SymbolRef a, int i)
 		{
-			if (a.addr.HasValue)
+			if (a.value.HasValue)
 			{
-				a.addr += i;
+				a.value += i;
 			} else {
 				a.identifierOffset+=i;
 			}
@@ -158,8 +158,8 @@ namespace compiler
 		
 		public override string ToString()
 		{
-			if (addr.HasValue) {
-				return string.Format("{0}",addr);
+			if (value.HasValue) {
+				return string.Format("{0}",value);
 			} else if(identifierOffset==0) {
 				return string.Format("{0}",identifier.name);				
 			} else {
@@ -171,10 +171,10 @@ namespace compiler
 	public struct DataItem
 	{
 		public SignalSpec signal;
-		public AddrSpec addr;
+		public SymbolRef addr;
 		
-		public DataItem(char c,AddrSpec addr):this(new SignalSpec(c),addr){}
-		public DataItem(SignalSpec signal, AddrSpec addr)
+		public DataItem(char c,SymbolRef addr):this(new SignalSpec(c),addr){}
+		public DataItem(SignalSpec signal, SymbolRef addr)
 		{
 			this.signal =  signal;
 			this.addr = addr;

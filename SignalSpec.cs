@@ -33,7 +33,7 @@ namespace compiler
 				this.signal = charMap[c].signal;
 			}	
         }
-		public AddrSpec sigval{
+		public SymbolRef sigval{
 			get 
 			{
 				if(signalMap.ContainsKey(this.signal)){

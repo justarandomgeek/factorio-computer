@@ -14,7 +14,7 @@ using System.Text;
 namespace compiler
 {
 	[DebuggerDisplay("{dbgstring}")]
-	public class DataList: Dictionary<SignalSpec,AddrSpec>
+	public class DataList: Dictionary<SignalSpec,SymbolRef>
 	{
 		public DataList():base(){}
 		
@@ -22,7 +22,7 @@ namespace compiler
 		public override string ToString()
 		{
 			if (this.Op.HasValue) {
-				int op = this.Op.Value.addr.GetValueOrDefault();
+				int op = this.Op.Value.value.GetValueOrDefault();
 				string r1s1 = string.Format("{0}.{1}",this.R1.GetValueOrDefault(),this.S1.GetValueOrDefault());
 				string r2s2 = string.Format("{0}.{1}",this.R2.GetValueOrDefault(),this.S2.GetValueOrDefault());
 				string rdsd = string.Format("{0}.{1}",this.RD.GetValueOrDefault(),this.SD.GetValueOrDefault());
@@ -50,7 +50,7 @@ namespace compiler
 						                     );
 					case 70:
 						return string.Format("{0}{1} {2} | {3}", 
-						                     i2.addr==1?"R":"",
+						                     i2.value==1?"R":"",
 						                     rdsd=="."?"JUMP":"CALL",
 						                     r1s1,
 						                     i1
@@ -103,7 +103,7 @@ namespace compiler
 		
 		public DataList(DataItem data){this.Add(data);}
 		public static implicit operator DataList(DataItem data){return new DataList(data);}
-		public DataList(char c,AddrSpec addr):this(new DataItem(c,addr)){}
+		public DataList(char c,SymbolRef addr):this(new DataItem(c,addr)){}
 		
 		public void Add(DataItem data)
 		{
@@ -145,7 +145,7 @@ namespace compiler
 
 			return dl;
 		}
-		public static DataList CondOp(bool sOut, bool flags, SignalSpec S1, CompSpec comp, AddrSpec Imm2)
+		public static DataList CondOp(bool sOut, bool flags, SignalSpec S1, CompSpec comp, SymbolRef Imm2)
 		{
 			var dl = CondOp(sOut,flags,S1,comp,SignalSpec.Imm2);
 			dl.Imm2=Imm2;
@@ -161,7 +161,7 @@ namespace compiler
 			return dl;
 			
 		}
-		public static DataList ArithOp(RegSpec R1, ArithSpec Op, AddrSpec Imm2)
+		public static DataList ArithOp(RegSpec R1, ArithSpec Op, SymbolRef Imm2)
 		{
 			var dl = ArithOp(R1,Op,new SignalSpec(RegSpec.rOp,InternalSignals.imm2));
 			dl.Imm2 = Imm2;
@@ -176,13 +176,13 @@ namespace compiler
 			dl.S2 = S2.sigval;
 			return dl;
 		}
-		public static DataList ArithOp(SignalSpec S1, ArithSpec Op, AddrSpec Imm2)
+		public static DataList ArithOp(SignalSpec S1, ArithSpec Op, SymbolRef Imm2)
 		{
 			var dl = ArithOp(S1,Op,new SignalSpec(RegSpec.rOp,InternalSignals.imm2));
 			dl.Imm2 = Imm2;
 			return dl;
 		}
-		public static DataList ArithOp(AddrSpec Imm1, ArithSpec Op, AddrSpec Imm2)
+		public static DataList ArithOp(SymbolRef Imm1, ArithSpec Op, SymbolRef Imm2)
 		{
 			var dl = ArithOp(
 				new SignalSpec(RegSpec.rOp,InternalSignals.imm1),
@@ -243,7 +243,7 @@ namespace compiler
 			dl.R2 = R2;
 			return dl;
 		}
-		public static DataList WriteMemory(AddrSpec Imm1, RegSpec R2)
+		public static DataList WriteMemory(SymbolRef Imm1, RegSpec R2)
 		{
 			var dl = WriteMemory(new SignalSpec(RegSpec.rOp,InternalSignals.imm1),R2);
 			dl.Imm1 = Imm1;
@@ -258,7 +258,7 @@ namespace compiler
 			dl.S1 = S1.sigval;
 			return dl;			
 		}
-		public static DataList ReadMemory(AddrSpec Imm1)
+		public static DataList ReadMemory(SymbolRef Imm1)
 		{
 			var dl = ReadMemory(new SignalSpec(RegSpec.rOp,InternalSignals.imm1));
 			dl.Imm1 = Imm1;
@@ -298,7 +298,7 @@ namespace compiler
 			}
 			return dl;
 		}		
-		public static DataList Jump(AddrSpec Imm1, bool relative,bool call)
+		public static DataList Jump(SymbolRef Imm1, bool relative,bool call)
 		{
 			var dl = Jump(new SignalSpec(RegSpec.rOp,InternalSignals.imm1),relative,call);
 			Imm1.relative=relative;
@@ -315,13 +315,13 @@ namespace compiler
 			dl.S2=S2.sigval;
 			return dl;
 		}
-		public static DataList BranchCond(SignalSpec S1, AddrSpec Imm2)
+		public static DataList BranchCond(SignalSpec S1, SymbolRef Imm2)
 		{
 			var dl = BranchCond(S1,SignalSpec.Imm2);
 			dl.Imm2=Imm2;
 			return dl;
 		}
-		public static DataList Branch(DataList br, AddrSpec eq, AddrSpec lt, AddrSpec gt, bool call)
+		public static DataList Branch(DataList br, SymbolRef eq, SymbolRef lt, SymbolRef gt, bool call)
 		{
 			br.Op = 71;
 			if(call)
@@ -340,7 +340,7 @@ namespace compiler
 		{
 			return IfComp(BranchCond(S1,S2),comp);
 		}
-		public static DataList IfComp(SignalSpec S1, CompSpec comp, AddrSpec Imm2)
+		public static DataList IfComp(SignalSpec S1, CompSpec comp, SymbolRef Imm2)
 		{
 			return IfComp(BranchCond(S1,Imm2),comp);
 		}
@@ -348,19 +348,19 @@ namespace compiler
 		public static DataList IfComp(DataList br, CompSpec comp)
 		{
 			br.Op=71;
-			br[new SignalSpec("signal-1")]=new AddrSpec{identifier=SymbolDef.FalseBlock,relative=true};
-			br[new SignalSpec("signal-2")]=new AddrSpec{identifier=SymbolDef.FalseBlock,relative=true};
-			br[new SignalSpec("signal-3")]=new AddrSpec{identifier=SymbolDef.FalseBlock,relative=true};
+			br[new SignalSpec("signal-1")]=new SymbolRef{identifier=Symbol.FalseBlock,relative=true};
+			br[new SignalSpec("signal-2")]=new SymbolRef{identifier=Symbol.FalseBlock,relative=true};
+			br[new SignalSpec("signal-3")]=new SymbolRef{identifier=Symbol.FalseBlock,relative=true};
 			
 			switch (comp) {
 				case CompSpec.Equal:
-					br[new SignalSpec("signal-1")]=new AddrSpec{identifier=SymbolDef.TrueBlock,relative=true};
+					br[new SignalSpec("signal-1")]=new SymbolRef{identifier=Symbol.TrueBlock,relative=true};
 					break;
 				case CompSpec.Less:
-					br[new SignalSpec("signal-2")]=new AddrSpec{identifier=SymbolDef.TrueBlock,relative=true};
+					br[new SignalSpec("signal-2")]=new SymbolRef{identifier=Symbol.TrueBlock,relative=true};
 					break;
 				case CompSpec.Greater:
-					br[new SignalSpec("signal-3")]=new AddrSpec{identifier=SymbolDef.TrueBlock,relative=true};
+					br[new SignalSpec("signal-3")]=new SymbolRef{identifier=Symbol.TrueBlock,relative=true};
 					break;
 			}
 			return br;
@@ -392,7 +392,7 @@ namespace compiler
 		}
 		
 		
-		public AddrSpec? Op {
+		public SymbolRef? Op {
 			get {
 				if (this.ContainsKey(InternalSignals.op)) return this[InternalSignals.op];
 				return null;
@@ -405,7 +405,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? Imm1 {
+		public SymbolRef? Imm1 {
 			get {
 				if (this.ContainsKey(InternalSignals.imm1)) return this[InternalSignals.imm1];
 				return null;
@@ -418,7 +418,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? Imm2 {
+		public SymbolRef? Imm2 {
 			get {
 				if (this.ContainsKey(InternalSignals.imm2)) return this[InternalSignals.imm2];
 				return null;
@@ -431,7 +431,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? OpA {
+		public SymbolRef? OpA {
 			get {
 				if (this.ContainsKey(InternalSignals.opA)) return this[InternalSignals.opA];
 				return null;
@@ -444,7 +444,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? R1 {
+		public SymbolRef? R1 {
 			get {
 				if (this.ContainsKey(InternalSignals.r1)) return this[InternalSignals.r1];
 				return null;
@@ -457,7 +457,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? R2 {
+		public SymbolRef? R2 {
 			get {
 				if (this.ContainsKey(InternalSignals.r2)) return this[InternalSignals.r2];
 				return null;
@@ -470,7 +470,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? RD {
+		public SymbolRef? RD {
 			get {
 				if (this.ContainsKey(InternalSignals.rd)) return this[InternalSignals.rd];
 				return null;
@@ -483,7 +483,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? S1 {
+		public SymbolRef? S1 {
 			get {
 				if (this.ContainsKey(InternalSignals.s1)) return this[InternalSignals.s1];
 				return null;
@@ -496,7 +496,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? S2 {
+		public SymbolRef? S2 {
 			get {
 				if (this.ContainsKey(InternalSignals.s2)) return this[InternalSignals.s2];
 				return null;
@@ -509,7 +509,7 @@ namespace compiler
 				}
 			}
 		}
-		public AddrSpec? SD {
+		public SymbolRef? SD {
 			get {
 				if (this.ContainsKey(InternalSignals.sd)) return this[InternalSignals.sd];
 				return null;

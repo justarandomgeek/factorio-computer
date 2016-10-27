@@ -19,26 +19,34 @@ For wiring clarity, it is recommended to remove power wires from poles and only 
 
 | Pole Color | Green Wire | Red Wire |
 |------------|------------|----------|
-|Purple      | Memory Read Request           | Memory Read Response |
-|Magenta     | rIndex                        | Memory Write         |
-|Blue        | Scalar Result (`signal-grey`) |                      |
-|Red         | Keyboard                      | Keyboard             |
-|White       | NixieTerm                     | NixieTerm            |
-|Cyan        | R2                            | Vector Result        |
-|Green       | R1                            | Scalars              |
-|Yellow      | Op                            | To PC                |
-|Orange      | Op Pulse                      | Status               |
-|Hazard      | IO Wire                       | IO Wire              |
-|FireHazard  | IO Wire Register              | IO Wire Register     |
+| Red        | Keyboard                      | Keyboard             |
+| Orange     | Op Pulse                      | rStatus              |
+| Yellow     | Op                            | To PC                |
+| Green      | R1                            | Scalars              |
+| Cyan       | R2                            | Vector Result        |
+| Blue       | Scalar Result (`signal-grey`) | rIndex               |
+| Purple     | Memory Read Request           | Memory Read Response |
+| Magenta    |                               | Memory Write         |
+| White      | NixieTerm                     | NixieTerm            |
+| Hazard     | IO Wire                       | IO Wire              |
+| FireHazard | IO Wire Register              | IO Wire Register     |
 
 * Scalars
 	* signal-grey: R1.s1
 	* signal-white: R2.s2
 * To PC
 	* signal-blue: next
-	* signal-green: rjmp to signal-black
-	* signal-red: jump to signal-black
+	* signal-green: rjmp to signal-grey
+	* signal-red: jump to signal-grey
   * signal-pink: execute this frame as an instruction
+  * signal-yellow: Hold. Prevents execution of instructions while set.
+  * signal-cyan: Interrupt. Next update (except exec) will save return site in rStatus and jump to interrupt vector.
+* rStatus
+  * signal-blue: PC
+  * signal-green: Interrupt Return site
+  * signal-cyan: Interrupt Request
+  * signal-I: Interrupt Enable
+
 
 ### Machine Blocks
 
@@ -75,51 +83,66 @@ The 'Stepping' button toggles between step and run modes. In step mode, the PC U
 
 #### Registers
 
-Registers store an entire circuit network frame, except `signal-black`. `signal-black` is used internally for various scalar and flag values throughout the machine, and cannot be stored in registers/memory, or expressed correctly in most mechanisms. All registers may be referred to by their number as `r0`,`r1`,`r2`,etc, and some registers may be referred to by name as listed in the table below.
+Registers store an entire circuit network frame, except `signal-black`. `signal-black` is used internally for various scalar and flag values throughout the machine, and cannot be stored in registers/memory, or expressed correctly in most mechanisms.
 
 
-| ID | Name | Purpose |
-|----|------|---------|
-|0|`rNull`|No Register selected. Returns 0 on every signal.|
-|1-4|`r1`-`r4`| General Purpose data registers. Callee saved. |
-|5-8|`r5`-`r8`| General Purpose data registers. Callee scratch registers. |
-|9|`rIndex`| Indexing regiser. Supports auto-indexing memory operations.|
-|10|`rRed`| IO Wire Red data since list transmitted|
-|11|`rGreen`| IO Wire Green data since last transmitted|
-|12|`rStat`| CPU Status register <ul><li>`signal-blue`: PC</li></ul>|
-|13|`rOp`| Current Op data|
-|14|`rNixie`| NixieTerm |
-|15,16|`rFlanRX`,`rFlanTX`| Wireless masts
-|17|`rKeyboard`| Keyboard interface. Reads a single buffered key. Clear buffer with `signal-grey`.
-|18+| `r18`-... | IO Expansion ports<br>Aditional devices may be connected to these registers
+| ID    | Name        | Purpose |
+|-------|-------------|---------|
+| 0     | `rNull`     | No Register selected. Returns 0 on every signal.|
+| 1-8   | `r1`-`r8`   | General Purpose data registers. |
+| 9     | `rIndex`    | Indexing regiser. Supports auto-indexing memory operations. |
+| 10    | `rRed`      | IO Wire Red data since list transmitted |
+| 11    | `rGreen`    | IO Wire Green data since last transmitted |
+| 12    | `rStat`     | CPU Status register |
+| 13    | `rOp`       | Current Op data |
+| 14    | `rNixie`    | NixieTerm |
+| 15,16 | `rFlanRX`,`rFlanTX`| Wireless masts
+| 17    | `rKeyboard` | Keyboard interface. Reads a single buffered key. Clear buffer with `signal-grey`. |
+| 18+   |  `r18`-...  | IO Expansion ports<br>Aditional devices may be connected to these registers |
 
 #### Calling Conventions
 
-Stack 1 is used as the call stack, and `r8` is used in saving/restoring the callsite.
-Registers `r1-r4` must be preserved by the callee. Registers `r5-r8` may be used freely.
-Stack 2 must be preserved by the callee, Stacks 3-4 may be used freely.
+* **Call Stack:** The call stack is stored on Stack 1.
+* **Call-saved registers:** r1-r4 must be saved/restored by the called subroutine if used.
+* **Call-used registers:** r5-r7 may be used freely by the called subroutine.
+* **Compiler scratch register:** r8 is used by the compiler for saving/restoring call site in function, and other temporary usage in generated code.
+* **Call-saved stacks:** Stack 2 must be saved/restored by the called subroutine if used.
+* **Call-used stacks:** Stacks 3-4 may be used freely by the called subroutine. r8 is used by the compiler for saving/restoring call site in function.
 
-Call arguments and return values are passed in `r5-r8`, starting with `r5`.
-Pointer arguments and return values are passed in rIndex stacks 3, then 4.
-If more than three frames of data are needed, it may be spilled to the call stack, or to RAM and indicated with a pointer.
+Call arguments are passed via `r5-r7`, filling down from `r7`, then spilled to the call stack. Local data are allocated the same as arguments, immediately after them. Return value is passed in `r5`.
+
 
 ### Operations
+
 The following signals are used to select registers and signals:
 
-|Signal  |Purpose|
+| Signal  |Purpose|
 |--------|-------|
 |signal-0|Op|
 |signal-A| Accumulate |
+|signal-I| Index/Stack Select
 |signal-R|R1|
 |signal-S|S1|
 |signal-T|R2|
 |signal-U|S2|
 |signal-V|Rd|
 |signal-W|Sd|
-|signal-grey|R1.S1, Imm1 in ROM, Scalar Result|
-|signal-white|R2.S2, Imm2 in ROM|
+|signal-grey|Imm1|
+|signal-white|Imm2|
 
 If Rd is set, the selected register will be cleared as Op Pulse is triggered unless Accumulate is also set (>0), even if the current operation does not actually assign to it. The whole register will be cleared, even in scalar operations.
+
+For operations which support memory indexing, the base pointers are selected as follows:
+
+|  I  |Signal         | Usage      |
+|-----|---------------|------------|
+|  1  |`signal-red`   | Call Stack |
+|  2  |`signal-green` | Callee Preserved |
+|  3  |`signal-blue`  | Callee argument/scratch |
+|  4  |`signal-yellow`| Callee argument/scratch |
+
+
+Individual instructions may also define additional signals. Any unused signals should be left unset.
 
 #### 0: Halt
 Any undefined opcode will halt the machine, but Op=0 is specifically reserved for doing so.
@@ -130,9 +153,9 @@ The ALU performs every possible operation in parallel, and returns the requested
 |    |Comparisons|Arithmetic|
 |----|-----------|----------|
 |Output|<ul><li>0: Vector</li><li>24: Scalar</li></ul>|<ul><li>48: Vector</li><li>52: Scalar</li></ul></td>
-|Operator|<ul><li>1:`=`</li><li>2:`<`</li><li>3:`>`</li></ul>|<ul><li>1:`-`</li><li>2:`+`</li><li>3:`/`</li><li>4:`*`</li></ul>
-|Output Mode|<ul><li>0:`?=` Input Value</li><li>3:`?1` Flags</li></ul>||
-|Input Mode|<ul><li>0: Every</li><li>6: Any</li><li>12: Scalar</li><li>18: Each</li></ul>|<ul><li>0: Each</li><li>4: Scalar</li></ul>
+| Operator | <ul><li>1:`=`</li><li>2:`<`</li><li>3:`>`</li></ul> | <ul><li>1:`-`</li><li>2:`+`</li><li>3:`/`</li><li>4:`*`</li></ul>
+| Output Mode | <ul><li>0:`?=` Input Value</li><li>3:`?1` Flags</li></ul> | |
+| Input Mode | <ul><li>0: Every</li><li>6: Any</li><li>12: Scalar</li><li>18: Each</li></ul> | <ul><li>0: Each</li><li>4: Scalar</li></ul>
 
 Add one value from each cell of a column to form an instruction.
 
@@ -142,11 +165,24 @@ R1.each * R2.each pairwise => Rd
 #### 62: Pairwise Vector Add
 R1.each + R2.each pairwise => Rd
 
+#### 63: Scalar Array Pick (exec)
+* R1.[R2.s2] -> Rd.sd
+  * exec{0=58,R=R,S=[R2.s2],V=V,W=W,A=A}
+
+#### 64: Scalar Array Write (exec)
+* R1.s1 -> Rd.[R2.s2]
+  * exec{0=58,R=R,S=S,V=V,W=[R2.s2],A=A}
+
+#### 6?: Scalar shift up
+R1 >> R2.s2 -> Rd
+
+#### 6?: Scalar shift down
+R1 << R2.s2 -> Rd
+
 #### 70: Jump
 Jump to R1.s1 if `signal-green`=0 or PC+R1.s1 if `signal-green`=1. Return PC+1 to Rd.Sd.
 
 #### 71: Branch
-
 Returns PC+1 to Rd.sd. Compares R1.s1 to R2.s2, and makes the following jumps:
 
 * `=` PC+rOp.1
@@ -154,7 +190,6 @@ Returns PC+1 to Rd.sd. Compares R1.s1 to R2.s2, and makes the following jumps:
 * `>` PC+rOp.3
 
 #### 72: Exec
-
 Execute the contents of R1 as an instruction, at the current PC value.
 
 #### 80: Wire
@@ -164,40 +199,34 @@ Write a packet to a two-wire network, and clear the receive registers for a resp
 * 0=>rRed,rGreen
 
 #### 81: Write Memory
-Write the contents of R2 to the memory location or memory-mapped device selected by R1.s1.
+Write the contents of R2 to the memory location or memory-mapped device selected by R1.s1. If `signal-I` is set, the memery access is offset from the selected pointer.
 
-* R2 -> [R1.s1]
+* R2 -> [R1.s1+I]
 
 #### 82: Read Memory
-Read the memory location or memory-mapped device selected by R1.s1 into Rd.
+Read the memory location or memory-mapped device selected by R1.s1 into Rd. If `signal-I` is set, the memery access is offset from the selected pointer.
 
-* [R1.s1] -> Rd
+* [R1.s1+I] -> Rd
 
 #### 83: Push
-Store a frame to one of the stacks in rIndex. Stacks are selected by `signal-S`, but have a different mapping from usual signals. R1 must also be set to rIndex.
-
-|  S  |Signal        | Usage      |
-|-----|--------------|------------|
-|  1  |`signal-red`  | Call Stack |
-|  2  |`signal-green`| Callee Preserved |
-|  3  |`signal-blue` | Callee argument/scratch |
-|  4  |`signal-red`  | Callee argument/scratch |
+Store a frame to one of the stacks in rIndex, as selected by `signal-I`.
 
 * R2 -> [rIndex.stack-1]
 * rIndex.stack--
 
 
 #### 84: Pop
-Retrieve a frame to one of the stacks in rIndex. Stacks are selected as described for Push. R1 must also be set to rIndex.
+Retrieve a frame to one of the stacks in rIndex, as selected by `signal-I`.
 
 * [rIndex.stack] -> Rd
 * rIndex.stack++
 
 
-#### 85: (not currently implemented)
+#### 85: Append (not currently implemented)
 Store a frame to an array in one of the index pointers. Arrays are selected as described for Push. R1 must also be set to rIndex.
 
 * R2 -> [rIndex.stack++]
+
 
 ## IO Devices
 

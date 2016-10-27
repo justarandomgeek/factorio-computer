@@ -17,6 +17,8 @@
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <WarningLevel>4</WarningLevel>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <SignAssembly>False</SignAssembly>
+    <DelaySign>False</DelaySign>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -33,7 +35,7 @@
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <StartAction>Project</StartAction>
-    <StartArguments>scripts\test.factorio</StartArguments>
+    <StartArguments>scripts\demo.nql</StartArguments>
     <StartWorkingDirectory>.\</StartWorkingDirectory>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
@@ -123,7 +125,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="FactorioRConV1" />
     <Folder Include="gp" />
     <Folder Include="lib" />
     <Folder Include="scripts" />

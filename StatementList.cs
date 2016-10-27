@@ -20,7 +20,7 @@ namespace compiler
 		public int Offset {get; private set;}
 		public void Relocate(int newOffset)
 		{
-			var newsymbols = new Dictionary<SymbolDef,int>();
+			var newsymbols = new Dictionary<Symbol,int>();
 			foreach (var sym in symbols.Keys) {
 				newsymbols[sym]= symbols[sym] +newOffset -Offset;
 			}
@@ -28,26 +28,26 @@ namespace compiler
 			Offset = newOffset;
 		}
 		
-		public Dictionary<SymbolDef,int> symbols = new Dictionary<SymbolDef, int>();
+		public Dictionary<Symbol,int> symbols = new Dictionary<Symbol, int>();
 				
 		public static StatementList Function(string name,StatementList body)
 		{
-			var funcsym = new SymbolDef{name = name, type = SymbolType.Function};
+			var funcsym = new Symbol{name = name, type = SymbolType.Function};
 			var sl = new StatementList();
 			sl.symbols.Add(funcsym,0);
 			sl.Add(DataList.Push(1,RegSpec.r8));
 			
-			if (!sl.symbols.ContainsKey(SymbolDef.Block)) sl.symbols.Add(SymbolDef.Block,0);
+			if (!sl.symbols.ContainsKey(Symbol.Block)) sl.symbols.Add(Symbol.Block,0);
 			sl.Add(body);
 			
-			sl.symbols.Add(SymbolDef.Return,sl.Count);
+			sl.symbols.Add(Symbol.Return,sl.Count);
 			sl.Add(DataList.Pop(1,RegSpec.r8));
 			sl.Add(DataList.Jump(new SignalSpec(RegSpec.r8,"signal-green"),false,false));
 			
-			sl.RewriteSymbol(SymbolDef.Block,funcsym);
-			sl.RewriteSymbol(SymbolDef.Return,funcsym);
-			sl.symbols.Remove(SymbolDef.Block);
-			sl.symbols.Remove(SymbolDef.Return);
+			sl.RewriteSymbol(Symbol.Block,funcsym);
+			sl.RewriteSymbol(Symbol.Return,funcsym);
+			sl.symbols.Remove(Symbol.Block);
+			sl.symbols.Remove(Symbol.Return);
 			
 			return sl;
 		}
@@ -56,29 +56,29 @@ namespace compiler
 		{
 			
 			var sl = new StatementList();
-			sl.symbols.Add(SymbolDef.Block,0);
+			sl.symbols.Add(Symbol.Block,0);
 			sl.Add(ifcomp);
 			
-			trueblock.symbols.Add(SymbolDef.TrueBlock,0);
+			trueblock.symbols.Add(Symbol.TrueBlock,0);
 			sl.Add(trueblock);
 			
 			
 			if(falseblock != null)
 			{
-				sl.Add(DataList.Jump(SymbolDef.End,true,false));
-				falseblock.symbols.Add(SymbolDef.FalseBlock,0);
+				sl.Add(DataList.Jump(Symbol.End,true,false));
+				falseblock.symbols.Add(Symbol.FalseBlock,0);
 				sl.Add(falseblock);
 			} else  {
-				sl.symbols.Add(SymbolDef.FalseBlock,sl.Count);
+				sl.symbols.Add(Symbol.FalseBlock,sl.Count);
 			}
-			sl.symbols.Add(SymbolDef.End,sl.Count);
-			sl.RewriteSymbol(SymbolDef.TrueBlock,SymbolDef.Block);
-			sl.RewriteSymbol(SymbolDef.FalseBlock,SymbolDef.Block);
-			sl.RewriteSymbol(SymbolDef.End,SymbolDef.Block);
+			sl.symbols.Add(Symbol.End,sl.Count);
+			sl.RewriteSymbol(Symbol.TrueBlock,Symbol.Block);
+			sl.RewriteSymbol(Symbol.FalseBlock,Symbol.Block);
+			sl.RewriteSymbol(Symbol.End,Symbol.Block);
 			
-			sl.symbols.Remove(SymbolDef.TrueBlock);
-			sl.symbols.Remove(SymbolDef.FalseBlock);
-			sl.symbols.Remove(SymbolDef.End);
+			sl.symbols.Remove(Symbol.TrueBlock);
+			sl.symbols.Remove(Symbol.FalseBlock);
+			sl.symbols.Remove(Symbol.End);
 			
 			return sl;
 		}
@@ -87,24 +87,24 @@ namespace compiler
 		{
 			var sl = new StatementList();
 			var s = ifcomp.ToString();
-			sl.symbols.Add(SymbolDef.Loop,0);
-			sl.symbols.Add(SymbolDef.Block,0);
+			sl.symbols.Add(Symbol.Loop,0);
+			sl.symbols.Add(Symbol.Block,0);
 			sl.Add(ifcomp);
-			loopblock.symbols.Add(SymbolDef.TrueBlock,0);
+			loopblock.symbols.Add(Symbol.TrueBlock,0);
 			sl.Add(loopblock);
-			sl.Add(DataList.Jump(SymbolDef.Loop,true,false));
-			sl.symbols.Add(SymbolDef.FalseBlock,sl.Count);
-			sl.symbols.Add(SymbolDef.End,sl.Count);
+			sl.Add(DataList.Jump(Symbol.Loop,true,false));
+			sl.symbols.Add(Symbol.FalseBlock,sl.Count);
+			sl.symbols.Add(Symbol.End,sl.Count);
 			
-			sl.RewriteSymbol(SymbolDef.TrueBlock,SymbolDef.Block);
-			sl.RewriteSymbol(SymbolDef.FalseBlock,SymbolDef.Block);
-			sl.RewriteSymbol(SymbolDef.Loop,SymbolDef.Block);
-			sl.RewriteSymbol(SymbolDef.End,SymbolDef.Block);
+			sl.RewriteSymbol(Symbol.TrueBlock,Symbol.Block);
+			sl.RewriteSymbol(Symbol.FalseBlock,Symbol.Block);
+			sl.RewriteSymbol(Symbol.Loop,Symbol.Block);
+			sl.RewriteSymbol(Symbol.End,Symbol.Block);
 			
-			sl.symbols.Remove(SymbolDef.TrueBlock);
-			sl.symbols.Remove(SymbolDef.FalseBlock);
-			sl.symbols.Remove(SymbolDef.Loop);
-			sl.symbols.Remove(SymbolDef.End);
+			sl.symbols.Remove(Symbol.TrueBlock);
+			sl.symbols.Remove(Symbol.FalseBlock);
+			sl.symbols.Remove(Symbol.Loop);
+			sl.symbols.Remove(Symbol.End);
 			
 			return sl;
 		}
@@ -117,7 +117,7 @@ namespace compiler
 			foreach (var statement in otherlist) {
 		     	var st = new DataList();
              	foreach (var item in statement) {
-					if (item.Value.identifier==SymbolDef.Block)
+					if (item.Value.identifier==Symbol.Block)
 					{
 						st.Add(item.Key,item.Value+newbase);
 					} else {
@@ -128,14 +128,14 @@ namespace compiler
 			}
 			
 				
-			otherlist.symbols.Remove(SymbolDef.Block);
+			otherlist.symbols.Remove(Symbol.Block);
 			foreach (var sym in otherlist.symbols.Keys) {
 				this.symbols.Add(sym,otherlist.symbols[sym] + newbase);
 			}		
 		}
 		
 		
-		public void RewriteSymbol(SymbolDef sym, SymbolDef refsym)
+		public void RewriteSymbol(Symbol sym, Symbol refsym)
 		{
 			for (int i = 0; i < this.Count; i++) {
 				var statement = this[i];
@@ -149,7 +149,7 @@ namespace compiler
 							statement[key]=statement[key].resolve(this.IndexOf(statement), this.symbols);	
 						} else {
 							statement[key]=
-								new AddrSpec{
+								new SymbolRef{
 								identifier = refsym,
 								identifierOffset = statement[key].resolve(this.IndexOf(statement), this.symbols) - this.symbols[refsym]
 							};

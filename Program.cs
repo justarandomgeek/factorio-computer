@@ -36,16 +36,20 @@ namespace compiler
 	            parser.ReadMachineDesc();
 	            
 	            foreach (var file in Options.Current.sourcefiles) {
+	            	string prog = "";
 	            	using(var reader = new StreamReader(file))
 					{
-						parser.Parse(reader.ReadToEnd());
-						Console.WriteLine("Program Name: {0}", parser.Name);
-						parser.programData.Relocate(1001);
-			            parser.PrintAddrMap();
-			            parser.PrintListing();
-			            parser.MakeROM();
-			            
-					}
+	            		prog = reader.ReadToEnd();
+	            	}
+					parser.Parse(prog);
+					Console.WriteLine("Program Name: {0}", parser.Name);
+					
+					parser.programData.Relocate(1001);
+		            parser.PrintAddrMap();
+		            parser.PrintListing();
+		            parser.MakeROM();
+		            
+				
 	            }
 			}
 		}

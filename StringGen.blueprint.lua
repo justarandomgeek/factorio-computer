@@ -90,6 +90,8 @@ do local script=true
 
   function charsig(c)
   	local charmap={
+      ["0"]='signal-0',["1"]='signal-1',["2"]='signal-2',["3"]='signal-3',["4"]='signal-4',
+      ["5"]='signal-5',["6"]='signal-6',["7"]='signal-7',["8"]='signal-8',["9"]='signal-9',
   		["A"]='signal-A',["B"]='signal-B',["C"]='signal-C',["D"]='signal-D',["E"]='signal-E',
   		["F"]='signal-F',["G"]='signal-G',["H"]='signal-H',["I"]='signal-I',["J"]='signal-J',
   		["K"]='signal-K',["L"]='signal-L',["M"]='signal-M',["N"]='signal-N',["O"]='signal-O',
@@ -114,7 +116,7 @@ do local script=true
       {index=1,count=-(baseaddr+i),signal=addrsignal}
     }
 
-    local s = string.upper(string.sub(signal.name,1,30))
+    local s = string.upper(string.sub(signal.name,1,31))
     local letters = {}
     local i=1
     while s do

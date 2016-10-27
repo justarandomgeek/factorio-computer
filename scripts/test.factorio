@@ -12,6 +12,8 @@ call KEYDEMO
 
 helloworld: "HELLO WORLD"
 
+
+
 function CLRDISP:
   // Chear Display
   rNixie.signal-grey = 1
@@ -28,6 +30,8 @@ function PRINTBLOCK:
   pop 4 rNixie
   pop 4 rNixie
 end
+
+
 
 function READKEY:
   r4=rKeyboard
@@ -57,7 +61,7 @@ function READLINE:
                .signal-cyan=1 .signal-pink=1  .signal-yellow=1
             }
 end
-
+/*
 function READINT:
   call READKEY
   while r4.signal-grey == 0
@@ -75,6 +79,7 @@ function READINT:
   end
   r4.signal-white=rNixie.signal-white
 end
+*/
 
 function KEYDEMO:
   while rNull.Null == rNull.Null
@@ -82,7 +87,7 @@ function KEYDEMO:
     rNixie.signal-grey=1
   end
 end
-
+// */
 function COLORDEMO:
   // Print a color demo
   rIndex.signal-green += colors
@@ -130,7 +135,6 @@ function MATHDEMO:
   square:        "SQUARE"
   factorialstr:  "FACTORIAL"
 end
-
 
 // External devices
 // nixies - [500] is rNixie, succesive lines above
