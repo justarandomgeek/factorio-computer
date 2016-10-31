@@ -59,17 +59,17 @@ namespace compiler
 			}
 		}
 		
-		public RegSpec reg;
+		public int reg;
 		public string signal;
 		
-		public static SignalSpec Imm1{get{return new SignalSpec(RegSpec.rOp,InternalSignals.imm1);}}
-		public static SignalSpec Imm2{get{return new SignalSpec(RegSpec.rOp,InternalSignals.imm2);}}
+		public static SignalSpec Imm1{get{return new SignalSpec(13,InternalSignals.imm1);}}
+		public static SignalSpec Imm2{get{return new SignalSpec(13,InternalSignals.imm2);}}
 
 		public SignalSpec(){}
 		
 		public static implicit operator SignalSpec(string s){return new SignalSpec(s);}
 		public SignalSpec(string s){this.signal = s;}
-		public SignalSpec(RegSpec r, string s){this.reg = r;this.signal = s;}
+		public SignalSpec(int r, string s){this.reg = r;this.signal = s;}
 		
 		#region Equals and GetHashCode implementation
 		public override bool Equals(object obj)
@@ -107,7 +107,7 @@ namespace compiler
 		
 		public override string ToString()
 		{
-			return string.Format("{0}.{1}", reg==RegSpec.rNull?"":reg.ToString(), signal);
+			return string.Format("{0}.{1}", reg==0?"":reg.ToString(), signal);
 		}
 
 	}

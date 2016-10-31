@@ -152,7 +152,7 @@ namespace compiler
 			return dl;
 		}
 		
-		public static DataList ArithOp(RegSpec R1, ArithSpec Op, SignalSpec S2){
+		public static DataList ArithOp(int R1, ArithSpec Op, SignalSpec S2){
 			var dl = new DataList();
 			dl.Op = Util.ArithOpCode(InputMode.Each,false,Op);
 			dl.R1 = R1;
@@ -161,9 +161,9 @@ namespace compiler
 			return dl;
 			
 		}
-		public static DataList ArithOp(RegSpec R1, ArithSpec Op, SymbolRef Imm2)
+		public static DataList ArithOp(int R1, ArithSpec Op, SymbolRef Imm2)
 		{
-			var dl = ArithOp(R1,Op,new SignalSpec(RegSpec.rOp,InternalSignals.imm2));
+			var dl = ArithOp(R1,Op,new SignalSpec(13,InternalSignals.imm2));
 			dl.Imm2 = Imm2;
 			return dl;
 		}
@@ -178,21 +178,21 @@ namespace compiler
 		}
 		public static DataList ArithOp(SignalSpec S1, ArithSpec Op, SymbolRef Imm2)
 		{
-			var dl = ArithOp(S1,Op,new SignalSpec(RegSpec.rOp,InternalSignals.imm2));
+			var dl = ArithOp(S1,Op,new SignalSpec(13,InternalSignals.imm2));
 			dl.Imm2 = Imm2;
 			return dl;
 		}
 		public static DataList ArithOp(SymbolRef Imm1, ArithSpec Op, SymbolRef Imm2)
 		{
 			var dl = ArithOp(
-				new SignalSpec(RegSpec.rOp,InternalSignals.imm1),
+				new SignalSpec(13,InternalSignals.imm1),
 				Op,
-				new SignalSpec(RegSpec.rOp,InternalSignals.imm2));
+				new SignalSpec(13,InternalSignals.imm2));
 			dl.Imm1 = Imm1;
 			dl.Imm2 = Imm2;
 			return dl;
 		}
-		public static DataList ArithOp(RegSpec R1, ArithSpec Op, RegSpec R2){
+		public static DataList ArithOp(int R1, ArithSpec Op, int R2){
 			var dl = new DataList();
 			switch (Op) {
 				case ArithSpec.Multiply:
@@ -208,7 +208,7 @@ namespace compiler
 		}
 		
 		
-		public DataList AssignOp(RegSpec RD, bool Append)
+		public DataList AssignOp(int RD, bool Append)
 		{
 			var dl = this;
 			if(Append) dl.OpA = 1;
@@ -225,7 +225,7 @@ namespace compiler
 		}
 		
 		
-		public static DataList Wire(RegSpec R1, RegSpec R2)
+		public static DataList Wire(int R1, int R2)
 		{
 			var dl = new DataList();
 			dl.Op = 80;
@@ -234,7 +234,7 @@ namespace compiler
 			return dl;
 		}
 		
-		public static DataList WriteMemory(SignalSpec S1, RegSpec R2)
+		public static DataList WriteMemory(SignalSpec S1, int R2)
 		{
 			var dl = new DataList();
 			dl.Op = 81;
@@ -243,9 +243,9 @@ namespace compiler
 			dl.R2 = R2;
 			return dl;
 		}
-		public static DataList WriteMemory(SymbolRef Imm1, RegSpec R2)
+		public static DataList WriteMemory(SymbolRef Imm1, int R2)
 		{
-			var dl = WriteMemory(new SignalSpec(RegSpec.rOp,InternalSignals.imm1),R2);
+			var dl = WriteMemory(new SignalSpec(13,InternalSignals.imm1),R2);
 			dl.Imm1 = Imm1;
 			return dl;
 		}
@@ -260,25 +260,25 @@ namespace compiler
 		}
 		public static DataList ReadMemory(SymbolRef Imm1)
 		{
-			var dl = ReadMemory(new SignalSpec(RegSpec.rOp,InternalSignals.imm1));
+			var dl = ReadMemory(new SignalSpec(13,InternalSignals.imm1));
 			dl.Imm1 = Imm1;
 			return dl;
 		}
 		
-		public static DataList Push(int stack, RegSpec R2)
+		public static DataList Push(int stack, int R2)
 		{
 			var dl = new DataList();
 			dl.Op=83;
-			dl.R1 = RegSpec.rIndex;
+			dl.R1 = 9;
 			dl.R2 = R2;
 			dl.S1=stack;
 			return dl;
 		}
-		public static DataList Pop(int stack, RegSpec RD)
+		public static DataList Pop(int stack, int RD)
 		{
 			var dl = new DataList();
 			dl.Op=84;
-			dl.R1 = RegSpec.rIndex;
+			dl.R1 = 9;
 			dl.RD = RD;
 			dl.S1=stack;
 			return dl;
@@ -293,14 +293,14 @@ namespace compiler
 			dl.Imm2=relative?1:0;
 			if(call)
 			{
-				dl.RD = RegSpec.r8;
+				dl.RD = 8;
 				dl.SD = new SignalSpec("signal-green").sigval;
 			}
 			return dl;
 		}		
 		public static DataList Jump(SymbolRef Imm1, bool relative,bool call)
 		{
-			var dl = Jump(new SignalSpec(RegSpec.rOp,InternalSignals.imm1),relative,call);
+			var dl = Jump(new SignalSpec(13,InternalSignals.imm1),relative,call);
 			Imm1.relative=relative;
 			dl.Imm1 = Imm1;
 			return dl;
@@ -326,7 +326,7 @@ namespace compiler
 			br.Op = 71;
 			if(call)
 			{
-				br.RD = RegSpec.r8;
+				br.RD = 8;
 				br.SD = new SignalSpec("signal-green").sigval;
 			}
 			br["signal-1"]=eq;
@@ -366,7 +366,7 @@ namespace compiler
 			return br;
 		}
 		
-		public static DataList Exec(RegSpec R1)
+		public static DataList Exec(int R1)
 		{
 			var dl = new DataList();
 			dl.Op = 72;

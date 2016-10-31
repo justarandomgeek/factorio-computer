@@ -18,40 +18,20 @@ namespace compiler
 
 	
 	
-	public enum RegSpec
-	{
-		rNull = 0,
-		r1,
-		r2,
-		r3,
-		r4,
-		r5,
-		r6,
-		r7,
-		r8,
-		rIndex,
-		rRed,
-		rGreen,
-		rStat,
-		rOp,
-		rNixie,
-		rFlanRX,
-		rFlanTX,
-		rKeyboard,
-		
-	}
 	public enum CompSpec
 	{
 		Equal,
 		Greater,
 		Less
 	}
+
 	public enum InputMode{
 		Any,
 		Every,
 		Each,
 		Scalar
 	}
+
 	public enum ArithSpec
 	{
 		Add,
@@ -64,15 +44,19 @@ namespace compiler
 		Unspecified=0,
 		Function, 
 		Data,
+		Register,
 		Program,
 		Internal,
 	}
 	
 	public struct Symbol
 	{
+		
+		
 		public string name;
 		public SymbolType type;
-		
+		public string datatype;
+		public int? fixedAddr;
 		
 		#region Equals and GetHashCode implementation
 		public override bool Equals(object obj)
@@ -110,7 +94,7 @@ namespace compiler
 		
 		public override string ToString()
 		{
-			return string.Format("{1}:{0}", name, type.ToString()[0]);
+			return string.Format("{1}:{2} {0}", name, type.ToString()[0], datatype);
 		}
 
 	}
@@ -133,7 +117,6 @@ namespace compiler
 		}
 		
 		public static implicit operator SymbolRef(int i){ return new SymbolRef{value=i}; }
-		public static implicit operator SymbolRef(RegSpec r){ return new SymbolRef{value=(int)r}; }
 		public static implicit operator SymbolRef(string s){ return new SymbolRef{identifier=new Symbol{name=s}}; }
 		public static implicit operator SymbolRef(Symbol sym){ return new SymbolRef{identifier=sym};}
 		

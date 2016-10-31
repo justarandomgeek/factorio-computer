@@ -63,7 +63,7 @@ register r[0-9]+
 
 
 <PROGRAM> {register} {
-	yylval.regVal=(RegSpec)int.Parse(yytext.TrimStart('r'));
+	yylval.iVal=int.Parse(yytext.TrimStart('r'));
 	return (int)Tokens.REGISTER;
 }
 
@@ -80,14 +80,7 @@ register r[0-9]+
 <PROGRAM> {identifier} {
 	yylval.sVal = yytext;
   Console.WriteLine("ident: {0}", yytext);
-  if(SignalSpec.signalMap.ContainsKey(yytext))
-  {
-    return (int)Tokens.FIELD;
-  }
-  else
-  {
-	  return (int)Tokens.UNDEF;
-  }
+  return (int)Parser.GetIdentType(yytext);
 }
 
 <PROGRAM> -?{digit}+ {

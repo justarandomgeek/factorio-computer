@@ -35,14 +35,14 @@ namespace compiler
 			var funcsym = new Symbol{name = name, type = SymbolType.Function};
 			var sl = new StatementList();
 			sl.symbols.Add(funcsym,0);
-			sl.Add(DataList.Push(1,RegSpec.r8));
+			sl.Add(DataList.Push(1,8));
 			
 			if (!sl.symbols.ContainsKey(Symbol.Block)) sl.symbols.Add(Symbol.Block,0);
 			sl.Add(body);
 			
 			sl.symbols.Add(Symbol.Return,sl.Count);
-			sl.Add(DataList.Pop(1,RegSpec.r8));
-			sl.Add(DataList.Jump(new SignalSpec(RegSpec.r8,"signal-green"),false,false));
+			sl.Add(DataList.Pop(1,8));
+			sl.Add(DataList.Jump(new SignalSpec(8,"signal-green"),false,false));
 			
 			sl.RewriteSymbol(Symbol.Block,funcsym);
 			sl.RewriteSymbol(Symbol.Return,funcsym);

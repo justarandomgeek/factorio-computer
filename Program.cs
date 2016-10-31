@@ -54,15 +54,82 @@ namespace compiler
 			}
 		}
 	}
+	
+	
 
 	partial class Parser
     {
         new Scanner Scanner { get { return (Scanner)base.Scanner; } set { base.Scanner = value; } }
 
+        public List<string> NativeFields = new List<string>();
+        public Dictionary<string,Dictionary<string,string>> Types = new Dictionary<string, Dictionary<string, string>>();
+        public Dictionary<string,string> Functions = new Dictionary<string, string>();
+        public List<Symbol> Symbols = new List<Symbol>();
+        
         public StatementList programData;
         public string Name {get; private set;}
         
         Lua lua = new Lua();
+        
+        public void RegisterType(string typename, Dictionary<string,string> fields)
+        {
+        	Types.Add(typename,null);
+        }
+        
+        public void CreateMemVar(string typename, string name, int fixedAddr=0)
+        {
+        	if (fixedAddr != 0)
+        	{
+        		// if fixed, just make a fixed symbol in memory
+        		Symbols.Add(new Symbol
+        		            {
+        		            	type=SymbolType.Data,
+        		            	name=name,
+        		            	datatype=typename,
+        		            	fixedAddr=fixedAddr
+        		            });
+        	}
+        	
+        	// if in function, allocate on stack?
+        	// else allocate sequential in ram
+        }
+        
+        public void CreateRegVar(string typename, string name, int reg)
+        {
+        	//define fixed symbol to a register
+        	Symbols.Add(new Symbol
+        		            {
+        		            	type=SymbolType.Register,
+        		            	name=name,
+        		            	datatype=typename,
+        		            	fixedAddr=reg
+        		            });
+        }
+        
+        
+        public string ExpectFieldType { get; set; }
+        public Tokens GetIdentType(string ident)
+        {
+        	if (ExpectFieldType != null && Types[ExpectFieldType].ContainsKey(ident))
+        	{
+        		ExpectFieldType = null;
+        		return Tokens.FIELD;
+        	}
+        	else if(Types.ContainsKey(ident))
+        	{
+        		return Tokens.TYPENAME;
+        	}
+        	else if(NativeFields.Contains(ident))
+			{
+				return Tokens.FIELD;
+			}
+        	else
+			{
+				return Tokens.UNDEF;
+			}
+        }
+        
+        
         
         public void ReadMachineDesc()
         {
@@ -80,8 +147,10 @@ namespace compiler
         		var name = sig["name"] as string;
         		var id = (int)(double)sig["id"];
         		var type = sig["type"] as string;
+        		
         		SignalSpec.signalMap.Add(name,id);
         		SignalSpec.typeMap.Add(name,type);
+        		this.NativeFields.Add(name);
         	}
         }
 
@@ -168,12 +237,14 @@ namespace compiler
         {
         	var serpent = lua.DoString(Program.GetResourceText("serpent"),"serpent");
         	lua["serpent"]=serpent[0];
+        	
         }
         
         public void Parse(string input)
         {
             var s = new Scanner();
             s.SetSource(input, 0);
+            s.Parser=this;
             this.Scanner = s;
             this.Parse();
         }
@@ -183,6 +254,7 @@ namespace compiler
 
     partial class Scanner
     {
+    	public Parser Parser;
         public override void yyerror(string format, params object[] args)
         {
             //base.yyerror(format, args);
