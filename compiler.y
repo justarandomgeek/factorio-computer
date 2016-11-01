@@ -1,11 +1,14 @@
 %namespace compiler
 %partial
 %union {
-			internal int iVal;
-			internal string sVal;
-			internal bool bVal;
+  internal int iVal;
+  internal string sVal;
+  internal bool bVal;
 
-			internal CompSpec compVal;
+  internal CompSpec compVal;
+  internal TypeInfo tiVal;
+  internal FieldInfo fiVal;
+  internal SymbolList slVal;
 }
 
 %token <iVal> INTEGER
@@ -19,6 +22,10 @@
 %token DO WHILE IF ELSE END
 %token TYPE FUNCTION RETURN
 
+%type <tiVal> fielddeflist
+%type <fiVal> fielddef paramdef
+
+%type <slVal> paramdeflist
 
 
 %start program
@@ -33,47 +40,51 @@ definition: functiondef;
 definition: datadef;
 definition: typedef;
 
-functiondef: FUNCTION UNDEF '(' paramdeflist ')' block END {};
+functiondef: FUNCTION UNDEF '(' paramdeflist ')' {BeginFunction($2,$4);} block END {};
 
-paramdeflist: ;
-paramdeflist: paramdef;
-paramdeflist: paramdeflist ',' paramdef;
-paramdef: TYPENAME UNDEF; //typename undef
-
-
-datadef: TYPENAME '@' INTEGER  UNDEF { CreateMemVar($1,$4,$3); };
-datadef: TYPENAME '@' REGISTER UNDEF { CreateRegVar($1,$4,$3); };
-datadef: TYPENAME              UNDEF { CreateMemVar($1,$2);    };
-
-typedef: TYPE UNDEF '{' fielddeflist '}'     { RegisterType($2,null); };
-typedef: TYPE UNDEF '{' fielddeflist ',' '}' { RegisterType($2,null); }; // allow trailing comma
-
-fielddeflist: fielddef;
-fielddeflist: fielddeflist ',' fielddef ;
-fielddef: '@' FIELD UNDEF { Console.WriteLine("field: {0} {1}", $3, $2); };
-fielddef:           UNDEF { Console.WriteLine("field: {0}", $1); };
+paramdeflist: {$$ = new SymbolList();};
+paramdeflist: paramdef {$$ = new SymbolList(); $$.AddParam($1);};
+paramdeflist: paramdeflist ',' paramdef {$$=$1; $$.AddParam($3);};
+paramdef: TYPENAME UNDEF {$$ = new FieldInfo{name=$2,basename=$1}; }; //typename undef
 
 
-block: vassign;
-block: sassign;
-block: statement {};
-block: datadef {};
-block: block block {};
-block: ifblock{};
-block: whileblock{};
+datadef: TYPENAME '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Data,datatype=$1,fixedAddr=$3}); };
+datadef: TYPENAME '@' REGISTER UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Register,datatype=$1,fixedAddr=$3}); };
+datadef: TYPENAME              UNDEF { CreateSym(new Symbol{name=$2,type=SymbolType.Data,datatype=$1}); };
 
+datadef: TYPENAME '@' INTEGER  UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$4,type=SymbolType.Array,size=$6,datatype=$1,fixedAddr=$3}); };
+datadef: TYPENAME              UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$2,type=SymbolType.Array,size=$4,datatype=$1}); };
+
+typedef: TYPE UNDEF '{' fielddeflist '}'     { RegisterType($2,$4); };
+typedef: TYPE UNDEF '{' fielddeflist ',' '}' { RegisterType($2,$4); }; // allow trailing comma
+
+fielddeflist: fielddef {$$ = new TypeInfo(); $$.Add($1); };
+fielddeflist: fielddeflist ',' fielddef { $$=$1; $$.Add($3); };
+fielddef: '@' FIELD UNDEF { $$ = new FieldInfo{name=$3,basename=$2}; };
+fielddef:           UNDEF { $$ = new FieldInfo{name=$1}; };
+
+block: ;
+block: statement;
+block: block statement;
+
+statement: vassign;
+statement: sassign;
+statement: vexpr;
+statement: sexpr;
+statement: datadef {};
 
 ifcomp: sexpr COMPARE sexpr   ;
 ifcomp: sexpr                 ;
 
-ifblock: IF ifcomp block elseblock END {};
+statement: IF ifcomp block elseblock END {};
 elseblock: ELSE block { $$ = $2; };
 elseblock: {};
 
-whileblock: WHILE ifcomp DO block END {};
+statement: WHILE ifcomp DO block END {};
 
-statement: RETURN returnlist {};
-returnlist: ;
+statement: RETURN {};
+statement: RETURN vexpr {};
+statement: RETURN sexpr {};
 
 arith: '+'|'-'|'*'|'/' {};
 
@@ -84,28 +95,42 @@ sexpr: sref {};
 sexpr: '&' VAR {};
 sexpr: '&' ARRAY {};
 sexpr: '&' ARRAY '[' sexpr ']' {};
-sexpr: vexpr '[' sexpr ']' ;
 sexpr: FUNCNAME '(' ')';
 
 vexpr: vexpr arith vexpr {};
 vexpr: vexpr arith sexpr {};
 vexpr: vexpr '&' vexpr {};
-vexpr: '{' '}'; //TODO: table literals
+vexpr: '{' littable '}';
 vexpr: '*' sexpr {};
 vexpr: STRING {};
-vexpr: vref {};
-vexpr: FUNCNAME '(' ')'; //TODO: function arguments
+vexpr: VAR {};
+vexpr: FUNCNAME '(' arglist ')'; //TODO: function arguments
 
-sref: vref '.' {/*ExpectFieldType=nqltypeof($1)*/} FIELD {};
-sref: INTVAR;
+arglist: ;
+arglist: arg;
+arglist: arglist ',' arg;
 
-vref: VAR;
-vref: REGISTER;
+arg: sexpr;
+arg: vexpr;
 
-vassign: vref ASSIGN vexpr ;
-vassign: vref APPEND vexpr ;
+sref: VAR '.' {ExpectFieldType=GetSymbolDataType($1);} FIELD {};
+sref: INTVAR ;
+sref: VAR '[' sexpr ']' ;
+
+vassign: VAR ASSIGN vexpr ;
+vassign: VAR APPEND vexpr ;
+
+vassign: ARRAY '[' sexpr ']' ASSIGN vexpr ;
 
 sassign: sref ASSIGN sexpr ;
 sassign: sref APPEND sexpr ;
+
+
+
+littable: ;
+littable: tableitem;
+littable: littable ',' tableitem;
+
+tableitem: FIELD ASSIGN sexpr;
 
 // */

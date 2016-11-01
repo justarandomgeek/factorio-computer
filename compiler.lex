@@ -72,14 +72,14 @@ register r[0-9]+
 	return (int)Tokens.STRING;
 }
 
-<PROGRAM> "var" {
-  yylval.sVal = "var";
+<PROGRAM> "var"|"int" {
+  yylval.sVal = yytext;
   return (int)Tokens.TYPENAME;
 }
 
 <PROGRAM> {identifier} {
 	yylval.sVal = yytext;
-  Console.WriteLine("ident: {0}", yytext);
+  //Console.WriteLine("ident: {0}", yytext);
   return (int)Parser.GetIdentType(yytext);
 }
 

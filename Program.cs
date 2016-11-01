@@ -8,6 +8,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.IO;
 using System.IO.Compression;
@@ -48,12 +49,11 @@ namespace compiler
 		            parser.PrintAddrMap();
 		            parser.PrintListing();
 		            parser.MakeROM();
-		            
-				
 	            }
 			}
 		}
 	}
+	
 	
 	
 
@@ -62,60 +62,63 @@ namespace compiler
         new Scanner Scanner { get { return (Scanner)base.Scanner; } set { base.Scanner = value; } }
 
         public List<string> NativeFields = new List<string>();
-        public Dictionary<string,Dictionary<string,string>> Types = new Dictionary<string, Dictionary<string, string>>();
-        public Dictionary<string,string> Functions = new Dictionary<string, string>();
-        public List<Symbol> Symbols = new List<Symbol>();
+        public Dictionary<string,TypeInfo> Types = new Dictionary<string, TypeInfo>();
+        public Dictionary<string,FunctionInfo> Functions = new Dictionary<string, FunctionInfo>();
+        public SymbolList Symbols = new SymbolList();
+        
+        public string ExpectFieldType { get; private set; }
+        public string InFunction { get; private set; }
         
         public StatementList programData;
         public string Name {get; private set;}
         
         Lua lua = new Lua();
         
-        public void RegisterType(string typename, Dictionary<string,string> fields)
+        public void RegisterType(string typename, TypeInfo typeinfo)
         {
-        	Types.Add(typename,null);
+        	Types.Add(typename,typeinfo);
         }
         
-        public void CreateMemVar(string typename, string name, int fixedAddr=0)
+        public void CreateSym(Symbol sym)
         {
-        	if (fixedAddr != 0)
-        	{
-        		// if fixed, just make a fixed symbol in memory
-        		Symbols.Add(new Symbol
-        		            {
-        		            	type=SymbolType.Data,
-        		            	name=name,
-        		            	datatype=typename,
-        		            	fixedAddr=fixedAddr
-        		            });
+        	if (InFunction != null) {
+        		Functions[InFunction].locals.Add(sym);
+        	} else {
+        		Symbols.Add(sym);
         	}
-        	
-        	// if in function, allocate on stack?
-        	// else allocate sequential in ram
         }
         
-        public void CreateRegVar(string typename, string name, int reg)
+        public string GetSymbolDataType(string ident)
         {
-        	//define fixed symbol to a register
-        	Symbols.Add(new Symbol
-        		            {
-        		            	type=SymbolType.Register,
-        		            	name=name,
-        		            	datatype=typename,
-        		            	fixedAddr=reg
-        		            });
+        	if (InFunction != null && Functions[InFunction].locals.Exists((s)=>s.name==ident)) {
+        		return Functions[InFunction].locals.Find((s)=>s.name==ident).datatype;
+        	} else {
+        		return Symbols.Find((s)=>s.name==ident).datatype;
+        	}
         }
         
         
-        public string ExpectFieldType { get; set; }
+        public void BeginFunction(string name, SymbolList paramlist)
+        {
+        	Functions.Add(name,new FunctionInfo{name=name,locals=paramlist});
+        	
+        	InFunction = name;
+        }
+        
+        
+        
         public Tokens GetIdentType(string ident)
         {
-        	if (ExpectFieldType != null && Types[ExpectFieldType].ContainsKey(ident))
+        	if (ExpectFieldType != null)
         	{
-        		ExpectFieldType = null;
-        		return Tokens.FIELD;
+        		if (ident=="nil"||(ExpectFieldType =="var" && NativeFields.Contains(ident))||(Types[ExpectFieldType].ContainsKey(ident)))
+        		{
+        			ExpectFieldType = null;
+        			return Tokens.FIELD;	
+        		} 
         	}
-        	else if(Types.ContainsKey(ident))
+        	
+        	if(Types.ContainsKey(ident))
         	{
         		return Tokens.TYPENAME;
         	}
@@ -123,6 +126,18 @@ namespace compiler
 			{
 				return Tokens.FIELD;
 			}
+        	else if (InFunction != null && Functions[InFunction].locals.Exists((s) => s.name == ident))
+        	{
+        		return Functions[InFunction].locals.Find((s) => s.name == ident).ToToken();
+        	}
+        	else if(Symbols.Exists((s) => s.name == ident))
+        	{
+        		return Symbols.Find((s) => s.name == ident).ToToken();        		
+        	}
+        	else if (Functions.ContainsKey(ident))
+        	{
+        		return Tokens.FUNCNAME;
+        	}
         	else
 			{
 				return Tokens.UNDEF;

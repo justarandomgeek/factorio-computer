@@ -40,6 +40,36 @@ namespace compiler
 		Divide
 	}
 	
+	
+	public class TypeInfo:Dictionary<string,string>
+	{
+		public void Add(FieldInfo fi)
+		{
+			this.Add(fi.name,fi.basename);
+		}
+	}
+	public struct FieldInfo{
+		public string name;
+		public string basename;
+	}
+	
+	public class SymbolList:List<Symbol>
+	{
+		public void AddParam(FieldInfo pi)
+		{
+			this.Add(new Symbol{
+			         	name=pi.name,
+			         	type=SymbolType.Parameter,
+			         	datatype=pi.basename			         	
+			         });
+		}
+	}
+	
+	public class FunctionInfo{
+		public string name;
+		public SymbolList locals = new SymbolList();
+	}
+	
 	public enum SymbolType{
 		Unspecified=0,
 		Function, 
@@ -47,6 +77,8 @@ namespace compiler
 		Register,
 		Program,
 		Internal,
+		Parameter,
+		Array,
 	}
 	
 	public struct Symbol
@@ -57,6 +89,7 @@ namespace compiler
 		public SymbolType type;
 		public string datatype;
 		public int? fixedAddr;
+		public int? size;
 		
 		#region Equals and GetHashCode implementation
 		public override bool Equals(object obj)
@@ -95,6 +128,22 @@ namespace compiler
 		public override string ToString()
 		{
 			return string.Format("{1}:{2} {0}", name, type.ToString()[0], datatype);
+		}
+		
+		public Tokens ToToken()
+		{
+			switch (type) {
+				case SymbolType.Data:
+				case SymbolType.Parameter:
+				case SymbolType.Register:
+					return datatype=="int"?Tokens.INTVAR:Tokens.VAR;
+				case SymbolType.Function:
+					return Tokens.FUNCNAME;
+				case SymbolType.Array:
+					return datatype=="int"?Tokens.INTARRAY:Tokens.ARRAY;
+				default:
+					return Tokens.error;
+			}
 		}
 
 	}

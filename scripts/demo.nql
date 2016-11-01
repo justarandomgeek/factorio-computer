@@ -38,8 +38,70 @@ var     @r15  rFlanRX
 var     @r16  rFlanTX
 var     @r17  rKeyboard
 
---var @500 nixies[5]
+var @500 nixies[5]
 
+
+
+function CLRDISP()
+  -- Clear Display
+  rNixie.signal-grey = 1
+  rNixie.signal-grey = 1
+  rNixie.signal-grey = 1
+  rNixie.signal-grey = 1
+  rNixie.signal-grey = 1
+end
+
+function READLINE()
+  var line
+  while rKeyboard.signal-grey == 0 do
+    rNull=rNull --TODO: allow empty loop?
+  end
+  line = rKeyboard
+  rKeyboard = rNull
+  return line
+end
+
+function COLORDEMO()
+  -- Print a color demo
+  rNixie = { signal-red=1, signal-green=2, signal-blue=4, signal-cyan=8, signal-pink=16, signal-yellow=32 }&"COLORS"
+  rNixie.signal-grey = 1
+  rNixie = {signal-red=7, signal-green=496, signal-blue=61440}&"RED GREEN   BLUE"
+  rNixie.signal-grey = 1
+  rNixie = {signal-cyan=15, signal-pink=480, signal-yellow=258048}&"CYAN PINK   YELLOW"
+end
+
+function MATHDEMO(int i)
+  --nn FACTORIAL
+  --nn SQUARE
+  --ii NUMBER
+  var num --TODO: var num,square,factorial
+  var square
+  var factorial
+  num = "NUMBER" --TODO: initializers with definition?
+  num.signal-white = 1
+  square = "SQUARE"
+  factorial = "FACTORIAL"
+  factorial.signal-white = 1
+  while num.signal-white < i+1 do
+    nixies[0]=num
+
+    square.signal-white = num.signal-white * num.signal-white
+    nixies[1]=square
+
+    factorial.signal-white = factorial.signal-white * num.signal-white
+    nixies[2]=factorial
+
+    num.signal-white += 1
+  end
+  return
+end
+
+function KEYDEMO()
+  while rNull.nil == rNull.nil do
+    READLINE()
+    rNixie.signal-grey=1
+  end
+end
 
 function MAIN()
   rIndex.callstack = 50
@@ -58,61 +120,3 @@ function MAIN()
 
   KEYDEMO()
 end
---
---function CLRDISP()
---  // Chear Display
---  rNixie.signal-grey = 1
---  rNixie.signal-grey = 1
---  rNixie.signal-grey = 1
---  rNixie.signal-grey = 1
---  rNixie.signal-grey = 1
---end
---
---function READLINE()
---  var line
---  while rKeyboard.signal-grey == 0 do
---  end
---  line = rKeyboard
---  rKeyboard = rNull
---  return line
---end
---
---function COLORDEMO()
---  // Print a color demo
---  rNixie = { signal-red=1, signal-green=2, signal-blue=4, signal-cyan=8, signal-pink=16, signal-yellow=32 }&"COLORS"
---  rNixie.signal-grey = 1
---  rNixie = {signal-red=7, signal-green=496, signal-blue=61440}&"RED GREEN   BLUE"
---  rNixie.signal-grey = 1
---  rNixie = {signal-cyan=15, signal-pink=480, signal-yellow=258048}&"CYAN PINK   YELLOW"
---end
---
---function MATHDEMO(int i)
---  --nn FACTORIAL
---  --nn SQUARE
---  --ii NUMBER
---  var num = "NUMBER"
---  num.signal-white = 1
---  var square = "SQUARE"
---  var factorial = "FACTORIAL"
---  factorial.signal-white = 1
---  while num.signal-white < i+1 do
---    nixies[0]=num
---
---    square.signal-white = num.signal-white * num.signal-white
---    nixies[1]=square
---
---    factorial.signal-white = factorial.signal-white * num.signal-white
---    nixies[2]=factorial
---
---    num.signal-white += 1
---  end
---  return
---end
---
---function KEYDEMO()
---  while rNull.Null == rNull.Null do
---    READLINE()
---    rNixie.signal-grey=1
---  end
---end
---
