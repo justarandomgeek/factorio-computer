@@ -68,6 +68,7 @@ namespace compiler
 	public class FunctionInfo{
 		public string name;
 		public SymbolList locals = new SymbolList();
+		public TypeInfo localints = new TypeInfo();
 	}
 	
 	public enum SymbolType{
@@ -83,8 +84,6 @@ namespace compiler
 	
 	public struct Symbol
 	{
-		
-		
 		public string name;
 		public SymbolType type;
 		public string datatype;
@@ -200,6 +199,87 @@ namespace compiler
 		}
 	}
 
+	
+	public interface VExpr
+	{
+		
+	}
+	
+	public interface SExpr
+	{
+		
+	}
+	
+	public class ArithSExpr: SExpr
+	{
+		public SExpr S1;
+		public ArithSpec Op;
+		public SExpr S2;		
+	}
+	
+	public class IntSExpr: SExpr
+	{
+		public int value;
+	}
+	
+	public class ArithVExpr: VExpr
+	{
+		public VExpr V1;
+		public ArithSpec Op;
+		public VExpr V2;		
+	}
+	
+	public class CatVExpr: VExpr
+	{
+		public VExpr V1;
+		public VExpr V2;		
+	}
+	
+	public class ArithVSExpr: VExpr
+	{
+		public VExpr V1;
+		public ArithSpec Op;
+		public SExpr S2;		
+	}
+	
+	public class StringVExpr: VExpr
+	{
+		public string text;
+	}
+	
+	public interface SRef : SExpr // the assignable subset of scalar expressions
+	{
+		
+	}
+	
+	public class IntVarSRef: SRef
+	{
+		public string name;
+	}
+	
+	public class FieldSRef: SRef
+	{
+		public string varname;
+		public string fieldname;
+	}
+	
+	public class Table:Dictionary<string,SExpr>, VExpr
+	{
+		public string datatype;
+		public void Add(TableItem ti)
+		{
+			this.Add(ti.fieldname,ti.value);
+		}
+		
+	}
+	
+	public class TableItem
+	{
+		public string fieldname;
+		public SExpr value;
+	}
+	
+	
 	public struct DataItem
 	{
 		public SignalSpec signal;

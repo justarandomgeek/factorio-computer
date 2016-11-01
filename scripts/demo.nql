@@ -53,9 +53,7 @@ end
 
 function READLINE()
   var line
-  while rKeyboard.signal-grey == 0 do
-    rNull=rNull --TODO: allow empty loop?
-  end
+  while rKeyboard.signal-grey == 0 do  end
   line = rKeyboard
   rKeyboard = rNull
   return line

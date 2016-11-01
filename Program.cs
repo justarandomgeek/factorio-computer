@@ -88,6 +88,17 @@ namespace compiler
         	}
         }
         
+        public void CreateInt(string name)
+        {
+        	if (InFunction != null) {
+        		Functions[InFunction].localints.Add(name,null);
+        	} else {
+        		if(!Types.ContainsKey("__globalints")){Types.Add("__globalints",new TypeInfo());}
+        		Types["__globalints"].Add(name,null);
+        	}
+        }
+        
+        
         public string GetSymbolDataType(string ident)
         {
         	if (InFunction != null && Functions[InFunction].locals.Exists((s)=>s.name==ident)) {
@@ -130,9 +141,17 @@ namespace compiler
         	{
         		return Functions[InFunction].locals.Find((s) => s.name == ident).ToToken();
         	}
+        	else if (InFunction != null && Functions[InFunction].localints.ContainsKey(ident))
+        	{
+        		return Tokens.INTVAR;
+        	}
         	else if(Symbols.Exists((s) => s.name == ident))
         	{
         		return Symbols.Find((s) => s.name == ident).ToToken();        		
+        	}
+        	else if (Types.ContainsKey("__globalints") && Types["__globalints"].ContainsKey(ident))
+        	{
+        		return Tokens.INTVAR;
         	}
         	else if (Functions.ContainsKey(ident))
         	{

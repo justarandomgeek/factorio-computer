@@ -31,6 +31,8 @@ register r[0-9]+
 <PROGRAM> "else"      {return (int)Tokens.ELSE;}
 <PROGRAM> "end"       {return (int)Tokens.END;}
 
+<PROGRAM> "int"       {return (int)Tokens.INT;}
+
 <PROGRAM> "return"       {return (int)Tokens.RETURN;}
 
 <PROGRAM> "?1" {yylval.bVal = true; return (int)Tokens.COND;}
@@ -72,7 +74,7 @@ register r[0-9]+
 	return (int)Tokens.STRING;
 }
 
-<PROGRAM> "var"|"int" {
+<PROGRAM> "var" {
   yylval.sVal = yytext;
   return (int)Tokens.TYPENAME;
 }
