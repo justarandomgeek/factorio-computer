@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NLua;
 
@@ -69,10 +70,16 @@ namespace compiler
 		public string name;
 		public SymbolList locals = new SymbolList();
 		public TypeInfo localints = new TypeInfo();
+		public Block body;
+		
+		public void AllocateInts()
+		{
+			//TODO allocate any ->null localints sequentially by signal map
+		}
+		
 	}
 	
 	public enum SymbolType{
-		Unspecified=0,
 		Function, 
 		Data,
 		Register,
@@ -90,33 +97,6 @@ namespace compiler
 		public int? fixedAddr;
 		public int? size;
 		
-		#region Equals and GetHashCode implementation
-		public override bool Equals(object obj)
-		{
-			return (obj is Symbol) && Equals((Symbol)obj);
-		}
-
-		public bool Equals(Symbol other)
-		{
-			return (this.name == other.name) 
-				&& (this.type == SymbolType.Unspecified || other.type == SymbolType.Unspecified || this.type == other.type);
-		}
-
-		public override int GetHashCode()
-		{
-			return name.GetHashCode();
-		}
-
-		public static bool operator ==(Symbol lhs, Symbol rhs) {
-			return lhs.Equals(rhs);
-		}
-
-		public static bool operator !=(Symbol lhs, Symbol rhs) {
-			return !(lhs == rhs);
-		}
-
-		#endregion
-		
 		public static Symbol Block = new Symbol{name="__block",type=SymbolType.Internal};
 		public static Symbol TrueBlock = new Symbol{name="__trueblock",type=SymbolType.Internal};
 		public static Symbol FalseBlock = new Symbol{name="__falseblock",type=SymbolType.Internal};
@@ -126,7 +106,8 @@ namespace compiler
 		
 		public override string ToString()
 		{
-			return string.Format("{1}:{2} {0}", name, type.ToString()[0], datatype);
+			//return string.Format("{1}:{2} {0}", name, type.ToString()[0], datatype);
+			return string.Format("{0}{1,5}:{2}\t{3}",type.ToString()[0],fixedAddr.GetValueOrDefault(),datatype,name);
 		}
 		
 		public Tokens ToToken()
@@ -202,74 +183,390 @@ namespace compiler
 	
 	public interface VExpr
 	{
-		
+		bool IsConstant();
+		Table Evaluate();
 	}
 	
 	public interface SExpr
 	{
-		
+		bool IsConstant();
+		int Evaluate();
 	}
+	
 	
 	public class ArithSExpr: SExpr
 	{
+		public bool IsConstant()
+		{
+			return S1.IsConstant() && S2.IsConstant();
+		}
+		
+		public int Evaluate()
+		{
+			if(!IsConstant())
+			{
+				throw new InvalidOperationException();
+			}
+			switch (Op) {
+				case ArithSpec.Add:
+					return S1.Evaluate() + S2.Evaluate();
+				case ArithSpec.Subtract:
+					return S1.Evaluate() - S2.Evaluate();
+				case ArithSpec.Multiply:
+					return S1.Evaluate() * S2.Evaluate();
+				case ArithSpec.Divide:
+					return S1.Evaluate() / S2.Evaluate();
+				default:
+					throw new InvalidOperationException();
+			} 
+		}
+		
 		public SExpr S1;
 		public ArithSpec Op;
-		public SExpr S2;		
+		public SExpr S2;	
+		public override string ToString()
+		{
+			return string.Format("[ArithSExpr S1={0}, Op={1}, S2={2}]", S1, Op, S2);
+		}
+
 	}
 	
 	public class IntSExpr: SExpr
 	{
+		public bool IsConstant()
+		{
+			return true;
+		}
+		public int Evaluate()
+		{
+			return value;
+		}
 		public int value;
+		public static implicit operator IntSExpr(int i)
+		{
+			return new IntSExpr{value=i};
+		}
+		public override string ToString()
+		{
+			return string.Format("[IntSExpr Value={0}]", value);
+		}
+
 	}
 	
 	public class ArithVExpr: VExpr
 	{
+		public bool IsConstant()
+		{
+			return V1.IsConstant() && V2.IsConstant();
+		}
+		
+		public Table Evaluate()
+		{
+			if(!IsConstant())
+			{
+				throw new InvalidOperationException();
+			}
+			switch (Op) {
+				case ArithSpec.Add:
+					return V1.Evaluate() + V2.Evaluate();
+				case ArithSpec.Subtract:
+					return V1.Evaluate() - V2.Evaluate();
+				case ArithSpec.Multiply:
+					return V1.Evaluate() * V2.Evaluate();
+				case ArithSpec.Divide:
+					return V1.Evaluate() / V2.Evaluate();
+				default:
+					throw new InvalidOperationException();
+			} 
+		}
+		
 		public VExpr V1;
 		public ArithSpec Op;
-		public VExpr V2;		
+		public VExpr V2;	
+		public override string ToString()
+		{
+			return string.Format("[ArithVExpr V1={0}, Op={1}, V2={2}]", V1, Op, V2);
+		}
+
 	}
-	
-	public class CatVExpr: VExpr
-	{
-		public VExpr V1;
-		public VExpr V2;		
-	}
-	
+		
 	public class ArithVSExpr: VExpr
 	{
+		public bool IsConstant()
+		{
+			return V1.IsConstant() && S2.IsConstant();
+		}
+		
+		public Table Evaluate()
+		{
+			if(!IsConstant())
+			{
+				throw new InvalidOperationException();
+			}
+			switch (Op) {
+				case ArithSpec.Add:
+					return V1.Evaluate() + S2.Evaluate();
+				case ArithSpec.Subtract:
+					return V1.Evaluate() - S2.Evaluate();
+				case ArithSpec.Multiply:
+					return V1.Evaluate() * S2.Evaluate();
+				case ArithSpec.Divide:
+					return V1.Evaluate() / S2.Evaluate();
+				default:
+					throw new InvalidOperationException();
+			} 
+		}
+		
 		public VExpr V1;
 		public ArithSpec Op;
-		public SExpr S2;		
+		public SExpr S2;	
+		public override string ToString()
+		{
+			return string.Format("[ArithVSExpr V1={0}, Op={1}, S2={2}]", V1, Op, S2);
+		}
+
 	}
 	
 	public class StringVExpr: VExpr
 	{
+		public bool IsConstant()
+		{
+			return true;
+		}
+		public Table Evaluate()
+		{
+			return new Table(text);
+		}
 		public string text;
+		public override string ToString()
+		{
+			return string.Format("[StringVExpr Text={0}]", text);
+		}
+
 	}
 	
 	public interface SRef : SExpr // the assignable subset of scalar expressions
 	{
-		
+		//void Assign(SExpr value);
 	}
 	
 	public class IntVarSRef: SRef
 	{
+		public bool IsConstant()
+		{
+			return false;
+		}
+		public int Evaluate()
+		{
+			throw new InvalidOperationException(); 
+		}
 		public string name;
+		public override string ToString()
+		{
+			return string.Format("[IntVarSRef Name={0}]", name);
+		}
+
 	}
 	
 	public class FieldSRef: SRef
 	{
+		public bool IsConstant()
+		{
+			return false;
+		}
+		public int Evaluate()
+		{
+			throw new InvalidOperationException(); 
+		}
 		public string varname;
 		public string fieldname;
+		public override string ToString()
+		{
+			return string.Format("[FieldSRef Varname={0}, Fieldname={1}]", varname, fieldname);
+		}
+
+	}
+	
+	public interface VRef: VExpr // the assignable subset of vector expressions
+	{
+		
+	}
+	
+	public class VarVRef: VRef
+	{
+		public bool IsConstant()
+		{
+			return false;
+		}
+		public Table Evaluate()
+		{
+			throw new InvalidOperationException(); 
+		}
+		public string name;
+		public override string ToString()
+		{
+			return string.Format("[VarVRef Name={0}]", name);
+		}
+
+	}
+	
+	public class ArrayVRef: VRef
+	{
+		public bool IsConstant()
+		{
+			return false;
+		}
+		public Table Evaluate()
+		{
+			throw new InvalidOperationException(); 
+		}
+		public string arrname;
+		public SExpr offset;
+		public override string ToString()
+		{
+			return string.Format("[ArrayVRef Arrname={0}, Offset={1}]", arrname, offset);
+		}
+
 	}
 	
 	public class Table:Dictionary<string,SExpr>, VExpr
 	{
+		public bool IsConstant()
+		{
+			return this.All((ti) => ti.Value.IsConstant());
+		}
+		public Table Evaluate()
+		{
+			return this; 
+		}
 		public string datatype;
 		public void Add(TableItem ti)
 		{
 			this.Add(ti.fieldname,ti.value);
 		}
+		
+		public Table():base(){}
+		public Table(string text)
+		{
+			//TODO: build a string table here
+		}
+		
+		public static Table Asm(int op, int r1, int s1, int r2, int s2, int rd, int sd)
+		{
+			return new Table{
+				{"signal-0",(IntSExpr)op},
+				{"signal-R",(IntSExpr)r1},
+				{"signal-S",(IntSExpr)s1},
+				{"signal-T",(IntSExpr)r2},
+				{"signal-U",(IntSExpr)s2},
+				{"signal-V",(IntSExpr)rd},
+				{"signal-W",(IntSExpr)sd},
+			};
+		}
+		
+		public static Table operator +(Table t1, Table t2)
+		{
+			var tres = new Table();
+			foreach (var key in t1.Keys.Union(t2.Keys)) {
+				SExpr eres;
+				if(!t2.ContainsKey(key)){
+					eres=t1[key];
+				} else if(!t1.ContainsKey(key)){
+					eres=t2[key];
+				} else {
+					eres = new ArithSExpr{S1=t1[key],Op=ArithSpec.Add,S2=t2[key]};
+				}				
+				tres.Add(key,eres);
+			}
+			return tres;
+		}
+		public static Table operator -(Table t1, Table t2)
+		{
+			var tres = new Table();
+			foreach (var key in t1.Keys.Union(t2.Keys)) {
+				SExpr eres;
+				if(!t2.ContainsKey(key)){
+					eres=t1[key];
+				} else if(!t1.ContainsKey(key)){
+					eres=t2[key];
+				} else {
+					eres = new ArithSExpr{S1=t1[key],Op=ArithSpec.Subtract,S2=t2[key]};
+				}				
+				tres.Add(key,eres);
+			}
+			return tres;
+		}
+		public static Table operator *(Table t1, Table t2)
+		{
+			var tres = new Table();
+			foreach (var key in t1.Keys.Union(t2.Keys)) {
+				SExpr eres;
+				if(!t2.ContainsKey(key)){
+					eres=t1[key];
+				} else if(!t1.ContainsKey(key)){
+					eres=t2[key];
+				} else {
+					eres = new ArithSExpr{S1=t1[key],Op=ArithSpec.Multiply,S2=t2[key]};
+				}				
+				tres.Add(key,eres);
+			}
+			return tres;
+		}
+		public static Table operator /(Table t1, Table t2)
+		{
+			var tres = new Table();
+			foreach (var key in t1.Keys.Union(t2.Keys)) {
+				SExpr eres;
+				if(!t2.ContainsKey(key)){
+					eres=t1[key];
+				} else if(!t1.ContainsKey(key)){
+					eres=t2[key];
+				} else {
+					eres = new ArithSExpr{S1=t1[key],Op=ArithSpec.Divide,S2=t2[key]};
+				}				
+				tres.Add(key,eres);
+			}
+			return tres;
+		}
+		
+		public static Table operator +(Table t, int i){return t+(IntSExpr)i;}
+		public static Table operator -(Table t, int i){return t-(IntSExpr)i;}
+		public static Table operator *(Table t, int i){return t*(IntSExpr)i;}
+		public static Table operator /(Table t, int i){return t/(IntSExpr)i;}
+		
+		public static Table operator +(Table t, SExpr s)
+		{
+			var tres = new Table();
+			foreach (var ti in t) {
+				tres.Add(ti.Key,new ArithSExpr{S1=ti.Value,Op=ArithSpec.Add,S2=s});
+			}
+			return tres;
+		}
+		public static Table operator -(Table t, SExpr s)
+		{
+			var tres = new Table();
+			foreach (var ti in t) {
+				tres.Add(ti.Key,new ArithSExpr{S1=ti.Value,Op=ArithSpec.Subtract,S2=s});
+			}
+			return tres;
+		}
+		public static Table operator *(Table t, SExpr s)
+		{
+			var tres = new Table();
+			foreach (var ti in t) {
+				tres.Add(ti.Key,new ArithSExpr{S1=ti.Value,Op=ArithSpec.Divide,S2=s});
+			}
+			return tres;
+		}
+		public static Table operator /(Table t, SExpr s)
+		{
+			var tres = new Table();
+			foreach (var ti in t) {
+				tres.Add(ti.Key,new ArithSExpr{S1=ti.Value,Op=ArithSpec.Multiply,S2=s});
+			}
+			return tres;
+		}
+		
 		
 	}
 	
@@ -279,6 +576,54 @@ namespace compiler
 		public SExpr value;
 	}
 	
+	public interface Statement
+	{
+		
+	}
+	
+	public class VAssign:Statement
+	{
+		public VRef target;
+		public bool append;
+		public VExpr source;
+		public override string ToString()
+		{
+			return string.Format("[VAssign Target={0}, Append={1}, Source={2}]", target, append, source);
+		}
+
+	}
+	public class SAssign:Statement
+	{
+		public SRef target;
+		public bool append;
+		public SExpr source;
+		public override string ToString()
+		{
+			return string.Format("[SAssign Target={0}, Append={1}, Source={2}]", target, append, source);
+		}
+
+	}
+	
+	public class Branch
+	{
+		public SExpr S1;
+		public CompSpec Op;
+		public SExpr S2;
+	}
+	
+	public class Block:List<Statement>
+	{
+		public static Block If(Branch branch, Block ifblock, Block elseblock)
+		{
+			return new Block();
+		}
+		
+		public static Block While(Branch branch, Block block)
+		{
+			return new Block();
+		}
+		
+	}
 	
 	public struct DataItem
 	{

@@ -43,12 +43,37 @@ namespace compiler
 	            		prog = reader.ReadToEnd();
 	            	}
 					parser.Parse(prog);
-					Console.WriteLine("Program Name: {0}", parser.Name);
+					//Console.WriteLine("Program Name: {0}", parser.Name);
 					
-					parser.programData.Relocate(1001);
-		            parser.PrintAddrMap();
-		            parser.PrintListing();
-		            parser.MakeROM();
+					foreach (var typedata in parser.Types) {
+						Console.WriteLine("Type: {0}",typedata.Key);
+						foreach (var field in typedata.Value) {
+							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
+						}						
+					}
+					
+					Console.WriteLine();
+					Console.WriteLine("Symbols:");
+					foreach (var symbol in parser.Symbols) {
+						Console.WriteLine(symbol);
+					}
+					
+					Console.WriteLine();
+					Console.WriteLine("Functions:");
+					foreach (var func in parser.Functions.Values) {
+						Console.WriteLine(func.name);
+						foreach (var field in func.localints) {
+							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
+						}
+						foreach (var symbol in func.locals) {
+							Console.WriteLine("  "+symbol);
+						}
+						foreach (var element in func.body) {
+							Console.WriteLine("  "+element);
+							
+						}
+					}
+					
 	            }
 			}
 		}
@@ -116,6 +141,11 @@ namespace compiler
         	InFunction = name;
         }
         
+        public void CompleteFunction(string name, Block body)
+        {
+        	Functions[name].body=body;
+        	InFunction=null;
+        }
         
         
         public Tokens GetIdentType(string ident)

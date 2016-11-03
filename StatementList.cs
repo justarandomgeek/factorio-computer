@@ -117,12 +117,12 @@ namespace compiler
 			foreach (var statement in otherlist) {
 		     	var st = new DataList();
              	foreach (var item in statement) {
-					if (item.Value.identifier==Symbol.Block)
+					/*if (item.Value.identifier==Symbol.Block)
 					{
 						st.Add(item.Key,item.Value+newbase);
 					} else {
 						st.Add(item.Key,item.Value);
-					}
+					}*/
 				}
 		     	this.Add(st);
 			}
@@ -143,7 +143,7 @@ namespace compiler
 				var keys = new SignalSpec[statement.Keys.Count];
 				statement.Keys.CopyTo(keys,0);
 				foreach (var key in keys) {
-					if(statement[key].identifier == sym)
+					/*if(statement[key].identifier == sym)
 					{
 						if(statement[key].relative){
 							statement[key]=statement[key].resolve(this.IndexOf(statement), this.symbols);	
@@ -154,8 +154,7 @@ namespace compiler
 								identifierOffset = statement[key].resolve(this.IndexOf(statement), this.symbols) - this.symbols[refsym]
 							};
 						}
-						
-					}
+					}*/
 				}
 			}
 		}

@@ -61,11 +61,11 @@ end
 
 function COLORDEMO()
   -- Print a color demo
-  rNixie = { signal-red=1, signal-green=2, signal-blue=4, signal-cyan=8, signal-pink=16, signal-yellow=32 }&"COLORS"
+  rNixie = { signal-red=1, signal-green=2, signal-blue=4, signal-cyan=8, signal-pink=16, signal-yellow=32 } + "COLORS"
   rNixie.signal-grey = 1
-  rNixie = {signal-red=7, signal-green=496, signal-blue=61440}&"RED GREEN   BLUE"
+  rNixie = {signal-red=7, signal-green=496, signal-blue=61440} + "RED GREEN   BLUE"
   rNixie.signal-grey = 1
-  rNixie = {signal-cyan=15, signal-pink=480, signal-yellow=258048}&"CYAN PINK   YELLOW"
+  rNixie = {signal-cyan=15, signal-pink=480, signal-yellow=258048} + "CYAN PINK   YELLOW"
 end
 
 function MATHDEMO(int i)
