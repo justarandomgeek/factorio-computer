@@ -43,7 +43,6 @@ namespace compiler
 	            		prog = reader.ReadToEnd();
 	            	}
 					parser.Parse(prog);
-					//Console.WriteLine("Program Name: {0}", parser.Name);
 					
 					foreach (var typedata in parser.Types) {
 						Console.WriteLine("Type: {0}",typedata.Key);
@@ -68,11 +67,11 @@ namespace compiler
 						foreach (var symbol in func.locals) {
 							Console.WriteLine("  "+symbol);
 						}
-						foreach (var element in func.body) {
-							Console.WriteLine("  "+element);
-							
-						}
+						func.body.Print("  ");
+						Console.WriteLine();
 					}
+					
+					Console.ReadLine();
 					
 	            }
 			}

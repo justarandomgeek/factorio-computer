@@ -79,6 +79,58 @@ namespace compiler
 		
 	}
 	
+	public class FunctionCall:Statement
+	{
+		public string name;
+		public ExprList args;
+		public RefList returns;
+		public override string ToString()
+		{
+			return string.Format("[FunctionCall {0}({1}) => {2}]", name, args, returns);
+		}
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+		}
+
+	}
+	
+	public class Return:Statement
+	{
+		public ExprList returns = new ExprList();
+		public override string ToString()
+		{
+			return string.Format("[Return Returns={0}]", returns);
+		}	
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+		}
+	}
+	
+	public class ExprList{
+		public List<SExpr> ints = new List<SExpr>();
+		public List<VExpr> vars = new List<VExpr>();
+		public override string ToString()
+		{
+			return string.Format("[ExprList Ints={0}; Vars={1}]", string.Join(",",ints), string.Join(",",vars));
+		}
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+		}
+
+	}
+	
+	public class RefList{
+		public List<SRef> ints = new List<SRef>();
+		public List<VRef> vars = new List<VRef>();
+		public override string ToString()
+		{
+			return string.Format("[RefList Ints={0}; Vars={1}]", string.Join(",",ints), string.Join(",",vars));
+		}
+	}
+	
 	public enum SymbolType{
 		Function, 
 		Data,
@@ -226,7 +278,7 @@ namespace compiler
 		public SExpr S2;	
 		public override string ToString()
 		{
-			return string.Format("[ArithSExpr S1={0}, Op={1}, S2={2}]", S1, Op, S2);
+			return string.Format("[ArithSExpr {0} {1} {2}]", S1, Op, S2);
 		}
 
 	}
@@ -248,7 +300,7 @@ namespace compiler
 		}
 		public override string ToString()
 		{
-			return string.Format("[IntSExpr Value={0}]", value);
+			return string.Format("[IntSExpr {0}]", value);
 		}
 
 	}
@@ -285,7 +337,7 @@ namespace compiler
 		public VExpr V2;	
 		public override string ToString()
 		{
-			return string.Format("[ArithVExpr V1={0}, Op={1}, V2={2}]", V1, Op, V2);
+			return string.Format("[ArithVExpr {0} {1} {2}]", V1, Op, V2);
 		}
 
 	}
@@ -322,7 +374,7 @@ namespace compiler
 		public SExpr S2;	
 		public override string ToString()
 		{
-			return string.Format("[ArithVSExpr V1={0}, Op={1}, S2={2}]", V1, Op, S2);
+			return string.Format("[ArithVSExpr {0} {1} {2}]", V1, Op, S2);
 		}
 
 	}
@@ -338,9 +390,13 @@ namespace compiler
 			return new Table(text);
 		}
 		public string text;
+		public static implicit operator StringVExpr(string s)
+		{
+			return new StringVExpr{text=s};
+		}
 		public override string ToString()
 		{
-			return string.Format("[StringVExpr Text={0}]", text);
+			return string.Format("[StringVExpr {0}]", text);
 		}
 
 	}
@@ -363,7 +419,7 @@ namespace compiler
 		public string name;
 		public override string ToString()
 		{
-			return string.Format("[IntVarSRef Name={0}]", name);
+			return string.Format("[IntVarSRef {0}]", name);
 		}
 
 	}
@@ -382,7 +438,7 @@ namespace compiler
 		public string fieldname;
 		public override string ToString()
 		{
-			return string.Format("[FieldSRef Varname={0}, Fieldname={1}]", varname, fieldname);
+			return string.Format("[FieldSRef {0}.{1}]", varname, fieldname);
 		}
 
 	}
@@ -405,7 +461,7 @@ namespace compiler
 		public string name;
 		public override string ToString()
 		{
-			return string.Format("[VarVRef Name={0}]", name);
+			return string.Format("[VarVRef {0}]", name);
 		}
 
 	}
@@ -424,7 +480,7 @@ namespace compiler
 		public SExpr offset;
 		public override string ToString()
 		{
-			return string.Format("[ArrayVRef Arrname={0}, Offset={1}]", arrname, offset);
+			return string.Format("[ArrayVRef {0}+{1}]", arrname, offset);
 		}
 
 	}
@@ -567,6 +623,11 @@ namespace compiler
 			return tres;
 		}
 		
+		public override string ToString()
+		{
+			return string.Format("[Table {0}:{1}]", datatype, this.Count);
+		}
+
 		
 	}
 	
@@ -574,11 +635,16 @@ namespace compiler
 	{
 		public string fieldname;
 		public SExpr value;
+		public override string ToString()
+		{
+			return string.Format("[{0}={1}]", fieldname, value);
+		}
+
 	}
 	
 	public interface Statement
 	{
-		
+		void Print(string prefix);
 	}
 	
 	public class VAssign:Statement
@@ -588,7 +654,11 @@ namespace compiler
 		public VExpr source;
 		public override string ToString()
 		{
-			return string.Format("[VAssign Target={0}, Append={1}, Source={2}]", target, append, source);
+			return string.Format("[VAssign {0} {1} {2}]", target, append?"+=":"=", source);
+		}
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
 		}
 
 	}
@@ -599,7 +669,12 @@ namespace compiler
 		public SExpr source;
 		public override string ToString()
 		{
-			return string.Format("[SAssign Target={0}, Append={1}, Source={2}]", target, append, source);
+			return string.Format("[SAssign {0} {1} {2}]", target, append?"+=":"=", source);
+		}
+		
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
 		}
 
 	}
@@ -609,18 +684,64 @@ namespace compiler
 		public SExpr S1;
 		public CompSpec Op;
 		public SExpr S2;
+		public override string ToString()
+		{
+			return string.Format("[Branch S1={0}, Op={1}, S2={2}]", S1, Op, S2);
+		}
+
+	}
+	
+	public class If:Statement
+	{
+		public Branch branch;
+		public Block ifblock;
+		public Block elseblock;
+		public override string ToString()
+		{
+			return string.Format("[If Branch={0}]", branch, ifblock, elseblock);
+		}
+		
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+			ifblock.Print(prefix +"  ");
+			if(elseblock!=null)
+			{
+				Console.WriteLine(prefix+"Else");
+				elseblock.Print(prefix+"  ");					
+			}
+		}
+
+	}
+	
+	public class While:Statement
+	{
+		public Branch branch;
+		public Block body;
+		public override string ToString()
+		{
+			return string.Format("[While Branch={0}]", branch);
+		}
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+			body.Print(prefix +"  ");
+		}
+
 	}
 	
 	public class Block:List<Statement>
 	{
-		public static Block If(Branch branch, Block ifblock, Block elseblock)
+		public override string ToString()
 		{
-			return new Block();
+			return string.Format("[Block {0}]",string.Join(";",this));
 		}
 		
-		public static Block While(Branch branch, Block block)
+		public void Print(string prefix)
 		{
-			return new Block();
+			foreach (var statement in this) {
+				if(statement != null) statement.Print(prefix);
+			}
 		}
 		
 	}

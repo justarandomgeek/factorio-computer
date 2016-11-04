@@ -118,7 +118,7 @@
     <EmbeddedResource Include="scalarmap.lua">
       <LogicalName>scalarmap</LogicalName>
     </EmbeddedResource>
-    <None Include="scripts\test.factorio" />
+    <None Include="scripts\demo.nql" />
     <EmbeddedResource Include="serpent0272.lua">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <LogicalName>serpent</LogicalName>

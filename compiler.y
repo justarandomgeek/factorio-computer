@@ -19,6 +19,8 @@
   internal Statement statVal;
   internal Block blockVal;
   internal Branch brVal;
+  internal ExprList elVal;
+  internal RefList rlVal;
 }
 
 %token <iVal> INTEGER
@@ -48,8 +50,10 @@
 %type <tabiVal> tableitem
 
 %type <statVal> statement vassign sassign
-%type <blockVal> block ifblock elseblock whileblock
+%type <blockVal> block elseblock
 %type <brVal> branch
+%type <elVal> exprlist
+%type <rlVal> reflist
 
 %start program
 
@@ -92,8 +96,6 @@ fielddef:           UNDEF { $$ = new FieldInfo{name=$1}; };
 block: {$$=new Block();};
 block: statement { $$=new Block(); $$.Add($1); };
 block: block statement { $$=$1; $$.Add($2); };
-block: block ifblock { $$=$1; $$.AddRange($2); };
-block: block whileblock { $$=$1; $$.AddRange($2); };
 
 statement: vassign {$$=$1;};
 statement: sassign {$$=$1;};
@@ -101,29 +103,28 @@ statement: datadef;
 
 branch: sexpr COMPARE sexpr {$$=new Branch{S1=$1,Op=$2,S2=$3};};
 
-ifblock: IF branch block elseblock END {$$=Block.If($2,$3,$4);};
+statement: IF branch block elseblock END {$$= new If{branch=$2,ifblock=$3,elseblock=$4}; };
 elseblock: ELSE block { $$ = $2; };
 elseblock: {$$=new Block();};
 
-whileblock: WHILE branch DO block END {$$=Block.While($2,$4);};
+statement: WHILE branch DO block END {$$= new While{branch=$2,body=$4}; };
 
-statement: FUNCNAME '(' exprlist ')';
-statement: reflist ASSIGN FUNCNAME '(' exprlist ')';
+statement: FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
+statement: reflist ASSIGN FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$3,args=$5,returns=$1}; };
 
-exprlist: ;
-exprlist: arg;
-exprlist: exprlist ',' arg;
+exprlist: { $$=new ExprList(); };
+exprlist: sexpr { $$=new ExprList(); $$.ints.Add($1); };
+exprlist: exprlist ',' sexpr { $$=$1; $$.ints.Add($3); };
+exprlist: vexpr { $$=new ExprList(); $$.vars.Add($1); };
+exprlist: exprlist ',' vexpr { $$=$1; $$.vars.Add($3); };
 
-arg: sexpr;
-arg: vexpr;
+reflist: { $$=new RefList(); };
+reflist: sref { $$=new RefList(); $$.ints.Add($1); };
+reflist: reflist ',' sref { $$=$1; $$.ints.Add($3); };
+reflist: vref { $$=new RefList(); $$.vars.Add($1); };
+reflist: reflist ',' vref { $$=$1; $$.vars.Add($3); };
 
-reflist: ref;
-reflist: reflist ',' ref;
-
-ref: sref;
-ref: vref;
-
-statement: RETURN exprlist {};
+statement: RETURN exprlist { $$ = new Return{returns=$2}; };
 
 arith: '+' {$$ = ArithSpec.Add;};
 arith: '-' {$$ = ArithSpec.Subtract;};
