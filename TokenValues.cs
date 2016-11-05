@@ -92,12 +92,17 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
+		
+		public void CollapseConstants()
+		{
+			args.CollapseConstants();
+		}
 
 	}
 	
 	public class Return:Statement
 	{
-		public ExprList returns = new ExprList();
+		public ExprList returns;
 		public override string ToString()
 		{
 			return string.Format("[Return Returns={0}]", returns);
@@ -105,6 +110,10 @@ namespace compiler
 		public void Print(string prefix)
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
+		}
+		public void CollapseConstants()
+		{
+			returns.CollapseConstants();
 		}
 	}
 	
@@ -119,7 +128,11 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
-
+		public void CollapseConstants()
+		{
+			ints = ints.Select(se => se.CollapseConstants()).ToList();
+			vars = vars.Select(ve => ve.CollapseConstants()).ToList();
+		}
 	}
 	
 	public class RefList{
@@ -237,12 +250,15 @@ namespace compiler
 	{
 		bool IsConstant();
 		Table Evaluate();
+		VExpr CollapseConstants();
 	}
 	
 	public interface SExpr
 	{
 		bool IsConstant();
 		int Evaluate();
+		SExpr CollapseConstants();
+		
 	}
 	
 	
@@ -281,6 +297,17 @@ namespace compiler
 			return string.Format("[ArithSExpr {0} {1} {2}]", S1, Op, S2);
 		}
 
+		public SExpr CollapseConstants()
+		{
+			if(this.IsConstant())
+			{
+				return (IntSExpr)this.Evaluate();
+			} else {
+				S1 = S1.CollapseConstants();
+				S2 = S2.CollapseConstants();
+				return this;
+			}
+		}
 	}
 	
 	public class IntSExpr: SExpr
@@ -302,7 +329,10 @@ namespace compiler
 		{
 			return string.Format("[IntSExpr {0}]", value);
 		}
-
+		public SExpr CollapseConstants()
+		{
+			return this;			
+		}
 	}
 	
 	public class ArithVExpr: VExpr
@@ -338,6 +368,18 @@ namespace compiler
 		public override string ToString()
 		{
 			return string.Format("[ArithVExpr {0} {1} {2}]", V1, Op, V2);
+		}
+		
+		public VExpr CollapseConstants()
+		{
+			if(this.IsConstant())
+			{
+				return this.Evaluate();
+			} else {
+				V1 = V1.CollapseConstants();
+				V2 = V2.CollapseConstants();
+				return this;
+			}
 		}
 
 	}
@@ -377,6 +419,17 @@ namespace compiler
 			return string.Format("[ArithVSExpr {0} {1} {2}]", V1, Op, S2);
 		}
 
+		public VExpr CollapseConstants()
+		{
+			if(this.IsConstant())
+			{
+				return this.Evaluate();
+			} else {
+				V1 = V1.CollapseConstants();
+				S2 = S2.CollapseConstants();
+				return this;
+			}
+		}
 	}
 	
 	public class StringVExpr: VExpr
@@ -398,7 +451,10 @@ namespace compiler
 		{
 			return string.Format("[StringVExpr {0}]", text);
 		}
-
+		public VExpr CollapseConstants()
+		{
+			return this;			
+		}
 	}
 	
 	public interface SRef : SExpr // the assignable subset of scalar expressions
@@ -422,6 +478,10 @@ namespace compiler
 			return string.Format("[IntVarSRef {0}]", name);
 		}
 
+		public SExpr CollapseConstants()
+		{
+			return this;			
+		}
 	}
 	
 	public class FieldSRef: SRef
@@ -439,6 +499,10 @@ namespace compiler
 		public override string ToString()
 		{
 			return string.Format("[FieldSRef {0}.{1}]", varname, fieldname);
+		}
+		public SExpr CollapseConstants()
+		{
+			return this;			
 		}
 
 	}
@@ -463,6 +527,11 @@ namespace compiler
 		{
 			return string.Format("[VarVRef {0}]", name);
 		}
+		
+		public VExpr CollapseConstants()
+		{
+			return this;			
+		}
 
 	}
 	
@@ -483,6 +552,10 @@ namespace compiler
 			return string.Format("[ArrayVRef {0}+{1}]", arrname, offset);
 		}
 
+		public VExpr CollapseConstants()
+		{
+			return this;			
+		}
 	}
 	
 	public class Table:Dictionary<string,SExpr>, VExpr
@@ -505,6 +578,17 @@ namespace compiler
 		public Table(string text)
 		{
 			//TODO: build a string table here
+			var chars = new Dictionary<char,int>();
+			int i = 0;
+			foreach (var c in text) {
+				if(!chars.ContainsKey(c))chars.Add(c,0);
+				chars[c]+=1<<i++;
+			}
+			
+			foreach (var c in chars) {
+				if(c.Key == ' ') continue;
+				this.Add(new TableItem(c.Key,(IntSExpr)c.Value));
+			}
 		}
 		
 		public static Table Asm(int op, int r1, int s1, int r2, int s2, int rd, int sd)
@@ -627,7 +711,11 @@ namespace compiler
 		{
 			return string.Format("[Table {0}:{1}]", datatype, this.Count);
 		}
-
+		public VExpr CollapseConstants()
+		{
+			
+			return (Table)this.Select(kv=>new KeyValuePair<string,SExpr>(kv.Key,kv.Value.CollapseConstants()));
+		}
 		
 	}
 	
@@ -639,12 +727,35 @@ namespace compiler
 		{
 			return string.Format("[{0}={1}]", fieldname, value);
 		}
+		public TableItem(string fieldname, SExpr value)
+		{
+			this.fieldname = fieldname;
+			this.value = value;
+		}
+		
+		public TableItem(char c, SExpr value)
+		{
+			Dictionary<char,string> charmap = new Dictionary<char, string>{
+				{'1',"signal-1"},{'2',"signal-2"},{'3',"signal-3"},{'4',"signal-4"},{'5',"signal-5"},
+	        	{'6',"signal-6"},{'7',"signal-7"},{'8',"signal-8"},{'9',"signal-9"},{'0',"signal-0"},
+	        	{'A',"signal-A"},{'B',"signal-B"},{'C',"signal-C"},{'D',"signal-D"},{'E',"signal-E"},
+				{'F',"signal-F"},{'G',"signal-G"},{'H',"signal-H"},{'I',"signal-I"},{'J',"signal-J"},
+				{'K',"signal-K"},{'L',"signal-L"},{'M',"signal-M"},{'N',"signal-N"},{'O',"signal-O"},
+				{'P',"signal-P"},{'Q',"signal-Q"},{'R',"signal-R"},{'S',"signal-S"},{'T',"signal-T"},
+				{'U',"signal-U"},{'V',"signal-V"},{'W',"signal-W"},{'X',"signal-X"},{'Y',"signal-Y"},
+				{'Z',"signal-Z"},{'-',"fast-splitter"},{'.',"train-stop"},
+			};
+			
+			this.fieldname = charmap[c];
+			this.value = value;
+		}
 
 	}
 	
 	public interface Statement
 	{
 		void Print(string prefix);
+		void CollapseConstants();
 	}
 	
 	public class VAssign:Statement
@@ -659,6 +770,10 @@ namespace compiler
 		public void Print(string prefix)
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
+		}
+		public void CollapseConstants()
+		{
+			source = source.CollapseConstants();
 		}
 
 	}
@@ -676,6 +791,11 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
+		
+		public void CollapseConstants()
+		{
+			source = source.CollapseConstants();
+		}
 
 	}
 	
@@ -688,7 +808,12 @@ namespace compiler
 		{
 			return string.Format("[Branch S1={0}, Op={1}, S2={2}]", S1, Op, S2);
 		}
-
+		
+		public void CollapseConstants()
+		{
+			S1 = S1.CollapseConstants();
+			S2 = S2.CollapseConstants();
+		}
 	}
 	
 	public class If:Statement
@@ -711,6 +836,13 @@ namespace compiler
 				elseblock.Print(prefix+"  ");					
 			}
 		}
+		
+		public void CollapseConstants()
+		{
+			branch.CollapseConstants();
+			if(ifblock!=null)ifblock.CollapseConstants();
+			if(elseblock!=null)elseblock.CollapseConstants();
+		}
 
 	}
 	
@@ -728,6 +860,11 @@ namespace compiler
 			body.Print(prefix +"  ");
 		}
 
+		public void CollapseConstants()
+		{
+			branch.CollapseConstants();
+			if(body!=null)body.CollapseConstants();
+		}
 	}
 	
 	public class Block:List<Statement>
@@ -741,6 +878,13 @@ namespace compiler
 		{
 			foreach (var statement in this) {
 				if(statement != null) statement.Print(prefix);
+			}
+		}
+		
+		public void CollapseConstants()
+		{
+			foreach (var statement in this) {
+				if(statement != null) statement.CollapseConstants();
 			}
 		}
 		

@@ -71,6 +71,22 @@ namespace compiler
 						Console.WriteLine();
 					}
 					
+					
+					Console.WriteLine();
+					Console.WriteLine("Collapsing Constants...");
+					
+					foreach (var func in parser.Functions.Values) {
+						Console.WriteLine(func.name);
+						
+						func.body.CollapseConstants();
+						func.body.Print("  ");
+						Console.WriteLine();
+					}
+					
+					
+					
+					
+					
 					Console.ReadLine();
 					
 	            }

@@ -167,6 +167,6 @@ littable: {$$= new Table();};
 littable: tableitem {$$= new Table();$$.Add($1);};
 littable: littable ',' tableitem {$$=$1;$$.Add($3);};
 
-tableitem: FIELD ASSIGN sexpr {$$=new TableItem{fieldname=$1,value=$3}; };
+tableitem: FIELD ASSIGN sexpr {$$=new TableItem($1,$3); };
 
 // */
