@@ -61,13 +61,15 @@ namespace compiler
 					Console.WriteLine("Functions:");
 					foreach (var func in parser.Functions.Values) {
 						Console.WriteLine(func.name);
+						func.AllocateLocals();
 						foreach (var field in func.localints) {
 							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
 						}
 						foreach (var symbol in func.locals) {
 							Console.WriteLine("  "+symbol);
 						}
-						func.body.CollapseConstants();
+						//func.body.CollapseConstants();
+						
 						func.body.Print("  ");
 						Console.WriteLine();
 					}
@@ -95,7 +97,9 @@ namespace compiler
         public string ExpectFieldType { get; private set; }
         public string InFunction { get; private set; }
         
-        public StatementList programData;
+        public List<Table> constants;
+        public List<Table> code;
+        
         public string Name {get; private set;}
         
         Lua lua = new Lua();
@@ -219,22 +223,7 @@ namespace compiler
         	}
         }
 
-        public void PrintAddrMap(){
-        	Console.WriteLine("Labels:");
-        	foreach (var sym in programData.symbols) {
-        		Console.WriteLine(sym);
-        	}
-        	Console.WriteLine("");
-
-        }
         
-        public void PrintListing()
-        {
-        	for (int i = 0; i < programData.Count; i++) {
-        		Console.WriteLine("{0}:\t{1}",i+programData.Offset,programData[i]);        			
-        	}
-        }
-
       
         public SignalSpec mapChar(string s)
         {
@@ -276,6 +265,7 @@ namespace compiler
         		var rconhost = new System.Net.IPEndPoint(
 	        		System.Net.Dns.GetHostEntry(options.rconhost).AddressList[0],
 	        		options.rconport);
+        		// this command is definitely wrong
 				const string rconcommand = "/c remote.call('foreman','addBlueprintToTable',game.players['{0}'],{1},{2});remote.call('foreman','refreshPrintFrame',game.players['{0}']))";
 	        	rcon.ConnectBlocking(rconhost,options.rconpass); 
 	        	rcon.ServerCommandBlocking(

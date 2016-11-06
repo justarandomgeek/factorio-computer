@@ -35,6 +35,7 @@ namespace compiler
 	
 	public static class Util
     {   
+		
 		public static int CondOpCode(InputMode sIn, bool sOut, bool flags, CompSpec comp){
 			int i = 0;
         	switch (comp) {

@@ -64,6 +64,8 @@ namespace compiler
 			         	datatype=pi.basename			         	
 			         });
 		}
+	
+		
 	}
 	
 	public class FunctionInfo{
@@ -72,85 +74,29 @@ namespace compiler
 		public TypeInfo localints = new TypeInfo();
 		public Block body;
 		
-		public void AllocateInts()
+		public void AllocateLocals()
 		{
-			//TODO allocate any ->null localints sequentially by signal map
+			int nextReg = 6;
+			foreach (var localint in localints) {
+				if (localint.Value == null) {
+					//TODO: allocate types sequentially. maybe skip a few for argument/return passing?
+				}
+			}
+			var newlocals = new SymbolList();
+			newlocals.AddRange(locals.Select((symbol) =>
+				{
+					if (symbol.type == SymbolType.Register && !symbol.fixedAddr.HasValue) {
+						//TODO: fix this to actually confirm a register is available
+						//TODO: fix this to switch to stack frame allocation when nextReg hits r2
+						symbol.fixedAddr = nextReg--;
+					}
+				    return symbol;
+				}));
+			locals = newlocals;
 		}
 		
 	}
-	
-	public class ProgramInfo{
-		public List<Table> constants = new List<Table>();
-		public List<Table> code = new List<Table>();
-		public SymbolList symbols = new SymbolList();
 		
-	}
-	
-	public class FunctionCall:Statement
-	{
-		public string name;
-		public ExprList args;
-		public RefList returns;
-		public override string ToString()
-		{
-			return string.Format("[FunctionCall {0}({1}) => {2}]", name, args, returns);
-		}
-		public void Print(string prefix)
-		{
-			Console.WriteLine("{1}{0}", this, prefix);
-		}
-		
-		public void CollapseConstants()
-		{
-			args.CollapseConstants();
-		}
-
-	}
-	
-	public class Return:Statement
-	{
-		public ExprList returns;
-		public override string ToString()
-		{
-			return string.Format("[Return Returns={0}]", returns);
-		}	
-		public void Print(string prefix)
-		{
-			Console.WriteLine("{1}{0}", this, prefix);
-		}
-		public void CollapseConstants()
-		{
-			returns.CollapseConstants();
-		}
-	}
-	
-	public class ExprList{
-		public List<SExpr> ints = new List<SExpr>();
-		public List<VExpr> vars = new List<VExpr>();
-		public override string ToString()
-		{
-			return string.Format("[ExprList Ints={0} || Vars={1}]", string.Join(",",ints), string.Join(",",vars));
-		}
-		public void Print(string prefix)
-		{
-			Console.WriteLine("{1}{0}", this, prefix);
-		}
-		public void CollapseConstants()
-		{
-			ints = ints.Select(se => se.CollapseConstants()).ToList();
-			vars = vars.Select(ve => ve.CollapseConstants()).ToList();
-		}
-	}
-	
-	public class RefList{
-		public List<SRef> ints = new List<SRef>();
-		public List<VRef> vars = new List<VRef>();
-		public override string ToString()
-		{
-			return string.Format("[RefList Ints={0} || Vars={1}]", string.Join(",",ints), string.Join(",",vars));
-		}
-	}
-	
 	public enum SymbolType{
 		Function, 
 		Data,
@@ -168,6 +114,7 @@ namespace compiler
 		public string datatype;
 		public int? fixedAddr;
 		public int? size;
+		public List<Table> data;
 		
 		public static Symbol Block = new Symbol{name="__block",type=SymbolType.Internal};
 		public static Symbol TrueBlock = new Symbol{name="__trueblock",type=SymbolType.Internal};
@@ -179,7 +126,7 @@ namespace compiler
 		public override string ToString()
 		{
 			//return string.Format("{1}:{2} {0}", name, type.ToString()[0], datatype);
-			return string.Format("{0}{1,5}:{2}\t{3}",type.ToString()[0],fixedAddr.GetValueOrDefault(),datatype,name);
+			return string.Format("{0}{1,5}:{2}\t{3}",type.ToString()[0],fixedAddr,datatype,name);
 		}
 		
 		public Tokens ToToken()
@@ -251,320 +198,7 @@ namespace compiler
 			}
 		}
 	}
-
-	
-	public interface VExpr
-	{
-		bool IsConstant();
-		Table Evaluate();
-		VExpr CollapseConstants();
-	}
-	
-	public interface SExpr
-	{
-		bool IsConstant();
-		int Evaluate();
-		SExpr CollapseConstants();
 		
-	}
-	
-	
-	public class ArithSExpr: SExpr
-	{
-		public bool IsConstant()
-		{
-			return S1.IsConstant() && S2.IsConstant();
-		}
-		
-		public int Evaluate()
-		{
-			if(!IsConstant())
-			{
-				throw new InvalidOperationException();
-			}
-			switch (Op) {
-				case ArithSpec.Add:
-					return S1.Evaluate() + S2.Evaluate();
-				case ArithSpec.Subtract:
-					return S1.Evaluate() - S2.Evaluate();
-				case ArithSpec.Multiply:
-					return S1.Evaluate() * S2.Evaluate();
-				case ArithSpec.Divide:
-					return S1.Evaluate() / S2.Evaluate();
-				default:
-					throw new InvalidOperationException();
-			} 
-		}
-		
-		public SExpr S1;
-		public ArithSpec Op;
-		public SExpr S2;	
-		public override string ToString()
-		{
-			return string.Format("[ArithSExpr {0} {1} {2}]", S1, Op, S2);
-		}
-
-		public SExpr CollapseConstants()
-		{
-			if(this.IsConstant())
-			{
-				return (IntSExpr)this.Evaluate();
-			} else {
-				S1 = S1.CollapseConstants();
-				S2 = S2.CollapseConstants();
-				return this;
-			}
-		}
-	}
-	
-	public class IntSExpr: SExpr
-	{
-		public bool IsConstant()
-		{
-			return true;
-		}
-		public int Evaluate()
-		{
-			return value;
-		}
-		public int value;
-		public static implicit operator IntSExpr(int i)
-		{
-			return new IntSExpr{value=i};
-		}
-		public override string ToString()
-		{
-			return string.Format("[IntSExpr {0}]", value);
-		}
-		public SExpr CollapseConstants()
-		{
-			return this;			
-		}
-	}
-	
-	public class ArithVExpr: VExpr
-	{
-		public bool IsConstant()
-		{
-			return V1.IsConstant() && V2.IsConstant();
-		}
-		
-		public Table Evaluate()
-		{
-			if(!IsConstant())
-			{
-				throw new InvalidOperationException();
-			}
-			switch (Op) {
-				case ArithSpec.Add:
-					return V1.Evaluate() + V2.Evaluate();
-				case ArithSpec.Subtract:
-					return V1.Evaluate() - V2.Evaluate();
-				case ArithSpec.Multiply:
-					return V1.Evaluate() * V2.Evaluate();
-				case ArithSpec.Divide:
-					return V1.Evaluate() / V2.Evaluate();
-				default:
-					throw new InvalidOperationException();
-			} 
-		}
-		
-		public VExpr V1;
-		public ArithSpec Op;
-		public VExpr V2;	
-		public override string ToString()
-		{
-			return string.Format("[ArithVExpr {0} {1} {2}]", V1, Op, V2);
-		}
-		
-		public VExpr CollapseConstants()
-		{
-			if(this.IsConstant())
-			{
-				return this.Evaluate();
-			} else {
-				V1 = V1.CollapseConstants();
-				V2 = V2.CollapseConstants();
-				return this;
-			}
-		}
-
-	}
-		
-	public class ArithVSExpr: VExpr
-	{
-		public bool IsConstant()
-		{
-			return V1.IsConstant() && S2.IsConstant();
-		}
-		
-		public Table Evaluate()
-		{
-			if(!IsConstant())
-			{
-				throw new InvalidOperationException();
-			}
-			switch (Op) {
-				case ArithSpec.Add:
-					return V1.Evaluate() + S2.Evaluate();
-				case ArithSpec.Subtract:
-					return V1.Evaluate() - S2.Evaluate();
-				case ArithSpec.Multiply:
-					return V1.Evaluate() * S2.Evaluate();
-				case ArithSpec.Divide:
-					return V1.Evaluate() / S2.Evaluate();
-				default:
-					throw new InvalidOperationException();
-			} 
-		}
-		
-		public VExpr V1;
-		public ArithSpec Op;
-		public SExpr S2;	
-		public override string ToString()
-		{
-			return string.Format("[ArithVSExpr {0} {1} {2}]", V1, Op, S2);
-		}
-
-		public VExpr CollapseConstants()
-		{
-			if(this.IsConstant())
-			{
-				return this.Evaluate();
-			} else {
-				V1 = V1.CollapseConstants();
-				S2 = S2.CollapseConstants();
-				return this;
-			}
-		}
-	}
-	
-	public class StringVExpr: VExpr
-	{
-		public bool IsConstant()
-		{
-			return true;
-		}
-		public Table Evaluate()
-		{
-			return new Table(text);
-		}
-		public string text;
-		public static implicit operator StringVExpr(string s)
-		{
-			return new StringVExpr{text=s};
-		}
-		public override string ToString()
-		{
-			return string.Format("[StringVExpr {0}]", text);
-		}
-		public VExpr CollapseConstants()
-		{
-			return this;			
-		}
-	}
-	
-	public interface SRef : SExpr // the assignable subset of scalar expressions
-	{
-		//void Assign(SExpr value);
-	}
-	
-	public class IntVarSRef: SRef
-	{
-		public bool IsConstant()
-		{
-			return false;
-		}
-		public int Evaluate()
-		{
-			throw new InvalidOperationException(); 
-		}
-		public string name;
-		public override string ToString()
-		{
-			return string.Format("[IntVarSRef {0}]", name);
-		}
-
-		public SExpr CollapseConstants()
-		{
-			return this;			
-		}
-	}
-	
-	public class FieldSRef: SRef
-	{
-		public bool IsConstant()
-		{
-			return false;
-		}
-		public int Evaluate()
-		{
-			throw new InvalidOperationException(); 
-		}
-		public string varname;
-		public string fieldname;
-		public override string ToString()
-		{
-			return string.Format("[FieldSRef {0}.{1}]", varname, fieldname);
-		}
-		public SExpr CollapseConstants()
-		{
-			return this;			
-		}
-
-	}
-	
-	public interface VRef: VExpr // the assignable subset of vector expressions
-	{
-		
-	}
-	
-	public class VarVRef: VRef
-	{
-		public bool IsConstant()
-		{
-			return false;
-		}
-		public Table Evaluate()
-		{
-			throw new InvalidOperationException(); 
-		}
-		public string name;
-		public override string ToString()
-		{
-			return string.Format("[VarVRef {0}]", name);
-		}
-		
-		public VExpr CollapseConstants()
-		{
-			return this;			
-		}
-
-	}
-	
-	public class ArrayVRef: VRef
-	{
-		public bool IsConstant()
-		{
-			return false;
-		}
-		public Table Evaluate()
-		{
-			throw new InvalidOperationException(); 
-		}
-		public string arrname;
-		public SExpr offset;
-		public override string ToString()
-		{
-			return string.Format("[ArrayVRef {0}+{1}]", arrname, offset);
-		}
-
-		public VExpr CollapseConstants()
-		{
-			return this;			
-		}
-	}
-	
 	public class Table:Dictionary<string,SExpr>, VExpr
 	{
 		public bool IsConstant()
@@ -584,7 +218,6 @@ namespace compiler
 		public Table():base(){}
 		public Table(string text)
 		{
-			//TODO: build a string table here
 			var chars = new Dictionary<char,int>();
 			int i = 0;
 			foreach (var c in text) {
@@ -718,9 +351,9 @@ namespace compiler
 		{
 			return string.Format("[Table {0}:{1}]", datatype, this.Count);
 		}
+		
 		public VExpr CollapseConstants()
 		{
-			
 			return (Table)this.Select(kv=>new KeyValuePair<string,SExpr>(kv.Key,kv.Value.CollapseConstants()));
 		}
 		
@@ -759,121 +392,6 @@ namespace compiler
 
 	}
 	
-	public interface Statement
-	{
-		void Print(string prefix);
-		void CollapseConstants();
-	}
-	
-	public class VAssign:Statement
-	{
-		public VRef target;
-		public bool append;
-		public VExpr source;
-		public override string ToString()
-		{
-			return string.Format("[VAssign {0} {1} {2}]", target, append?"+=":"=", source);
-		}
-		public void Print(string prefix)
-		{
-			Console.WriteLine("{1}{0}", this, prefix);
-		}
-		public void CollapseConstants()
-		{
-			source = source.CollapseConstants();
-		}
-
-	}
-	public class SAssign:Statement
-	{
-		public SRef target;
-		public bool append;
-		public SExpr source;
-		public override string ToString()
-		{
-			return string.Format("[SAssign {0} {1} {2}]", target, append?"+=":"=", source);
-		}
-		
-		public void Print(string prefix)
-		{
-			Console.WriteLine("{1}{0}", this, prefix);
-		}
-		
-		public void CollapseConstants()
-		{
-			source = source.CollapseConstants();
-		}
-
-	}
-	
-	public class Branch
-	{
-		public SExpr S1;
-		public CompSpec Op;
-		public SExpr S2;
-		public override string ToString()
-		{
-			return string.Format("[Branch S1={0}, Op={1}, S2={2}]", S1, Op, S2);
-		}
-		
-		public void CollapseConstants()
-		{
-			S1 = S1.CollapseConstants();
-			S2 = S2.CollapseConstants();
-		}
-	}
-	
-	public class If:Statement
-	{
-		public Branch branch;
-		public Block ifblock;
-		public Block elseblock;
-		public override string ToString()
-		{
-			return string.Format("[If Branch={0} [{1}] [{2}]]", branch, ifblock.Count, elseblock.Count);
-		}
-		
-		public void Print(string prefix)
-		{
-			Console.WriteLine("{1}{0}", this, prefix);
-			ifblock.Print(prefix +"  ");
-			if(elseblock!=null)
-			{
-				Console.WriteLine(prefix+"Else");
-				elseblock.Print(prefix+"  ");					
-			}
-		}
-		
-		public void CollapseConstants()
-		{
-			branch.CollapseConstants();
-			if(ifblock!=null)ifblock.CollapseConstants();
-			if(elseblock!=null)elseblock.CollapseConstants();
-		}
-
-	}
-	
-	public class While:Statement
-	{
-		public Branch branch;
-		public Block body;
-		public override string ToString()
-		{
-			return string.Format("[While Branch={0} [{1}]]", branch, body.Count);
-		}
-		public void Print(string prefix)
-		{
-			Console.WriteLine("{1}{0}", this, prefix);
-			body.Print(prefix +"  ");
-		}
-
-		public void CollapseConstants()
-		{
-			branch.CollapseConstants();
-			if(body!=null)body.CollapseConstants();
-		}
-	}
-	
 	public class Block:List<Statement>
 	{
 		public override string ToString()
@@ -898,6 +416,9 @@ namespace compiler
 		
 		
 	}
+	
+	
+	
 	
 	public struct DataItem
 	{

@@ -79,7 +79,7 @@ paramdef: INT      UNDEF {$$ = new FieldInfo{name=$2,basename="int"}; };
 
 datadef: TYPENAME '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Data,datatype=$1,fixedAddr=$3}); };
 datadef: TYPENAME '@' REGISTER UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Register,datatype=$1,fixedAddr=$3}); };
-datadef: TYPENAME              UNDEF { CreateSym(new Symbol{name=$2,type=SymbolType.Data,datatype=$1}); };
+datadef: TYPENAME              UNDEF { CreateSym(new Symbol{name=$2,type=InFunction!=null?SymbolType.Register:SymbolType.Data,datatype=$1}); };
 datadef: INT                   UNDEF { CreateInt($2); };
 
 datadef: TYPENAME '@' INTEGER  UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$4,type=SymbolType.Array,size=$6,datatype=$1,fixedAddr=$3}); };

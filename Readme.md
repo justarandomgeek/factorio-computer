@@ -109,7 +109,16 @@ Registers store an entire circuit network frame, except `signal-black`. `signal-
 * **Call-saved stacks:** Stack 2 must be saved/restored by the called subroutine if used.
 * **Call-used stacks:** Stacks 3-4 may be used freely by the called subroutine. r8 is used by the compiler for saving/restoring call site in function.
 
-Call arguments are passed via `r5-r7`, filling down from `r7`, then spilled to the call stack. Local data are allocated the same as arguments, immediately after them. Return value is passed in `r5`.
+r1: global ints
+r2: local ints
+
+r3: local vars
+r4: local vars
+r5: local vars
+r6: local vars
+r7: compiler scratch, int args/returns
+r8: compiler scratch, call/return -- maybe put number of args here?
+
 
 
 ### Operations

@@ -82,10 +82,15 @@
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SExpr.cs" />
     <Compile Include="SignalSpec.cs" />
+    <Compile Include="SRef.cs" />
+    <Compile Include="Statement.cs" />
     <Compile Include="StatementList.cs" />
     <Compile Include="TokenValues.cs" />
     <Compile Include="Util.cs" />
+    <Compile Include="VExpr.cs" />
+    <Compile Include="VRef.cs" />
   </ItemGroup>
   <ItemGroup>
     <gplex Include="compiler.lex" />
