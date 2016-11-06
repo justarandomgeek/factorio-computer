@@ -30,9 +30,9 @@ namespace compiler
 			return string.Format("[IntVarSRef {0}]", name);
 		}
 
-		public SExpr CollapseConstants()
+		public SExpr FlattenExpressions()
 		{
-			return this;			
+			return new FieldSRef{varname="__localints",fieldname=name};
 		}
 	}
 	
@@ -52,7 +52,7 @@ namespace compiler
 		{
 			return string.Format("[FieldSRef {0}.{1}]", varname, fieldname);
 		}
-		public SExpr CollapseConstants()
+		public SExpr FlattenExpressions()
 		{
 			return this;			
 		}

@@ -13,7 +13,7 @@ namespace compiler
 	{
 		bool IsConstant();
 		int Evaluate();
-		SExpr CollapseConstants();
+		SExpr FlattenExpressions();
 		
 	}
 	
@@ -52,14 +52,14 @@ namespace compiler
 			return string.Format("[ArithSExpr {0} {1} {2}]", S1, Op, S2);
 		}
 
-		public SExpr CollapseConstants()
+		public SExpr FlattenExpressions()
 		{
 			if(this.IsConstant())
 			{
 				return (IntSExpr)this.Evaluate();
 			} else {
-				S1 = S1.CollapseConstants();
-				S2 = S2.CollapseConstants();
+				S1 = S1.FlattenExpressions();
+				S2 = S2.FlattenExpressions();
 				return this;
 			}
 		}
@@ -82,9 +82,9 @@ namespace compiler
 		}
 		public override string ToString()
 		{
-			return string.Format("[IntSExpr {0}]", value);
+			return string.Format("{0}", value);
 		}
-		public SExpr CollapseConstants()
+		public SExpr FlattenExpressions()
 		{
 			return this;			
 		}

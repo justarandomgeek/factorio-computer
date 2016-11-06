@@ -41,6 +41,9 @@ register r[0-9]+
 <PROGRAM> "==" {yylval.compVal = CompSpec.Equal;   return (int)Tokens.COMPARE;}
 <PROGRAM> ">"  {yylval.compVal = CompSpec.Greater; return (int)Tokens.COMPARE;}
 <PROGRAM> "<"  {yylval.compVal = CompSpec.Less;    return (int)Tokens.COMPARE;}
+<PROGRAM> ">="  {yylval.compVal = CompSpec.Greater|CompSpec.Equal; return (int)Tokens.COMPARE;}
+<PROGRAM> "<="  {yylval.compVal = CompSpec.Less|CompSpec.Equal;    return (int)Tokens.COMPARE;}
+
 
 <PROGRAM> "+=" {return (int)Tokens.APPEND;}
 <PROGRAM> "="  {return (int)Tokens.ASSIGN;}

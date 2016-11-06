@@ -114,8 +114,10 @@ r2: local ints
 
 r3: local vars
 r4: local vars
+
 r5: local vars
 r6: local vars
+
 r7: compiler scratch, int args/returns
 r8: compiler scratch, call/return -- maybe put number of args here?
 

@@ -101,7 +101,7 @@ function MATHDEMO(int i)
   square = "SQUARE"
   factorial = "FACTORIAL"
   factorial.signal-white = 1
-  while num.signal-white < i+1 do
+  while num.signal-white <= i do
     nixies[0]=num
 
     square.signal-white = num.signal-white * num.signal-white

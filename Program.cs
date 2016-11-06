@@ -62,14 +62,15 @@ namespace compiler
 					foreach (var func in parser.Functions.Values) {
 						Console.WriteLine(func.name);
 						func.AllocateLocals();
+						
 						foreach (var field in func.localints) {
 							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
 						}
 						foreach (var symbol in func.locals) {
 							Console.WriteLine("  "+symbol);
 						}
-						//func.body.CollapseConstants();
-						
+						func.body.FlattenExpressions();
+						func.body = func.body.FlattenBlocks();
 						func.body.Print("  ");
 						Console.WriteLine();
 					}

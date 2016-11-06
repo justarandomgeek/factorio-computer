@@ -14,7 +14,7 @@ namespace compiler
 	{
 		bool IsConstant();
 		Table Evaluate();
-		VExpr CollapseConstants();
+		VExpr FlattenExpressions();
 	}
 	
 		
@@ -53,14 +53,14 @@ namespace compiler
 			return string.Format("[ArithVExpr {0} {1} {2}]", V1, Op, V2);
 		}
 		
-		public VExpr CollapseConstants()
+		public VExpr FlattenExpressions()
 		{
 			if(this.IsConstant())
 			{
 				return this.Evaluate();
 			} else {
-				V1 = V1.CollapseConstants();
-				V2 = V2.CollapseConstants();
+				V1 = V1.FlattenExpressions();
+				V2 = V2.FlattenExpressions();
 				return this;
 			}
 		}
@@ -102,14 +102,14 @@ namespace compiler
 			return string.Format("[ArithVSExpr {0} {1} {2}]", V1, Op, S2);
 		}
 
-		public VExpr CollapseConstants()
+		public VExpr FlattenExpressions()
 		{
 			if(this.IsConstant())
 			{
 				return this.Evaluate();
 			} else {
-				V1 = V1.CollapseConstants();
-				S2 = S2.CollapseConstants();
+				V1 = V1.FlattenExpressions();
+				S2 = S2.FlattenExpressions();
 				return this;
 			}
 		}
@@ -132,11 +132,11 @@ namespace compiler
 		}
 		public override string ToString()
 		{
-			return string.Format("[StringVExpr {0}]", text);
+			return string.Format("\"{0}\"", text);
 		}
-		public VExpr CollapseConstants()
+		public VExpr FlattenExpressions()
 		{
-			return this;			
+			return this.Evaluate();
 		}
 	}
 	

@@ -30,7 +30,7 @@ namespace compiler
 			return string.Format("[VarVRef {0}]", name);
 		}
 		
-		public VExpr CollapseConstants()
+		public VExpr FlattenExpressions()
 		{
 			return this;			
 		}
@@ -54,7 +54,7 @@ namespace compiler
 			return string.Format("[ArrayVRef {0}+{1}]", arrname, offset);
 		}
 
-		public VExpr CollapseConstants()
+		public VExpr FlattenExpressions()
 		{
 			return this;			
 		}

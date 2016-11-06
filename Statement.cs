@@ -12,7 +12,7 @@ namespace compiler
 	public interface Statement
 	{
 		void Print(string prefix);
-		void CollapseConstants();
+		void FlattenExpressions();
 	}
 	
 	public class VAssign:Statement
@@ -28,11 +28,10 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
-		public void CollapseConstants()
+		public void FlattenExpressions()
 		{
-			source = source.CollapseConstants();
+			source = source.FlattenExpressions();
 		}
-
 	}
 	public class SAssign:Statement
 	{
@@ -49,27 +48,52 @@ namespace compiler
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
 		
-		public void CollapseConstants()
+		public void FlattenExpressions()
 		{
-			source = source.CollapseConstants();
+			source = source.FlattenExpressions();
 		}
 
 	}
 	
-	public class Branch
+	public class Branch: Statement
 	{
 		public SExpr S1;
-		public CompSpec Op;
+		public CompSpec? Op;
 		public SExpr S2;
+		
+		public int? rjmpeq;
+		public int? rjmpgt;
+		public int? rjmplt;
 		public override string ToString()
 		{
-			return string.Format("[Branch S1={0}, Op={1}, S2={2}]", S1, Op, S2);
+			if(Op.HasValue)
+			{
+				return string.Format("[Branch {0} {1} {2}]", S1, Op, S2);
+			} else {
+				return string.Format("[Branch {0} ? {1} => {2}:{3}:{4}]", S1, S2, rjmpeq, rjmplt, rjmpgt);
+			}
+		}
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
 		}
 		
-		public void CollapseConstants()
+		public void FlattenExpressions()
 		{
-			S1 = S1.CollapseConstants();
-			S2 = S2.CollapseConstants();
+			S1 = S1.FlattenExpressions();
+			S2 = S2.FlattenExpressions();
+		}
+		
+		public Branch Flatten(int truejump, int falsejump)
+		{
+			return  new Branch{
+				S1 = this.S1,
+				S2 = this.S2,
+				
+				rjmpeq = this.Op.GetValueOrDefault().HasFlag(CompSpec.Equal)  ?truejump:falsejump,
+				rjmpgt = this.Op.GetValueOrDefault().HasFlag(CompSpec.Greater)?truejump:falsejump,
+				rjmplt = this.Op.GetValueOrDefault().HasFlag(CompSpec.Less)   ?truejump:falsejump,
+			};
 		}
 	}
 	
@@ -94,11 +118,21 @@ namespace compiler
 			}
 		}
 		
-		public void CollapseConstants()
+		public void FlattenExpressions()
 		{
-			branch.CollapseConstants();
-			if(ifblock!=null)ifblock.CollapseConstants();
-			if(elseblock!=null)elseblock.CollapseConstants();
+			branch.FlattenExpressions();
+			if(ifblock!=null)ifblock.FlattenExpressions();
+			if(elseblock!=null)elseblock.FlattenExpressions();
+		}
+		
+		public Block Flatten()
+		{
+			Block b = new Block();
+			Block flatif = ifblock.FlattenBlocks();
+			Block flatelse = elseblock.FlattenBlocks();
+			
+			return b;
+			
 		}
 
 	}
@@ -117,13 +151,56 @@ namespace compiler
 			body.Print(prefix +"  ");
 		}
 
-		public void CollapseConstants()
+		public void FlattenExpressions()
 		{
-			branch.CollapseConstants();
-			if(body!=null)body.CollapseConstants();
+			branch.FlattenExpressions();
+			if(body!=null)body.FlattenExpressions();
 		}
 		
+		public Block Flatten()
+		{
+			Block b = new Block();
+			if(body.Count==0)
+			{
+				// Empty loop, just wait on self until fails...
+				b.Add(branch.Flatten(0,1));
+				
+			} else {
+				Block flatbody = body.FlattenBlocks();
+				b.Add(branch.Flatten(1,flatbody.Count+2));
+				b.AddRange(flatbody);
+				b.Add(new Jump{target=(IntSExpr)(-(flatbody.Count+1)),relative=true});
+				//TODO: add a jump back to loop
+			}
+			
+			return b;
+			
+		}
 		
+	}
+	
+	public class Jump:Statement
+	{
+		public SExpr target;
+		public SRef callsite;
+		public bool relative;
+		public bool? setint;
+
+		public override string ToString()
+		{
+			return string.Format("[Jump {0} Callsite={1}, Relative={2}, Setint={3}]", target, callsite, relative, setint);
+		}
+		
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+		}
+		
+		public void FlattenExpressions()
+		{
+			target = target.FlattenExpressions();
+		}
+
 	}
 	
 	public class FunctionCall:Statement
@@ -140,7 +217,7 @@ namespace compiler
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
 		
-		public void CollapseConstants()
+		public void FlattenExpressions()
 		{
 			args.CollapseConstants();
 		}
@@ -158,7 +235,7 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
-		public void CollapseConstants()
+		public void FlattenExpressions()
 		{
 			returns.CollapseConstants();
 		}
@@ -177,8 +254,8 @@ namespace compiler
 		}
 		public void CollapseConstants()
 		{
-			ints = ints.Select(se => se.CollapseConstants()).ToList();
-			vars = vars.Select(ve => ve.CollapseConstants()).ToList();
+			ints = ints.Select(se => se.FlattenExpressions()).ToList();
+			vars = vars.Select(ve => ve.FlattenExpressions()).ToList();
 		}
 	}
 	

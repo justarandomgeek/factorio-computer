@@ -18,7 +18,7 @@ namespace compiler
 {
 
 	
-	
+	[Flags]
 	public enum CompSpec
 	{
 		Equal,
@@ -79,7 +79,7 @@ namespace compiler
 			int nextReg = 6;
 			foreach (var localint in localints) {
 				if (localint.Value == null) {
-					//TODO: allocate types sequentially. maybe skip a few for argument/return passing?
+					//TODO: allocate ints in __localtype. maybe skip a few for argument/return passing?
 				}
 			}
 			var newlocals = new SymbolList();
@@ -198,7 +198,39 @@ namespace compiler
 			}
 		}
 	}
+
+	public class Instruction //:Statement
+	{
+		public int op;
+				
+		public bool acc;
+		public int index;
+				
+		public int r1;
+		public string s1;
 		
+		public int r2;
+		public string s2;
+		
+		public int rd;
+		public string sd;
+		
+		public int? imm1;
+		public string imm1sym;
+		
+		public int? imm2;
+		public string imm2sym;
+		
+		public int? addr1;
+		public string addr1sym;
+		
+		public int? addr2;
+		public string addr2sym;
+		
+		public int? addr3;
+		public string addr3sym;
+	}
+	
 	public class Table:Dictionary<string,SExpr>, VExpr
 	{
 		public bool IsConstant()
@@ -207,6 +239,7 @@ namespace compiler
 		}
 		public Table Evaluate()
 		{
+			//TODO: do type mapping for type->var conversion here
 			return this; 
 		}
 		public string datatype;
@@ -231,18 +264,7 @@ namespace compiler
 			}
 		}
 		
-		public static Table Asm(int op, int r1, int s1, int r2, int s2, int rd, int sd)
-		{
-			return new Table{
-				{"signal-0",(IntSExpr)op},
-				{"signal-R",(IntSExpr)r1},
-				{"signal-S",(IntSExpr)s1},
-				{"signal-T",(IntSExpr)r2},
-				{"signal-U",(IntSExpr)s2},
-				{"signal-V",(IntSExpr)rd},
-				{"signal-W",(IntSExpr)sd},
-			};
-		}
+		
 		
 		public static Table operator +(Table t1, Table t2)
 		{
@@ -349,12 +371,12 @@ namespace compiler
 		
 		public override string ToString()
 		{
-			return string.Format("[Table {0}:{1}]", datatype, this.Count);
+			return string.Format("[{0}:{1}]", datatype, this.Count);
 		}
 		
-		public VExpr CollapseConstants()
+		public VExpr FlattenExpressions()
 		{
-			return (Table)this.Select(kv=>new KeyValuePair<string,SExpr>(kv.Key,kv.Value.CollapseConstants()));
+			return (Table)this.Select(kv=>new KeyValuePair<string,SExpr>(kv.Key,kv.Value.FlattenExpressions()));
 		}
 		
 	}
@@ -406,14 +428,42 @@ namespace compiler
 			}
 		}
 		
-		public void CollapseConstants()
+		public Block()
 		{
-			foreach (var statement in this) {
-				if(statement != null) statement.CollapseConstants();
-			}
+			
+		}
+		public Block(Statement s)
+		{
+			this.Add(s);
 		}
 		
+		public Block FlattenExpressions()
+		{
+			Block flatblock = new Block();
+			foreach (var statement in this) {
+				if(statement != null) 
+				{
+					statement.FlattenExpressions();
+					flatblock.Add(statement);
+				}
+			}
+			return flatblock;
+		}
 		
+		public Block FlattenBlocks()
+		{
+			Block flatblock = new Block();
+			foreach (var element in this) {
+				if (element is If) {
+					flatblock.AddRange(((If)element).Flatten());
+				} else if (element is While) {
+					flatblock.AddRange(((While)element).Flatten());
+				} else {
+					if(element != null) flatblock.Add(element);
+				}
+			}
+			return flatblock;
+		}
 		
 	}
 	
