@@ -79,6 +79,13 @@ namespace compiler
 		
 	}
 	
+	public class ProgramInfo{
+		public List<Table> constants = new List<Table>();
+		public List<Table> code = new List<Table>();
+		public SymbolList symbols = new SymbolList();
+		
+	}
+	
 	public class FunctionCall:Statement
 	{
 		public string name;
@@ -122,7 +129,7 @@ namespace compiler
 		public List<VExpr> vars = new List<VExpr>();
 		public override string ToString()
 		{
-			return string.Format("[ExprList Ints={0}; Vars={1}]", string.Join(",",ints), string.Join(",",vars));
+			return string.Format("[ExprList Ints={0} || Vars={1}]", string.Join(",",ints), string.Join(",",vars));
 		}
 		public void Print(string prefix)
 		{
@@ -140,7 +147,7 @@ namespace compiler
 		public List<VRef> vars = new List<VRef>();
 		public override string ToString()
 		{
-			return string.Format("[RefList Ints={0}; Vars={1}]", string.Join(",",ints), string.Join(",",vars));
+			return string.Format("[RefList Ints={0} || Vars={1}]", string.Join(",",ints), string.Join(",",vars));
 		}
 	}
 	
@@ -823,7 +830,7 @@ namespace compiler
 		public Block elseblock;
 		public override string ToString()
 		{
-			return string.Format("[If Branch={0}]", branch, ifblock, elseblock);
+			return string.Format("[If Branch={0} [{1}] [{2}]]", branch, ifblock.Count, elseblock.Count);
 		}
 		
 		public void Print(string prefix)
@@ -852,7 +859,7 @@ namespace compiler
 		public Block body;
 		public override string ToString()
 		{
-			return string.Format("[While Branch={0}]", branch);
+			return string.Format("[While Branch={0} [{1}]]", branch, body.Count);
 		}
 		public void Print(string prefix)
 		{
@@ -887,6 +894,8 @@ namespace compiler
 				if(statement != null) statement.CollapseConstants();
 			}
 		}
+		
+		
 		
 	}
 	
