@@ -32,7 +32,13 @@ namespace compiler
 
 		public SExpr FlattenExpressions()
 		{
-			return new FieldSRef{varname="__localints",fieldname=name};
+			if(Program.CurrentFunction.localints.ContainsKey(name))
+			{
+				return new FieldSRef{varref=new RegVRef{reg=2,datatype="__localints"},fieldname=name};   	
+			} else {
+				return new FieldSRef{varref=new RegVRef{reg=1,datatype="__globalints"},fieldname=name};	
+			}
+			
 		}
 	}
 	
@@ -46,14 +52,15 @@ namespace compiler
 		{
 			throw new InvalidOperationException(); 
 		}
-		public string varname;
+		public VRef varref;
 		public string fieldname;
 		public override string ToString()
 		{
-			return string.Format("[FieldSRef {0}.{1}]", varname, fieldname);
+			return string.Format("[FieldSRef {0}.{1}]", varref, fieldname);
 		}
 		public SExpr FlattenExpressions()
 		{
+			varref = (VRef)varref.FlattenExpressions();
 			return this;			
 		}
 

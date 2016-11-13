@@ -56,12 +56,14 @@ namespace compiler
 	
 	public class SymbolList:List<Symbol>
 	{
+		int paramcount;
 		public void AddParam(FieldInfo pi)
 		{
 			this.Add(new Symbol{
 			         	name=pi.name,
 			         	type=SymbolType.Parameter,
-			         	datatype=pi.basename			         	
+			         	datatype=pi.basename,
+			         	fixedAddr=paramcount++,
 			         });
 		}
 	
@@ -77,6 +79,9 @@ namespace compiler
 		public void AllocateLocals()
 		{
 			int nextReg = 6;
+			foreach (var p in locals.Where(sym=>sym.type == SymbolType.Parameter && sym.datatype == "int")) {
+				localints.Add(p.name,"signal-" + p.fixedAddr.GetValueOrDefault()); //TODO: cleaner assignments
+			}
 			foreach (var localint in localints) {
 				if (localint.Value == null) {
 					//TODO: allocate ints in __localtype. maybe skip a few for argument/return passing?
@@ -98,7 +103,7 @@ namespace compiler
 	}
 		
 	public enum SymbolType{
-		Function, 
+		Function=1, 
 		Data,
 		Register,
 		Program,
@@ -147,58 +152,6 @@ namespace compiler
 
 	}
 	
-	public struct SymbolRef
-	{
-		
-		public int? value;
-		public Symbol identifier;
-		public int identifierOffset;
-		public bool relative;
-		
-		public int resolve(int atAddr, Dictionary<Symbol,int> symbols)
-		{
-			if(value.HasValue){
-				return this.value.Value - (relative?atAddr:0);
-			} else {
-				return symbols[this.identifier] + this.identifierOffset - (relative?atAddr:0);
-			}			
-		}
-		
-		public static implicit operator SymbolRef(int i){ return new SymbolRef{value=i}; }
-		public static implicit operator SymbolRef(string s){ return new SymbolRef{identifier=new Symbol{name=s}}; }
-		public static implicit operator SymbolRef(Symbol sym){ return new SymbolRef{identifier=sym};}
-		
-		public static SymbolRef operator +(SymbolRef a1, SymbolRef a2)
-		{
-			if (a2.value.HasValue) return a1 + a1.value.Value;
-			if (a1.value.HasValue) return a2 + a1.value.Value;
-			//TODO: handle more cases?
-			throw new ArgumentException(string.Format("Cannot add these AddrSpecs: {0},{1}",a1,a2));
-		}
-		
-		public static SymbolRef operator +(SymbolRef a, int i)
-		{
-			if (a.value.HasValue)
-			{
-				a.value += i;
-			} else {
-				a.identifierOffset+=i;
-			}
-			return a;
-		}
-		
-		public override string ToString()
-		{
-			if (value.HasValue) {
-				return string.Format("{0}",value);
-			} else if(identifierOffset==0) {
-				return string.Format("{0}",identifier.name);				
-			} else {
-				return string.Format("{0}+{1}",identifier.name,identifierOffset);				
-			}
-		}
-	}
-
 	public class Instruction //:Statement
 	{
 		public int op;
@@ -239,8 +192,8 @@ namespace compiler
 		}
 		public Table Evaluate()
 		{
-			//TODO: do type mapping for type->var conversion here
-			return this; 
+			//TODO: do type mapping for type->var conversion here?
+			return this;
 		}
 		public string datatype;
 		public void Add(TableItem ti)
@@ -437,30 +390,11 @@ namespace compiler
 			this.Add(s);
 		}
 		
-		public Block FlattenExpressions()
-		{
-			Block flatblock = new Block();
-			foreach (var statement in this) {
-				if(statement != null) 
-				{
-					statement.FlattenExpressions();
-					flatblock.Add(statement);
-				}
-			}
-			return flatblock;
-		}
-		
-		public Block FlattenBlocks()
+		public Block Flatten()
 		{
 			Block flatblock = new Block();
 			foreach (var element in this) {
-				if (element is If) {
-					flatblock.AddRange(((If)element).Flatten());
-				} else if (element is While) {
-					flatblock.AddRange(((While)element).Flatten());
-				} else {
-					if(element != null) flatblock.Add(element);
-				}
+				if(element != null) flatblock.AddRange(element.Flatten());
 			}
 			return flatblock;
 		}
@@ -468,26 +402,6 @@ namespace compiler
 	}
 	
 	
-	
-	
-	public struct DataItem
-	{
-		public SignalSpec signal;
-		public SymbolRef addr;
-		
-		public DataItem(char c,SymbolRef addr):this(new SignalSpec(c),addr){}
-		public DataItem(SignalSpec signal, SymbolRef addr)
-		{
-			this.signal =  signal;
-			this.addr = addr;
-		}
-		
-		public override string ToString()
-		{
-			return string.Format("[DataItem Signal={0}, Addr={1}]", signal, addr);
-		}
-
-	}
 	
 	
 }

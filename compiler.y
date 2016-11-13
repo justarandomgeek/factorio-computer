@@ -147,7 +147,7 @@ vexpr: '{' littable '}'{$$=$2;};
 vexpr: STRING {$$= new StringVExpr{text=$1};};
 vexpr: vref{$$=$1;};
 
-sref: VAR '.' {ExpectFieldType=GetSymbolDataType($1);} FIELD {$$ = new FieldSRef{varname=$1,fieldname=$4};};
+sref: VAR '.' {ExpectFieldType=GetSymbolDataType($1);} FIELD {$$ = new FieldSRef{varref=new VarVRef{name=$1},fieldname=$4};};
 sref: INTVAR {$$ = new IntVarSRef{name=$1};};
 //sref: VAR '[' sexpr ']' ;
 

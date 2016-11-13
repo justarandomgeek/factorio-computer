@@ -22,6 +22,9 @@ namespace compiler
 {
 	class Program
 	{
+		public static FunctionInfo CurrentFunction;
+		public static Parser CurrentProgram;
+		
 		public static string GetResourceText(string name)
 		{
 			using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(name)))
@@ -33,8 +36,8 @@ namespace compiler
 		public static void Main(string[] args)
 		{
 			if (CommandLine.Parser.Default.ParseArguments(args, Options.Current)) {
-				var parser = new Parser();
-	            parser.ReadMachineDesc();
+				CurrentProgram = new Parser();
+	            CurrentProgram.ReadMachineDesc();
 	            
 	            foreach (var file in Options.Current.sourcefiles) {
 	            	string prog = "";
@@ -42,9 +45,9 @@ namespace compiler
 					{
 	            		prog = reader.ReadToEnd();
 	            	}
-					parser.Parse(prog);
+					CurrentProgram.Parse(prog);
 					
-					foreach (var typedata in parser.Types) {
+					foreach (var typedata in CurrentProgram.Types) {
 						Console.WriteLine("Type: {0}",typedata.Key);
 						foreach (var field in typedata.Value) {
 							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
@@ -53,13 +56,14 @@ namespace compiler
 					
 					Console.WriteLine();
 					Console.WriteLine("Symbols:");
-					foreach (var symbol in parser.Symbols) {
+					foreach (var symbol in CurrentProgram.Symbols) {
 						Console.WriteLine(symbol);
 					}
 					
 					Console.WriteLine();
 					Console.WriteLine("Functions:");
-					foreach (var func in parser.Functions.Values) {
+					foreach (var func in CurrentProgram.Functions.Values) {
+						CurrentFunction = func;
 						Console.WriteLine(func.name);
 						func.AllocateLocals();
 						
@@ -69,11 +73,12 @@ namespace compiler
 						foreach (var symbol in func.locals) {
 							Console.WriteLine("  "+symbol);
 						}
-						func.body.FlattenExpressions();
-						func.body = func.body.FlattenBlocks();
+						//func.body.FlattenExpressions();
+						func.body = func.body.Flatten();
 						func.body.Print("  ");
 						Console.WriteLine();
 					}
+					CurrentFunction = null;
 
 					
 					Console.ReadLine();
@@ -123,6 +128,7 @@ namespace compiler
         {
         	if (InFunction != null) {
         		Functions[InFunction].localints.Add(name,null);
+        		
         	} else {
         		if(!Types.ContainsKey("__globalints")){Types.Add("__globalints",new TypeInfo());}
         		Types["__globalints"].Add(name,null);
@@ -218,29 +224,9 @@ namespace compiler
         		var id = (int)(double)sig["id"];
         		var type = sig["type"] as string;
         		
-        		SignalSpec.signalMap.Add(name,id);
-        		SignalSpec.typeMap.Add(name,type);
         		this.NativeFields.Add(name);
         	}
-        }
-
-        
-      
-        public SignalSpec mapChar(string s)
-        {
-        	if(string.IsNullOrEmpty(s)) return mapChar(' ');
-        	return mapChar(s[0]);
-        }
-        public SignalSpec mapChar(char c)
-        {
-        	SignalSpec s = new SignalSpec(c);
-        	if(string.IsNullOrEmpty(s.signal))
-        	{
-        		s.signal="signal-blue";
-        	}
-        	return s;
-        }
-        
+        }      
         
         public static string Compress(string s)
         {

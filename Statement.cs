@@ -12,7 +12,7 @@ namespace compiler
 	public interface Statement
 	{
 		void Print(string prefix);
-		void FlattenExpressions();
+		Block Flatten();
 	}
 	
 	public class VAssign:Statement
@@ -24,13 +24,20 @@ namespace compiler
 		{
 			return string.Format("[VAssign {0} {1} {2}]", target, append?"+=":"=", source);
 		}
+		
 		public void Print(string prefix)
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
-		public void FlattenExpressions()
+		
+		public Block Flatten()
 		{
+			Block b = new Block();
+			//TODO: flatten properly - expressions and internal blocks
 			source = source.FlattenExpressions();
+			target = (VRef)target.FlattenExpressions(); //VRefs should always flatten to VRefs, specifically RegVRef or MemVRef
+			b.Add(this);			
+			return b;
 		}
 	}
 	public class SAssign:Statement
@@ -47,10 +54,15 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
-		
-		public void FlattenExpressions()
+				
+		public Block Flatten()
 		{
+			Block b = new Block();
+			//TODO: flatten properly - expressions and internal blocks
 			source = source.FlattenExpressions();
+			target = (SRef)target.FlattenExpressions(); //SRefs should always flatten to SRefs, specifically a FieldSRef over a RegVRef or MemVRef
+			b.Add(this);			
+			return b;
 		}
 
 	}
@@ -95,6 +107,14 @@ namespace compiler
 				rjmplt = this.Op.GetValueOrDefault().HasFlag(CompSpec.Less)   ?truejump:falsejump,
 			};
 		}
+		
+		public Block Flatten()
+		{
+			Block b = new Block();
+			//TODO: flatten properly - expressions and internal blocks
+			b.Add(this);			
+			return b;
+		}
 	}
 	
 	public class If:Statement
@@ -118,18 +138,11 @@ namespace compiler
 			}
 		}
 		
-		public void FlattenExpressions()
-		{
-			branch.FlattenExpressions();
-			if(ifblock!=null)ifblock.FlattenExpressions();
-			if(elseblock!=null)elseblock.FlattenExpressions();
-		}
-		
 		public Block Flatten()
 		{
 			Block b = new Block();
-			Block flatif = ifblock.FlattenBlocks();
-			Block flatelse = elseblock.FlattenBlocks();
+			Block flatif = ifblock.Flatten();
+			Block flatelse = elseblock.Flatten();
 			
 			return b;
 			
@@ -151,12 +164,6 @@ namespace compiler
 			body.Print(prefix +"  ");
 		}
 
-		public void FlattenExpressions()
-		{
-			branch.FlattenExpressions();
-			if(body!=null)body.FlattenExpressions();
-		}
-		
 		public Block Flatten()
 		{
 			Block b = new Block();
@@ -166,7 +173,8 @@ namespace compiler
 				b.Add(branch.Flatten(0,1));
 				
 			} else {
-				Block flatbody = body.FlattenBlocks();
+				Block flatbody = body.Flatten();
+				branch.FlattenExpressions();
 				b.Add(branch.Flatten(1,flatbody.Count+2));
 				b.AddRange(flatbody);
 				b.Add(new Jump{target=(IntSExpr)(-(flatbody.Count+1)),relative=true});
@@ -195,10 +203,14 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
-		
-		public void FlattenExpressions()
+				
+		public Block Flatten()
 		{
+			Block b = new Block();
+			//TODO: flatten properly - expressions and internal blocks
 			target = target.FlattenExpressions();
+			b.Add(this);			
+			return b;
 		}
 
 	}
@@ -216,10 +228,14 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
-		
-		public void FlattenExpressions()
+				
+		public Block Flatten()
 		{
+			Block b = new Block();
+			//TODO: flatten properly - expressions and internal blocks
 			args.CollapseConstants();
+			b.Add(this);			
+			return b;
 		}
 
 	}
@@ -235,9 +251,14 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
-		public void FlattenExpressions()
+		
+		public Block Flatten()
 		{
+			Block b = new Block();
+			//TODO: flatten properly - expressions and internal blocks
 			returns.CollapseConstants();
+			b.Add(this);			
+			return b;
 		}
 	}
 	
