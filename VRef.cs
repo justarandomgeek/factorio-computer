@@ -78,7 +78,7 @@ namespace compiler
 		
 		public VExpr FlattenExpressions()
 		{
-			//TODO: if register, return a RegVRef, else MemVRef
+			//if register, return a RegVRef, else MemVRef
 			Symbol varsym =  new Symbol();
 			if(Program.CurrentFunction != null) varsym = Program.CurrentFunction.locals.FirstOrDefault(sym=>sym.name == this.name);
 			if(varsym.name == null) varsym = Program.CurrentProgram.Symbols.FirstOrDefault(sym=>sym.name == this.name);

@@ -102,26 +102,27 @@ Registers store an entire circuit network frame, except `signal-black`. `signal-
 
 #### Calling Conventions
 
-* **Call Stack:** The call stack is stored on Stack 1.
-* **Call-saved registers:** r1-r4 must be saved/restored by the called subroutine if used.
-* **Call-used registers:** r5-r7 may be used freely by the called subroutine.
-* **Compiler scratch register:** r8 is used by the compiler for saving/restoring call site in function, and other temporary usage in generated code.
-* **Call-saved stacks:** Stack 2 must be saved/restored by the called subroutine if used.
-* **Call-used stacks:** Stacks 3-4 may be used freely by the called subroutine. r8 is used by the compiler for saving/restoring call site in function.
 
-r1: global ints
-r2: local ints
+~~* **Call Stack:** The call stack is stored on Stack 1.~~
 
-r3: local vars
-r4: local vars
+~~* **Call-saved registers:** r1-r4 must be saved/restored by the called subroutine if used.~~
 
-r5: local vars
-r6: local vars
+~~* **Call-used registers:** r5-r7 may be used freely by the called subroutine.~~
 
-r7: compiler scratch, int args/returns
-r8: compiler scratch, call/return -- maybe put number of args here?
+~~* **Compiler scratch register:** r8 is used by the compiler for saving/restoring call site in function, and other temporary usage in generated code.~~
 
+~~* **Call-saved stacks:** Stack 2 must be saved/restored by the called subroutine if used.~~
 
+~~* **Call-used stacks:** Stacks 3-4 may be used freely by the called subroutine. r8 is  used by the compiler for saving/restoring call site in function.~~
+
+* r1: global ints
+* r2: local ints
+* r3: local vars
+* r4: local vars
+* r5: local vars
+* r6: local vars
+* r7: compiler scratch, table arg/return
+* r8: compiler scratch, call/return callsite and int args/returns
 
 ### Operations
 

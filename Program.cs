@@ -22,6 +22,7 @@ namespace compiler
 {
 	class Program
 	{
+		//TODO: get rid of these somehow?
 		public static FunctionInfo CurrentFunction;
 		public static Parser CurrentProgram;
 		
@@ -73,9 +74,9 @@ namespace compiler
 						foreach (var symbol in func.locals) {
 							Console.WriteLine("  "+symbol);
 						}
-						//func.body.FlattenExpressions();
-						func.body = func.body.Flatten();
-						func.body.Print("  ");
+						//func.body.Print("| ");
+						var build = func.BuildFunction();
+						build.Print("  ");
 						Console.WriteLine();
 					}
 					CurrentFunction = null;

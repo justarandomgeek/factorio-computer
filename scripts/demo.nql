@@ -40,14 +40,15 @@ type opcode {
 var     @r0   rNull
 --
 -- r1: global ints
--- r2: local ints
+-- r2: local ints - also used for restoring call site
+--
 -- r3: local vars
 -- r4: local vars
 --
 -- r5: local vars
 -- r6: local vars
--- r7: compiler scratch, int args/returns
--- r8: compiler scratch, call/return -- maybe put number of args here?
+-- r7: compiler scratch, table arg/return
+-- r8: compiler scratch, call/return, int args
 --
 ireg    @r9   rIndex
 var     @r10  rRed
@@ -73,11 +74,9 @@ function CLRDISP()
 end
 
 function READLINE()
-  var line
-  while rKeyboard.signal-grey == 0 do  end
-  line = rKeyboard
   rKeyboard = rNull
-  return line
+  while rKeyboard.signal-grey == 0 do  end
+  return rKeyboard
 end
 
 function COLORDEMO()

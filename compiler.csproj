@@ -84,6 +84,7 @@
     <Compile Include="SExpr.cs" />
     <Compile Include="SRef.cs" />
     <Compile Include="Statement.cs" />
+    <Compile Include="Table.cs" />
     <Compile Include="TokenValues.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="VExpr.cs" />

@@ -56,7 +56,7 @@ namespace compiler
 	
 	public class SymbolList:List<Symbol>
 	{
-		int paramcount;
+		int paramcount=1;
 		public void AddParam(FieldInfo pi)
 		{
 			this.Add(new Symbol{
@@ -75,16 +75,16 @@ namespace compiler
 		public SymbolList locals = new SymbolList();
 		public TypeInfo localints = new TypeInfo();
 		public Block body;
-		
+				
 		public void AllocateLocals()
 		{
 			int nextReg = 6;
 			foreach (var p in locals.Where(sym=>sym.type == SymbolType.Parameter && sym.datatype == "int")) {
-				localints.Add(p.name,"signal-" + p.fixedAddr.GetValueOrDefault()); //TODO: cleaner assignments
+				localints.Add(p.name,"signal-" + p.fixedAddr);
 			}
 			foreach (var localint in localints) {
 				if (localint.Value == null) {
-					//TODO: allocate ints in __localtype. maybe skip a few for argument/return passing?
+					//TODO: allocate ints in __localints. maybe skip a few for argument/return passing?
 				}
 			}
 			var newlocals = new SymbolList();
@@ -98,6 +98,57 @@ namespace compiler
 				    return symbol;
 				}));
 			locals = newlocals;
+		}
+		
+		public Block BuildFunction()
+		{
+			var b = new Block();
+			
+			
+			// save parent localints
+			b.Add(new Push{reg = new RegVRef{reg=2},stack=1});
+			
+			// save call site (in r8.signal-0)
+			b.Add(new Push{reg = new RegVRef{reg=8},stack=1});
+			
+			
+			// push regs as needed
+			foreach(var sym in locals.Where(s=>s.type==SymbolType.Register))
+			{
+				if(sym.fixedAddr.HasValue) b.Add(new Push{reg = new RegVRef{reg=sym.fixedAddr.Value},stack=1});
+			}
+			
+			// copy params if named
+			
+			// body
+			b.AddRange(body.Flatten());
+			
+			// convert rjmp __return => rjmp <integer> to here.
+			for (int i = 0; i < b.Count; i++) {
+				var j = b[i] as Jump;
+				if (j!= null && j.relative && j.target is AddrSExpr && ((AddrSExpr)j.target).symbol=="__return")
+				{
+					j.target = new IntSExpr{value=b.Count-i};
+				}
+			}
+			
+			// restore registers
+			foreach(var sym in locals.Where(s=>s.type==SymbolType.Register).Reverse())
+			{
+				if(sym.fixedAddr.HasValue) b.Add(new Pop{reg = new RegVRef{reg=sym.fixedAddr.Value},stack=1});
+			}
+			
+			// get return site
+			b.Add(new Pop{reg = new RegVRef{reg=2},stack=1}); // this was r8 originally
+			b.Add(new SAssign{target = new FieldSRef{varref=new RegVRef{reg=8},fieldname="signal-0"},source=new FieldSRef{varref=new RegVRef{reg=2},fieldname="signal-0"},append=true});
+			
+			// restore parent localints
+			b.Add(new Pop{reg = new RegVRef{reg=2},stack=1});
+			
+			// jump to return site
+			b.Add(new Jump{target = new FieldSRef{varref=new RegVRef{reg=8},fieldname="signal-0"} });
+			
+			return b;
 		}
 		
 	}
@@ -120,13 +171,6 @@ namespace compiler
 		public int? fixedAddr;
 		public int? size;
 		public List<Table> data;
-		
-		public static Symbol Block = new Symbol{name="__block",type=SymbolType.Internal};
-		public static Symbol TrueBlock = new Symbol{name="__trueblock",type=SymbolType.Internal};
-		public static Symbol FalseBlock = new Symbol{name="__falseblock",type=SymbolType.Internal};
-		public static Symbol Loop = new Symbol{name="__loop",type=SymbolType.Internal};
-		public static Symbol End = new Symbol{name="__end",type=SymbolType.Internal};
-		public static Symbol Return = new Symbol{name="__return",type=SymbolType.Internal};
 		
 		public override string ToString()
 		{
@@ -184,155 +228,6 @@ namespace compiler
 		public string addr3sym;
 	}
 	
-	public class Table:Dictionary<string,SExpr>, VExpr
-	{
-		public bool IsConstant()
-		{
-			return this.All((ti) => ti.Value.IsConstant());
-		}
-		public Table Evaluate()
-		{
-			//TODO: do type mapping for type->var conversion here?
-			return this;
-		}
-		public string datatype;
-		public void Add(TableItem ti)
-		{
-			this.Add(ti.fieldname,ti.value);
-		}
-		
-		public Table():base(){}
-		public Table(string text)
-		{
-			var chars = new Dictionary<char,int>();
-			int i = 0;
-			foreach (var c in text) {
-				if(!chars.ContainsKey(c))chars.Add(c,0);
-				chars[c]+=1<<i++;
-			}
-			
-			foreach (var c in chars) {
-				if(c.Key == ' ') continue;
-				this.Add(new TableItem(c.Key,(IntSExpr)c.Value));
-			}
-		}
-		
-		
-		
-		public static Table operator +(Table t1, Table t2)
-		{
-			var tres = new Table();
-			foreach (var key in t1.Keys.Union(t2.Keys)) {
-				SExpr eres;
-				if(!t2.ContainsKey(key)){
-					eres=t1[key];
-				} else if(!t1.ContainsKey(key)){
-					eres=t2[key];
-				} else {
-					eres = new ArithSExpr{S1=t1[key],Op=ArithSpec.Add,S2=t2[key]};
-				}				
-				tres.Add(key,eres);
-			}
-			return tres;
-		}
-		public static Table operator -(Table t1, Table t2)
-		{
-			var tres = new Table();
-			foreach (var key in t1.Keys.Union(t2.Keys)) {
-				SExpr eres;
-				if(!t2.ContainsKey(key)){
-					eres=t1[key];
-				} else if(!t1.ContainsKey(key)){
-					eres=t2[key];
-				} else {
-					eres = new ArithSExpr{S1=t1[key],Op=ArithSpec.Subtract,S2=t2[key]};
-				}				
-				tres.Add(key,eres);
-			}
-			return tres;
-		}
-		public static Table operator *(Table t1, Table t2)
-		{
-			var tres = new Table();
-			foreach (var key in t1.Keys.Union(t2.Keys)) {
-				SExpr eres;
-				if(!t2.ContainsKey(key)){
-					eres=t1[key];
-				} else if(!t1.ContainsKey(key)){
-					eres=t2[key];
-				} else {
-					eres = new ArithSExpr{S1=t1[key],Op=ArithSpec.Multiply,S2=t2[key]};
-				}				
-				tres.Add(key,eres);
-			}
-			return tres;
-		}
-		public static Table operator /(Table t1, Table t2)
-		{
-			var tres = new Table();
-			foreach (var key in t1.Keys.Union(t2.Keys)) {
-				SExpr eres;
-				if(!t2.ContainsKey(key)){
-					eres=t1[key];
-				} else if(!t1.ContainsKey(key)){
-					eres=t2[key];
-				} else {
-					eres = new ArithSExpr{S1=t1[key],Op=ArithSpec.Divide,S2=t2[key]};
-				}				
-				tres.Add(key,eres);
-			}
-			return tres;
-		}
-		
-		public static Table operator +(Table t, int i){return t+(IntSExpr)i;}
-		public static Table operator -(Table t, int i){return t-(IntSExpr)i;}
-		public static Table operator *(Table t, int i){return t*(IntSExpr)i;}
-		public static Table operator /(Table t, int i){return t/(IntSExpr)i;}
-		
-		public static Table operator +(Table t, SExpr s)
-		{
-			var tres = new Table();
-			foreach (var ti in t) {
-				tres.Add(ti.Key,new ArithSExpr{S1=ti.Value,Op=ArithSpec.Add,S2=s});
-			}
-			return tres;
-		}
-		public static Table operator -(Table t, SExpr s)
-		{
-			var tres = new Table();
-			foreach (var ti in t) {
-				tres.Add(ti.Key,new ArithSExpr{S1=ti.Value,Op=ArithSpec.Subtract,S2=s});
-			}
-			return tres;
-		}
-		public static Table operator *(Table t, SExpr s)
-		{
-			var tres = new Table();
-			foreach (var ti in t) {
-				tres.Add(ti.Key,new ArithSExpr{S1=ti.Value,Op=ArithSpec.Divide,S2=s});
-			}
-			return tres;
-		}
-		public static Table operator /(Table t, SExpr s)
-		{
-			var tres = new Table();
-			foreach (var ti in t) {
-				tres.Add(ti.Key,new ArithSExpr{S1=ti.Value,Op=ArithSpec.Multiply,S2=s});
-			}
-			return tres;
-		}
-		
-		public override string ToString()
-		{
-			return string.Format("[{0}:{1}]", datatype, this.Count);
-		}
-		
-		public VExpr FlattenExpressions()
-		{
-			return (Table)this.Select(kv=>new KeyValuePair<string,SExpr>(kv.Key,kv.Value.FlattenExpressions()));
-		}
-		
-	}
 	
 	public class TableItem
 	{

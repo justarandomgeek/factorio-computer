@@ -90,4 +90,25 @@ namespace compiler
 		}
 	}
 	
+	public class AddrSExpr: SExpr
+	{
+		public bool IsConstant()
+		{
+			return true;
+		}
+		public int Evaluate()
+		{
+			return Program.CurrentProgram.Symbols.Find(sym=>sym.name == symbol).fixedAddr.GetValueOrDefault();
+		}
+		public string symbol;
+		public override string ToString()
+		{
+			return string.Format("{0}", symbol);
+		}
+		public SExpr FlattenExpressions()
+		{
+			return this;
+		}
+	}
+	
 }

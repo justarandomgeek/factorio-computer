@@ -33,7 +33,6 @@ namespace compiler
 		public Block Flatten()
 		{
 			Block b = new Block();
-			//TODO: flatten properly - expressions and internal blocks
 			source = source.FlattenExpressions();
 			target = (VRef)target.FlattenExpressions(); //VRefs should always flatten to VRefs, specifically RegVRef or MemVRef
 			b.Add(this);			
@@ -58,7 +57,6 @@ namespace compiler
 		public Block Flatten()
 		{
 			Block b = new Block();
-			//TODO: flatten properly - expressions and internal blocks
 			source = source.FlattenExpressions();
 			target = (SRef)target.FlattenExpressions(); //SRefs should always flatten to SRefs, specifically a FieldSRef over a RegVRef or MemVRef
 			b.Add(this);			
@@ -90,17 +88,11 @@ namespace compiler
 			Console.WriteLine("{1}{0}", this, prefix);
 		}
 		
-		public void FlattenExpressions()
-		{
-			S1 = S1.FlattenExpressions();
-			S2 = S2.FlattenExpressions();
-		}
-		
 		public Branch Flatten(int truejump, int falsejump)
 		{
 			return  new Branch{
-				S1 = this.S1,
-				S2 = this.S2,
+				S1 = this.S1.FlattenExpressions(),
+				S2 = this.S2.FlattenExpressions(),
 				
 				rjmpeq = this.Op.GetValueOrDefault().HasFlag(CompSpec.Equal)  ?truejump:falsejump,
 				rjmpgt = this.Op.GetValueOrDefault().HasFlag(CompSpec.Greater)?truejump:falsejump,
@@ -111,7 +103,8 @@ namespace compiler
 		public Block Flatten()
 		{
 			Block b = new Block();
-			//TODO: flatten properly - expressions and internal blocks
+			S1 = S1.FlattenExpressions();
+			S2 = S2.FlattenExpressions();
 			b.Add(this);			
 			return b;
 		}
@@ -143,7 +136,7 @@ namespace compiler
 			Block b = new Block();
 			Block flatif = ifblock.Flatten();
 			Block flatelse = elseblock.Flatten();
-			
+			//TODO: flatten the branch and link to the two blocks
 			return b;
 			
 		}
@@ -174,11 +167,10 @@ namespace compiler
 				
 			} else {
 				Block flatbody = body.Flatten();
-				branch.FlattenExpressions();
 				b.Add(branch.Flatten(1,flatbody.Count+2));
 				b.AddRange(flatbody);
 				b.Add(new Jump{target=(IntSExpr)(-(flatbody.Count+1)),relative=true});
-				//TODO: add a jump back to loop
+				
 			}
 			
 			return b;
@@ -207,12 +199,58 @@ namespace compiler
 		public Block Flatten()
 		{
 			Block b = new Block();
-			//TODO: flatten properly - expressions and internal blocks
 			target = target.FlattenExpressions();
+			callsite = (SRef)callsite.FlattenExpressions();
 			b.Add(this);			
 			return b;
 		}
 
+	}
+	
+	public class Push:Statement
+	{
+		public int stack;
+		public RegVRef reg;
+		
+		public override string ToString()
+		{
+			return string.Format("[Push {0} {1}]", stack, reg);
+		}
+		
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+		}
+				
+		public Block Flatten()
+		{
+			Block b = new Block();
+			b.Add(this);			
+			return b;
+		}
+	}
+	
+	public class Pop:Statement
+	{
+		public int stack;
+		public RegVRef reg;
+		
+		public override string ToString()
+		{
+			return string.Format("[Pop {0} {1}]", stack, reg);
+		}
+		
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+		}
+				
+		public Block Flatten()
+		{
+			Block b = new Block();
+			b.Add(this);			
+			return b;
+		}
 	}
 	
 	public class FunctionCall:Statement
@@ -232,9 +270,46 @@ namespace compiler
 		public Block Flatten()
 		{
 			Block b = new Block();
-			//TODO: flatten properly - expressions and internal blocks
 			args.CollapseConstants();
-			b.Add(this);			
+			
+			var r8 = new RegVRef{reg=8};
+			
+			if(args.ints.Count > 0)
+			{
+				for (int i = 1; i < args.ints.Count; i++) {
+					
+					b.Add(new SAssign{
+					      	append= i!=1,
+					      	source=args.ints[i],
+					      	target=new FieldSRef{varref=r8, fieldname="signal-"+i}
+					      });
+				}
+			} else {
+				b.Add(new VAssign{					      	
+			      	source=new RegVRef{reg=0},
+			      	target=r8,
+			      });
+			}
+			
+			if(args.var != null)
+			{
+				b.Add(new VAssign{					      	
+			      	source=new RegVRef{reg=7},
+			      	target=returns.var,
+			      });
+
+			}
+			
+			b.Add(new Jump{
+			      	target = new AddrSExpr{symbol=name},
+			      	callsite = new FieldSRef{varref=r8, fieldname= "signal-0"}
+			      });
+			
+			if(returns != null)
+			{
+				//TODO: copy return values	
+			}
+			
 			return b;
 		}
 
@@ -245,7 +320,7 @@ namespace compiler
 		public ExprList returns;
 		public override string ToString()
 		{
-			return string.Format("[Return Returns={0}]", returns);
+			return string.Format("[Return {0}]", returns);
 		}	
 		public void Print(string prefix)
 		{
@@ -255,19 +330,46 @@ namespace compiler
 		public Block Flatten()
 		{
 			Block b = new Block();
-			//TODO: flatten properly - expressions and internal blocks
+			var r8 = new RegVRef{reg=8};
+			
 			returns.CollapseConstants();
-			b.Add(this);			
+			
+			if(returns.ints.Count > 0)
+			{
+				for (int i = 0; i < returns.ints.Count; i++) {
+					
+					b.Add(new SAssign{
+					      	append= i!=0,
+					      	source=returns.ints[i],
+					      	target=new FieldSRef{varref=r8, fieldname="signal-"+i}
+					      });
+				}
+			}
+			
+			if(returns.var != null)
+			{
+					b.Add(new VAssign{					      	
+					      	source=returns.var,
+					      	target=new RegVRef{reg=7},
+					      });
+				
+			}
+			
+			b.Add(new Jump{
+			      	target = new AddrSExpr{symbol="__return"},
+			      	relative=true,
+			      });
+			
 			return b;
 		}
 	}
 	
 	public class ExprList{
 		public List<SExpr> ints = new List<SExpr>();
-		public List<VExpr> vars = new List<VExpr>();
+		public VExpr var;
 		public override string ToString()
 		{
-			return string.Format("[ExprList Ints={0} || Vars={1}]", string.Join(",",ints), string.Join(",",vars));
+			return string.Format("[ExprList Ints={0} || Var={1}]", string.Join(",",ints), var);
 		}
 		public void Print(string prefix)
 		{
@@ -276,16 +378,16 @@ namespace compiler
 		public void CollapseConstants()
 		{
 			ints = ints.Select(se => se.FlattenExpressions()).ToList();
-			vars = vars.Select(ve => ve.FlattenExpressions()).ToList();
+			if(var!=null) var = var.FlattenExpressions();
 		}
 	}
 	
 	public class RefList{
 		public List<SRef> ints = new List<SRef>();
-		public List<VRef> vars = new List<VRef>();
+		public VRef var;
 		public override string ToString()
 		{
-			return string.Format("[RefList Ints={0} || Vars={1}]", string.Join(",",ints), string.Join(",",vars));
+			return string.Format("[RefList Ints={0} || Vars={1}]", string.Join(",",ints), var);
 		}
 	}
 	

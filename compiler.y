@@ -115,14 +115,12 @@ statement: reflist ASSIGN FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name
 exprlist: { $$=new ExprList(); };
 exprlist: sexpr { $$=new ExprList(); $$.ints.Add($1); };
 exprlist: exprlist ',' sexpr { $$=$1; $$.ints.Add($3); };
-exprlist: vexpr { $$=new ExprList(); $$.vars.Add($1); };
-exprlist: exprlist ',' vexpr { $$=$1; $$.vars.Add($3); };
+exprlist: vexpr { $$=new ExprList(); $$.var=$1; };
 
 reflist: { $$=new RefList(); };
 reflist: sref { $$=new RefList(); $$.ints.Add($1); };
 reflist: reflist ',' sref { $$=$1; $$.ints.Add($3); };
-reflist: vref { $$=new RefList(); $$.vars.Add($1); };
-reflist: reflist ',' vref { $$=$1; $$.vars.Add($3); };
+reflist: vref { $$=new RefList(); $$.var=$1; };
 
 statement: RETURN exprlist { $$ = new Return{returns=$2}; };
 
