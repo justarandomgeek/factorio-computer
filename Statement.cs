@@ -274,6 +274,7 @@ namespace compiler
 			
 			var r8 = new RegVRef{reg=8};
 			
+			//int args or null in r8
 			if(args.ints.Count > 0)
 			{
 				for (int i = 1; i < args.ints.Count; i++) {
@@ -291,23 +292,38 @@ namespace compiler
 			      });
 			}
 			
-			if(args.var != null)
-			{
-				b.Add(new VAssign{					      	
-			      	source=new RegVRef{reg=7},
-			      	target=returns.var,
-			      });
-
-			}
-			
+			//table arg or null in r7
+			b.Add(new VAssign{			
+		      	source=args.var??new RegVRef{reg=0},
+		      	target=new RegVRef{reg=7},
+		      });
+		
+			//jump to function, with return in r8.0
 			b.Add(new Jump{
 			      	target = new AddrSExpr{symbol=name},
 			      	callsite = new FieldSRef{varref=r8, fieldname= "signal-0"}
 			      });
 			
-			if(returns != null)
+			//capture returned values
+		
+			if(returns?.ints?.Count > 0)
 			{
-				//TODO: copy return values	
+				for (int i = 1; i < returns.ints.Count; i++) {
+					
+					b.Add(new SAssign{
+					      	append= i!=1,
+					      	source=new FieldSRef{varref=r8, fieldname="signal-"+i},
+					      	target=returns.ints[i],
+					      });
+				}	
+			}
+			
+			if(returns?.var != null)
+			{
+				b.Add(new VAssign{			
+			      	source=args.var??new RegVRef{reg=0},
+			      	target=new RegVRef{reg=7},
+			      });
 			}
 			
 			return b;
