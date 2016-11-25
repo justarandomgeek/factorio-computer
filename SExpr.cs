@@ -90,6 +90,34 @@ namespace compiler
 		}
 	}
 	
+	public class FieldIndexSExpr : SExpr
+	{
+		public bool IsConstant()
+		{
+			return true;
+		}
+		public int Evaluate()
+		{
+			string signal = field;
+			if(type!=null && Program.CurrentProgram.Types[type].ContainsKey(field))  {
+				signal = Program.CurrentProgram.Types[type][field];
+			}
+			return Program.CurrentProgram.NativeFields.IndexOf(signal);
+		}
+		public string field;
+		public string type;
+		public override string ToString()
+		{
+			if(type == "var" || type == null) return field;
+			return string.Format("{1}::{0}", field, type);
+		}
+
+		public SExpr FlattenExpressions()
+		{
+			return this;
+		}
+	}
+	
 	public class AddrSExpr: SExpr
 	{
 		public bool IsConstant()
@@ -98,11 +126,16 @@ namespace compiler
 		}
 		public int Evaluate()
 		{
-			return Program.CurrentProgram.Symbols.Find(sym=>sym.name == symbol).fixedAddr.GetValueOrDefault();
+			return Program.CurrentProgram.Symbols.Find(sym=>sym.name == symbol).fixedAddr.GetValueOrDefault() + offset.GetValueOrDefault();
 		}
 		public string symbol;
+		public int? offset;
 		public override string ToString()
 		{
+			if(offset.HasValue)
+			{
+				return string.Format("{0}+{1}", symbol,offset);
+			}
 			return string.Format("{0}", symbol);
 		}
 		public SExpr FlattenExpressions()

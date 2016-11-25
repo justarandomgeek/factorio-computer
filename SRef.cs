@@ -34,7 +34,7 @@ namespace compiler
 		{
 			if(Program.CurrentFunction.localints.ContainsKey(name))
 			{
-				return new FieldSRef{varref=new RegVRef{reg=2,datatype="__localints"},fieldname=name};   	
+				return new FieldSRef{varref=new RegVRef{reg=2,datatype="__li"+Program.CurrentFunction.name},fieldname=name};   	
 			} else {
 				return new FieldSRef{varref=new RegVRef{reg=1,datatype="__globalints"},fieldname=name};	
 			}

@@ -48,18 +48,7 @@ namespace compiler
 	            	}
 					CurrentProgram.Parse(prog);
 					
-					foreach (var typedata in CurrentProgram.Types) {
-						Console.WriteLine("Type: {0}",typedata.Key);
-						foreach (var field in typedata.Value) {
-							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
-						}						
-					}
 					
-					Console.WriteLine();
-					Console.WriteLine("Symbols:");
-					foreach (var symbol in CurrentProgram.Symbols) {
-						Console.WriteLine(symbol);
-					}
 					
 					Console.WriteLine();
 					Console.WriteLine("Functions:");
@@ -77,10 +66,33 @@ namespace compiler
 						//func.body.Print("| ");
 						var build = func.BuildFunction();
 						build.Print("  ");
+						
+						if(func.localints.Count > 0) CurrentProgram.Types.Add("__li"+func.name,func.localints);
+						//Console.WriteLine();
+						
+						CurrentProgram.Symbols.Add(new Symbol{
+						                           	name=func.name,
+						                           	type=SymbolType.Function,
+						                           	datatype="opcode",
+						                           	data=build.Select(stat => stat.Opcode()).ToList()
+						                           });
+						
 						Console.WriteLine();
 					}
 					CurrentFunction = null;
-
+					
+					foreach (var typedata in CurrentProgram.Types) {
+						Console.WriteLine("Type: {0}",typedata.Key);
+						foreach (var field in typedata.Value) {
+							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
+						}						
+					}
+					
+					Console.WriteLine();
+					Console.WriteLine("Symbols:");
+					foreach (var symbol in CurrentProgram.Symbols) {
+						Console.WriteLine(symbol);
+					}
 					
 					Console.ReadLine();
 					

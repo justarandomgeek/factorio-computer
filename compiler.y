@@ -82,8 +82,8 @@ datadef: TYPENAME '@' REGISTER UNDEF { CreateSym(new Symbol{name=$4,type=SymbolT
 datadef: TYPENAME              UNDEF { CreateSym(new Symbol{name=$2,type=InFunction!=null?SymbolType.Register:SymbolType.Data,datatype=$1}); };
 datadef: INT                   UNDEF { CreateInt($2); };
 
-datadef: TYPENAME '@' INTEGER  UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$4,type=SymbolType.Array,size=$6,datatype=$1,fixedAddr=$3}); };
-datadef: TYPENAME              UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$2,type=SymbolType.Array,size=$4,datatype=$1}); };
+datadef: TYPENAME '@' INTEGER  UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$4,type=SymbolType.Data,size=$6,datatype=$1,fixedAddr=$3}); };
+datadef: TYPENAME              UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$2,type=SymbolType.Data,size=$4,datatype=$1}); };
 
 typedef: TYPE UNDEF '{' fielddeflist '}'     { RegisterType($2,$4); };
 typedef: TYPE UNDEF '{' fielddeflist ',' '}' { RegisterType($2,$4); }; // allow trailing comma

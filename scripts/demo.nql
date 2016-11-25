@@ -1,8 +1,8 @@
 type ireg {
-  @signal-red    callstack,
-  @signal-green  sysdata,
-  @signal-blue   appdata1,
-  @signal-yellow appdata2,
+  @signal-red    callstack, 
+  @signal-green  progbase,  -- base address of current program. rom symbols (const, func) are relative to this
+  @signal-blue   progdata,  -- base address of current program data. ram symbols (data) are relative to this.
+  @signal-yellow localdata,
   
   @signal-grey   intvect,
 }
@@ -44,9 +44,9 @@ var     @r0   rNull
 --
 -- r3: local vars
 -- r4: local vars
---
 -- r5: local vars
 -- r6: local vars
+--
 -- r7: compiler scratch, table arg/return
 -- r8: compiler scratch, call/return, int args
 --
@@ -115,7 +115,7 @@ function MATHDEMO(int i)
 end
 
 function KEYDEMO()
-  while rNull.nil == rNull.nil do
+  while rNull.signal-0 == rNull.signal-0 do
     READLINE()
     rNixie.signal-grey=1
   end

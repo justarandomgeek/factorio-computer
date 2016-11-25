@@ -84,7 +84,7 @@ namespace compiler
 			}
 			foreach (var localint in localints) {
 				if (localint.Value == null) {
-					//TODO: allocate ints in __localints. maybe skip a few for argument/return passing?
+					//TODO: allocate ints in __liFUNC. maybe skip a few for argument/return passing?
 				}
 			}
 			var newlocals = new SymbolList();
@@ -150,17 +150,16 @@ namespace compiler
 			
 			return b;
 		}
-		
 	}
 		
 	public enum SymbolType{
 		Function=1, 
 		Data,
+		Constant,
 		Register,
 		Program,
 		Internal,
 		Parameter,
-		Array,
 	}
 	
 	public struct Symbol
@@ -169,26 +168,46 @@ namespace compiler
 		public SymbolType type;
 		public string datatype;
 		public int? fixedAddr;
-		public int? size;
+		public int? size
+		{
+			get
+			{
+				switch (type) {
+					
+					default:
+						return null;
+					case SymbolType.Data:
+						return declsize;
+					case SymbolType.Constant:
+					case SymbolType.Function:
+						return data!=null?(int?)data.Count:null;
+				}
+			}
+			set
+			{
+				declsize=value;
+			}
+		}
+		private int? declsize;
 		public List<Table> data;
 		
 		public override string ToString()
 		{
 			//return string.Format("{1}:{2} {0}", name, type.ToString()[0], datatype);
-			return string.Format("{0}{1,5}:{2}\t{3}",type.ToString()[0],fixedAddr,datatype,name);
+			return string.Format("{0}{1,5}:{4,-3} {2,10} {3}",type.ToString()[0],fixedAddr,datatype,name,size);
 		}
 		
 		public Tokens ToToken()
 		{
 			switch (type) {
 				case SymbolType.Data:
+					if(declsize>1) return datatype=="int"?Tokens.INTARRAY:Tokens.ARRAY;
+					return datatype=="int"?Tokens.INTVAR:Tokens.VAR;
 				case SymbolType.Parameter:
 				case SymbolType.Register:
 					return datatype=="int"?Tokens.INTVAR:Tokens.VAR;
 				case SymbolType.Function:
 					return Tokens.FUNCNAME;
-				case SymbolType.Array:
-					return datatype=="int"?Tokens.INTARRAY:Tokens.ARRAY;
 				default:
 					return Tokens.error;
 			}
@@ -293,6 +312,8 @@ namespace compiler
 			}
 			return flatblock;
 		}
+		
+		
 		
 	}
 	

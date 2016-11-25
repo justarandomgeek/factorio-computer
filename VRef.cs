@@ -86,7 +86,7 @@ namespace compiler
 				case SymbolType.Register:
 					return new RegVRef{reg=varsym.fixedAddr??-1,datatype=varsym.datatype};
 				case SymbolType.Data:
-					return new MemVRef{addr=(IntSExpr)varsym.fixedAddr??-1,datatype=varsym.datatype};
+					return new MemVRef{addr=new AddrSExpr{symbol=varsym.name},datatype=varsym.datatype};
 			}
 			return this;
 		}
@@ -112,6 +112,13 @@ namespace compiler
 
 		public VExpr FlattenExpressions()
 		{
+			if(offset.IsConstant() & Program.CurrentProgram.Symbols.Exists(s=>s.name==arrname))
+			{
+				return new MemVRef{
+					addr=new AddrSExpr{symbol=arrname,offset=offset.Evaluate()},
+					datatype = Program.CurrentProgram.Symbols.Find(s=>s.name==arrname).datatype,
+				};
+			}
 			return this;			
 		}
 	}

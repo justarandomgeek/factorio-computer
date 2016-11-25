@@ -208,6 +208,25 @@ namespace compiler
 
 		public override string ToString()
 		{
+			if(datatype == "opcode")
+			{
+				return string.Format("[OP{0} [{13}]{1}.{2} {3}.{4} => {7}{5}.{6} {8}:{9}:{10} {11}:{12}]",
+				                     this.ContainsKey("op")?this["op"]:null,
+				                     this.ContainsKey("R1")?this["R1"]:null,
+				                     this.ContainsKey("S1")?this["S1"]:null,
+				                     this.ContainsKey("R2")?this["R2"]:null,
+				                     this.ContainsKey("S2")?this["S2"]:null,
+				                     this.ContainsKey("Rd")?this["Rd"]:null,
+				                     this.ContainsKey("Sd")?this["Sd"]:null,
+				                     this.ContainsKey("acc")?"A":null,
+				                     this.ContainsKey("addr1")?this["addr1"]:null,
+				                     this.ContainsKey("addr2")?this["addr2"]:null,
+				                     this.ContainsKey("addr3")?this["addr3"]:null,
+				                     this.ContainsKey("Imm1")?this["Imm1"]:null,
+				                     this.ContainsKey("Imm2")?this["Imm2"]:null,
+				                     this.ContainsKey("index")?this["index"]:null
+				                    );
+			}
 			return string.Format("[{0}:{1}]", datatype, this.Count);
 		}
 

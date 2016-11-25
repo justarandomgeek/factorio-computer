@@ -162,14 +162,66 @@ Any undefined opcode will halt the machine, but Op=0 is specifically reserved fo
 #### 1-60: ALU Operations
 The ALU performs every possible operation in parallel, and returns the requested operation's result to Scalar Result or Vector Result.
 
-|    |Comparisons|Arithmetic|
-|----|-----------|----------|
-|Output|<ul><li>0: Vector</li><li>24: Scalar</li></ul>|<ul><li>48: Vector</li><li>52: Scalar</li></ul></td>
-| Operator | <ul><li>1:`=`</li><li>2:`<`</li><li>3:`>`</li></ul> | <ul><li>1:`-`</li><li>2:`+`</li><li>3:`/`</li><li>4:`*`</li></ul>
-| Output Mode | <ul><li>0:`?=` Input Value</li><li>3:`?1` Flags</li></ul> | |
-| Input Mode | <ul><li>0: Every</li><li>6: Any</li><li>12: Scalar</li><li>18: Each</li></ul> | <ul><li>0: Each</li><li>4: Scalar</li></ul>
-
-Add one value from each cell of a column to form an instruction.
+1. R1.Every = R2.S2 => Rd.Every=R1
+2. R1.Every < R2.S2 => Rd.Every=R1
+3. R1.Every > R2.S2 => Rd.Every=R1
+4. R1.Every = R2.S2 => Rd.Every=1
+5. R1.Every < R2.S2 => Rd.Every=1
+6. R1.Every > R2.S2 => Rd.Every=1
+7. R1.Any = R2.S2 => Rd.Every=R1
+8. R1.Any < R2.S2 => Rd.Every=R1
+9. R1.Any > R2.S2 => Rd.Every=R1
+10. R1.Any = R2.S2 => Rd.Every=1
+11. R1.Any < R2.S2 => Rd.Every=1
+12. R1.Any > R2.S2 => Rd.Every=1
+13. R1.S1 = R2.S2 => Rd.Every=R1
+14. R1.S1 < R2.S2 => Rd.Every=R1
+15. R1.S1 > R2.S2 => Rd.Every=R1
+16. R1.S1 = R2.S2 => Rd.Every=1
+17. R1.S1 < R2.S2 => Rd.Every=1
+18. R1.S1 > R2.S2 => Rd.Every=1
+19. R1.Each = R2.S2 => Rd.Each=R1
+20. R1.Each < R2.S2 => Rd.Each=R1
+21. R1.Each > R2.S2 => Rd.Each=R1
+22. R1.Each = R2.S2 => Rd.Each=1
+23. R1.Each < R2.S2 => Rd.Each=1
+24. R1.Each > R2.S2 => Rd.Each=1
+25. R1.Every = R2.S2 => Rd.Sd=R1
+26. R1.Every < R2.S2 => Rd.Sd=R1
+27. R1.Every > R2.S2 => Rd.Sd=R1
+28. R1.Every = R2.S2 => Rd.Sd=1
+29. R1.Every < R2.S2 => Rd.Sd=1
+30. R1.Every > R2.S2 => Rd.Sd=1
+31. R1.Any = R2.S2 => Rd.Sd=R1
+32. R1.Any < R2.S2 => Rd.Sd=R1
+33. R1.Any > R2.S2 => Rd.Sd=R1
+34. R1.Any = R2.S2 => Rd.Sd=1
+35. R1.Any < R2.S2 => Rd.Sd=1
+36. R1.Any > R2.S2 => Rd.Sd=1
+37. R1.S1 = R2.S2 => Rd.Sd=R1
+38. R1.S1 < R2.S2 => Rd.Sd=R1
+39. R1.S1 > R2.S2 => Rd.Sd=R1
+40. R1.S1 = R2.S2 => Rd.Sd=1
+41. R1.S1 < R2.S2 => Rd.Sd=1
+42. R1.S1 > R2.S2 => Rd.Sd=1
+43. R1.Each = R2.S2 => Rd.Sd=R1
+44. R1.Each < R2.S2 => Rd.Sd=R1
+45. R1.Each > R2.S2 => Rd.Sd=R1
+46. R1.Each = R2.S2 => Rd.Sd=1
+47. R1.Each < R2.S2 => Rd.Sd=1
+48. R1.Each > R2.S2 => Rd.Sd=1
+49. R1.Each - R2.S2 => Rd
+50. R1.Each + R2.S2 => Rd
+51. R1.Each / R2.S2 => Rd
+52. R1.Each * R2.S2 => Rd
+53. R1.Each - R2.S2 => Rd.Sd
+54. R1.Each + R2.S2 => Rd.Sd
+55. R1.Each / R2.S2 => Rd.Sd
+56. R1.Each * R2.S2 => Rd.Sd
+57. R1.S1 - R2.S2 => Rd.Sd
+58. R1.S1 + R2.S2 => Rd.Sd
+59. R1.S1 / R2.S2 => Rd.Sd
+60. R1.S1 * R2.S2 => Rd.Sd
 
 #### 61: Pairwise Vector Multiply
 R1.each * R2.each pairwise => Rd
