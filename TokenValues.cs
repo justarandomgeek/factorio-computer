@@ -26,13 +26,6 @@ namespace compiler
 		Less
 	}
 
-	public enum InputMode{
-		Any,
-		Every,
-		Each,
-		Scalar
-	}
-
 	public enum ArithSpec
 	{
 		Add,

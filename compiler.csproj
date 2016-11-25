@@ -86,7 +86,6 @@
     <Compile Include="Statement.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="TokenValues.cs" />
-    <Compile Include="Util.cs" />
     <Compile Include="VExpr.cs" />
     <Compile Include="VRef.cs" />
   </ItemGroup>
