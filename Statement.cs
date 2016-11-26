@@ -545,7 +545,7 @@ namespace compiler
 		public Table Opcode()
 		{
 			var op = new Table{datatype="opcode"};
-			op.Add("op",	(IntSExpr)82		);
+			op.Add("op",	(IntSExpr)84		);
 			op.Add("index",	(IntSExpr)stack		);
 			op.Add("Rd",	(IntSExpr)reg.reg	);
 			return op;

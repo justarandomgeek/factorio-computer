@@ -55,6 +55,9 @@ type progsym {
   -- the size and location of the data section of this program
   @signal-white datasize,
 
+  -- the address of MAIN()
+  @signal-grey mainloc
+
 }
 
 var     @r0   rNull
@@ -142,8 +145,6 @@ function KEYDEMO()
 end
 
 function MAIN()
-  rIndex.callstack = 50
-
   CLRDISP()
 
   -- Print helloworld

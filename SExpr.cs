@@ -102,7 +102,7 @@ namespace compiler
 			if(type!=null && type != "var" && Program.CurrentProgram.Types[type].ContainsKey(field))  {
 				signal = Program.CurrentProgram.Types[type][field];
 			}
-			return Program.CurrentProgram.NativeFields.IndexOf(signal);
+			return Program.CurrentProgram.NativeFields.IndexOf(signal)+1;
 		}
 		public string field;
 		public string type;

@@ -107,7 +107,7 @@ namespace compiler
 					Console.WriteLine("Rom Data:");
 					
 					foreach (var element in CurrentProgram.romdata) {
-						Console.WriteLine(element);
+						Console.WriteLine(element.Evaluate());
 					}
 					
 					CurrentProgram.MakeROM();
@@ -348,12 +348,12 @@ namespace compiler
 			
 			LuaTable rd = (LuaTable)lua["romdata"];
 			for (int i = 0; i < romdata.Count; i++) {
-				var table = romdata[i];
+				var table = romdata[i].Evaluate();
 				var lt = CreateLuaTable();
-            	foreach (var element in table.Evaluate()) {
+            	foreach (var element in table) {
             		lt[element.Key]=element.Value.Evaluate();
             	}			                                    	
-				rd[i+1]= lt;
+				rd[i]= lt;
 			}
 			
 			var compileROM = lua.LoadFile("compileROM.lua");

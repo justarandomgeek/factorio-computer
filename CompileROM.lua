@@ -8,8 +8,9 @@
 --print(serpent.block(romdata))
 
 
+signaltypes["signal-black"]="virtual"
 
-local addrsignal="signal-black"
+local addrsignal={name="signal-black",type="virtual"}
 local dir = 4
 
 local entities = {}
@@ -72,6 +73,17 @@ function filterDC(position,dir,connections)
   return dc
 end
 
+-- Generate a buffer AC to allow injecting relocation address
+function bufferAC(position,dir,connections)
+  local ac = {
+    control_behavior={arithmetic_conditions={first_signal={name="signal-each",type="virtual"},operation="+",constant=0,output_signal={name="signal-each",type="virtual"}}},
+    connections = connections, direction = dir, entity_number = count, name = "arithmetic-combinator", position = position
+  }
+  table.insert(entities,ac)
+  count = count+1
+  return ac
+end
+
 -- Generate a power pole wtih the given connetions
 function pole(pos,connections)
   local p = {
@@ -91,13 +103,14 @@ pole({x=0,y=0},{})
 
 local prevIn = {entity_id=1}
 local prevOut = {entity_id=1}
-
+CC({x=0,y=-1},dir,{{index=1,count=-1000,signal=addrsignal}})
+local prevOffset = {entity_id=2}
 local xpos = 1
 for addr,data in pairs(romdata) do
   -- For each ROM site, generate a constant-combinator and an output filter
   local cc_id = count
   local cc,extrafilters
-  data[addrsignal]= -addr
+  data[addrsignal.name]= -addr
   local filters = {}
   for sig,val in pairs(data) do
   	filters[#filters+1]=
@@ -106,17 +119,24 @@ for addr,data in pairs(romdata) do
   			count=val,
   			signal={type=signaltypes[sig],name=sig}
   		}
-  end  
-  cc,extrafilters = CC({x=xpos,y=-1},dir,filters)
+  end
+  
+  cc,extrafilters = CC({x=xpos,y=-3},dir,filters)
   while extrafilters and #extrafilters > 0 do
     cc,extrafilters = extendCC(cc,extrafilters)
   end
+  local ac_id = count
+  bufferAC({x=xpos,y=-1.5},dir,
+  {["1"]={green={prevOffset},red={{entity_id=cc_id}}}})
+  prevOffset={entity_id=ac_id,circuit_id=1}
   filterDC({x=xpos,y=0.5},dir,
-    {["1"]={green={prevIn},red={{entity_id=cc_id}}},["2"]={red={prevOut}}})
+    {["1"]={green={prevIn},red={{entity_id=ac_id,circuit_id=2}}},["2"]={red={prevOut}}})
   prevIn = {entity_id=count-1,circuit_id=1}
   prevOut = {entity_id=count-1,circuit_id=2}
   xpos=xpos+1
 end
+
+
 
 parser:returnBlueprint(
   parser.Name,
