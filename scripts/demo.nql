@@ -1,10 +1,10 @@
 type ireg {
-  @signal-red    callstack, 
-  @signal-green  progbase,  -- base address of current program. rom symbols (const, func) are relative to this
-  @signal-blue   progdata,  -- base address of current program data. ram symbols (data) are relative to this.
-  @signal-yellow localdata,
-  
-  @signal-grey   intvect,
+  @signal-red    callstack, -- 1 call stack and general stack usage
+  @signal-green  progbase,  -- 2 base address for rom symbols (const, func)
+  @signal-blue   progdata,  -- 3 base address for ram symbols (data)
+  @signal-yellow localdata, -- 4 available for local usage
+
+  @signal-grey   intvect,   -- x Interrupt handler address
 }
 
 type sreg {
@@ -16,25 +16,45 @@ type sreg {
 
 type opcode {
   @signal-0     op,
-  
-  @signal-1		addr1,
-  @signal-2		addr2,
-  @signal-3		addr3,
-  
+
+  @signal-1     addr1,
+  @signal-2     addr2,
+  @signal-3     addr3,
+
   @signal-A     acc,
   @signal-I     index,
-  
+
   @signal-R     R1,
   @signal-S     S1,
-  
+
   @signal-T     R2,
   @signal-U     S2,
-  
+
   @signal-V     Rd,
   @signal-W     Sd,
-  
-  @signal-grey  imm1,
-  @signal-white imm2,
+
+  @signal-grey  Imm1,
+  @signal-white Imm2,
+}
+
+type progsym {
+  "",
+
+  -- pointers to match up with rIndex
+  -- @signal-red callstack,
+  @signal-green constframe,
+  @signal-blue dataframe,
+  --@signal-yellow unused,
+
+  -- sym table size
+  @signal-pink symtsize,
+
+  -- the size and location of the constant section of this program
+  @signal-cyan constsize,
+
+  -- the size and location of the data section of this program
+  @signal-white datasize,
+
 }
 
 var     @r0   rNull

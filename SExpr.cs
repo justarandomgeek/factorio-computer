@@ -99,7 +99,7 @@ namespace compiler
 		public int Evaluate()
 		{
 			string signal = field;
-			if(type!=null && Program.CurrentProgram.Types[type].ContainsKey(field))  {
+			if(type!=null && type != "var" && Program.CurrentProgram.Types[type].ContainsKey(field))  {
 				signal = Program.CurrentProgram.Types[type][field];
 			}
 			return Program.CurrentProgram.NativeFields.IndexOf(signal);
@@ -126,17 +126,18 @@ namespace compiler
 		}
 		public int Evaluate()
 		{
-			return Program.CurrentProgram.Symbols.Find(sym=>sym.name == symbol).fixedAddr.GetValueOrDefault() + offset.GetValueOrDefault();
+			var s = Program.CurrentProgram.Symbols.Find(sym=>sym.name == symbol);
+			return s.fixedAddr.GetValueOrDefault() + offset.GetValueOrDefault();
 		}
 		public string symbol;
 		public int? offset;
+		public int? frame;
 		public override string ToString()
 		{
-			if(offset.HasValue)
-			{
-				return string.Format("{0}+{1}", symbol,offset);
-			}
-			return string.Format("{0}", symbol);
+			string f=frame.HasValue?"["+frame+"]":"";
+			string o=offset.HasValue?"+"+offset:"";
+			return string.Format("{2}{0}{1}", symbol,o,f);
+			
 		}
 		public SExpr FlattenExpressions()
 		{

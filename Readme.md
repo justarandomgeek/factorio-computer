@@ -100,30 +100,6 @@ Registers store an entire circuit network frame, except `signal-black`. `signal-
 | 17    | `rKeyboard` | Keyboard interface. Reads a single buffered key. Clear buffer with `signal-grey`. |
 | 18+   |  `r18`-...  | IO Expansion ports<br>Aditional devices may be connected to these registers |
 
-#### Calling Conventions
-
-
-~~* **Call Stack:** The call stack is stored on Stack 1.~~
-
-~~* **Call-saved registers:** r1-r4 must be saved/restored by the called subroutine if used.~~
-
-~~* **Call-used registers:** r5-r7 may be used freely by the called subroutine.~~
-
-~~* **Compiler scratch register:** r8 is used by the compiler for saving/restoring call site in function, and other temporary usage in generated code.~~
-
-~~* **Call-saved stacks:** Stack 2 must be saved/restored by the called subroutine if used.~~
-
-~~* **Call-used stacks:** Stacks 3-4 may be used freely by the called subroutine. r8 is  used by the compiler for saving/restoring call site in function.~~
-
-* r1: global ints
-* r2: local ints
-* r3: local vars
-* r4: local vars
-* r5: local vars
-* r6: local vars
-* r7: compiler scratch, table arg/return
-* r8: compiler scratch, call/return callsite and int args/returns
-
 ### Operations
 
 The following signals are used to select registers and signals:
@@ -149,10 +125,9 @@ For operations which support memory indexing, the base pointers are selected as 
 |  I  |Signal         | Usage      |
 |-----|---------------|------------|
 |  1  |`signal-red`   | Call Stack |
-|  2  |`signal-green` | Callee Preserved |
-|  3  |`signal-blue`  | Callee argument/scratch |
-|  4  |`signal-yellow`| Callee argument/scratch |
-
+|  2  |`signal-green` | Current Program Constant/Code Frame |
+|  3  |`signal-blue`  | Current Progarm Data Frame |
+|  4  |`signal-yellow`| local usage |
 
 Individual instructions may also define additional signals. Any unused signals should be left unset.
 
@@ -244,7 +219,7 @@ R1 >> R2.s2 -> Rd
 R1 << R2.s2 -> Rd
 
 #### 70: Jump
-Jump to R1.s1 if `signal-green`=0 or PC+R1.s1 if `signal-green`=1. Return PC+1 to Rd.Sd.
+Jump to R1.s1 if `signal-green`=0 or PC+R1.s1 if `signal-green`=1. Return PC+1 to Rd.Sd. If `signal-cyan` is set, enable(1)/disable(-1) interrupts after this jump.
 
 #### 71: Branch
 Returns PC+1 to Rd.sd. Compares R1.s1 to R2.s2, and makes the following jumps:

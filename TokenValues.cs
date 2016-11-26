@@ -37,6 +37,7 @@ namespace compiler
 	
 	public class TypeInfo:Dictionary<string,string>
 	{
+		public bool hasString;
 		public void Add(FieldInfo fi)
 		{
 			this.Add(fi.name,fi.basename);
@@ -183,6 +184,11 @@ namespace compiler
 		}
 		private int? declsize;
 		public List<Table> data;
+		
+		public void assign(int addr)
+		{
+			fixedAddr = addr;
+		}
 		
 		public override string ToString()
 		{

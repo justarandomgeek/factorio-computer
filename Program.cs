@@ -38,6 +38,7 @@ namespace compiler
 		{
 			if (CommandLine.Parser.Default.ParseArguments(args, Options.Current)) {
 				CurrentProgram = new Parser();
+				CurrentProgram.Name="DEMO";
 	            CurrentProgram.ReadMachineDesc();
 	            
 	            foreach (var file in Options.Current.sourcefiles) {
@@ -83,16 +84,33 @@ namespace compiler
 					
 					foreach (var typedata in CurrentProgram.Types) {
 						Console.WriteLine("Type: {0}",typedata.Key);
+						if(typedata.Value.hasString) Console.WriteLine("  _string_");
 						foreach (var field in typedata.Value) {
 							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
 						}						
 					}
+					
+					
+					CurrentProgram.AllocateSymbols();
 					
 					Console.WriteLine();
 					Console.WriteLine("Symbols:");
 					foreach (var symbol in CurrentProgram.Symbols) {
 						Console.WriteLine(symbol);
 					}
+					
+					
+					
+					
+					//CurrentProgram.romdata = CurrentProgram.romdata.Select(t=>t.Evaluate()).ToList();
+					
+					Console.WriteLine("Rom Data:");
+					
+					foreach (var element in CurrentProgram.romdata) {
+						Console.WriteLine(element);
+					}
+					
+					CurrentProgram.MakeROM();
 					
 					Console.ReadLine();
 					
@@ -116,10 +134,9 @@ namespace compiler
         public string ExpectFieldType { get; private set; }
         public string InFunction { get; private set; }
         
-        public List<Table> constants;
-        public List<Table> code;
+        public List<Table> romdata;
         
-        public string Name {get; private set;}
+        public string Name {get; set;}
         
         Lua lua = new Lua();
         
@@ -170,6 +187,46 @@ namespace compiler
         {
         	Functions[name].body=body;
         	InFunction=null;
+        }
+        
+        public void AllocateSymbols()
+        {
+        	// 0 in both frames is reserved. Const space has progsym, data space reserved for future use by memory allocator or other system services.
+			int constaddr=1;
+			romdata = new List<Table>();
+			int dataaddr=1;
+			var newsyms = new SymbolList();
+			foreach (var symbol in Symbols.OrderByDescending(s=>s.type)) {
+				switch (symbol.type) {
+					case SymbolType.Constant:
+					case SymbolType.Function:
+						symbol.assign(constaddr);
+						romdata.AddRange(symbol.data);
+						constaddr+=symbol.size??1;
+						break;
+						
+					case SymbolType.Data:
+						if(!symbol.fixedAddr.HasValue)
+						{
+							symbol.assign(dataaddr);
+							dataaddr+=symbol.size??1;
+						}
+						break;
+				}
+				newsyms.Add(symbol);
+			}
+			Symbols= newsyms;
+			
+			var progsym = new Table();
+					progsym.Add("constsize",(IntSExpr)(romdata.Count+1));
+					progsym.Add("datasize", (IntSExpr)dataaddr);
+					progsym.Add("mainloc", new AddrSExpr{frame=2,symbol="MAIN"});
+					
+					progsym += new Table(Name);
+					
+					progsym.datatype = "progsym";
+										
+					romdata.Insert(0,progsym);
         }
         
         
@@ -232,15 +289,18 @@ namespace compiler
 			
 			//TODO: use serpent to load this?
 			var signalmap = (LuaTable)lua.DoString(maptext,"scalarmap")[0];
+			lua.NewTable("signaltypes");
+			LuaTable sigtypes = (LuaTable)lua["signaltypes"];
 			foreach (LuaTable sig in signalmap.Values) {
         		var name = sig["name"] as string;
         		var id = (int)(double)sig["id"];
         		var type = sig["type"] as string;
         		
+        		sigtypes[name]=type;
         		this.NativeFields.Add(name);
         	}
-        }      
-        
+        }
+
         public static string Compress(string s)
         {
         	using(var ms = new MemoryStream())
@@ -280,13 +340,30 @@ namespace compiler
         
         public void MakeROM()
         {
+        	
 			Console.WriteLine("Compiling ROM:");
 			lua["parser"]=this;
 			
+			lua.NewTable("romdata");
+			
+			LuaTable rd = (LuaTable)lua["romdata"];
+			for (int i = 0; i < romdata.Count; i++) {
+				var table = romdata[i];
+				var lt = CreateLuaTable();
+            	foreach (var element in table.Evaluate()) {
+            		lt[element.Key]=element.Value.Evaluate();
+            	}			                                    	
+				rd[i+1]= lt;
+			}
+			
 			var compileROM = lua.LoadFile("compileROM.lua");
-			compileROM.Call();
+			var foo = compileROM.Call();
         }
 
+        public LuaTable CreateLuaTable()
+		{
+		    return (LuaTable)lua.DoString("return {}")[0];
+		}
 
         public Parser():base(null)
         {

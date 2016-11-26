@@ -88,6 +88,8 @@ datadef: TYPENAME              UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name
 typedef: TYPE UNDEF '{' fielddeflist '}'     { RegisterType($2,$4); };
 typedef: TYPE UNDEF '{' fielddeflist ',' '}' { RegisterType($2,$4); }; // allow trailing comma
 
+
+fielddeflist: STRING {$$ = new TypeInfo(); $$.hasString=true; };
 fielddeflist: fielddef {$$ = new TypeInfo(); $$.Add($1); };
 fielddeflist: fielddeflist ',' fielddef { $$=$1; $$.Add($3); };
 fielddef: '@' FIELD UNDEF { $$ = new FieldInfo{name=$3,basename=$2}; };

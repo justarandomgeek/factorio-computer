@@ -23,8 +23,24 @@ namespace compiler
 
 		public Table Evaluate()
 		{
-			//TODO: do type mapping for type->var conversion here?
-			return this;
+			var output = new Table();//{datatype=this.datatype};
+			foreach (var element in this) {
+				
+				string field = element.Key;
+				if(datatype != null && datatype != "var")
+				{
+					if(Program.CurrentProgram.Types[datatype].ContainsKey(field))
+						field = Program.CurrentProgram.Types[datatype][field];
+				}
+				
+				output.Add(
+					field ?? element.Key,
+					(IntSExpr)element.Value.Evaluate()
+					//element.Value
+				);
+			}
+			
+			return output;
 		}
 
 		public string datatype;
@@ -53,7 +69,7 @@ namespace compiler
 				this.Add(new TableItem(c.Key, (IntSExpr)c.Value));
 			}
 		}
-
+		
 		public static Table operator +(Table t1, Table t2) {
 			var tres = new Table();
 			foreach (var key in t1.Keys.Union(t2.Keys)) {
@@ -227,7 +243,7 @@ namespace compiler
 				                     this.ContainsKey("index")?this["index"]:null
 				                    );
 			}
-			return string.Format("[{0}:{1}]", datatype, this.Count);
+			return string.Format("[{0}:{1}  {2}]", datatype, this.Count, string.Join(", ",this.Select(item=>item.Key+":"+item.Value)));
 		}
 
 		public VExpr FlattenExpressions()

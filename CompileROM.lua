@@ -1,68 +1,19 @@
 -- This file is called by compiler.exe to generate a ROM.
 -- Globals:
 -- parser - the parser instance
---   .programData - List<DataList>
---   .programData.symbols - Dictionary<int,DataList>
---   :mapChar(c) - converts a character to a SignalSpec
+--   .romdata - List<Table>
 -- serpent - the included serpent library
 
-local addrsignal ={name="signal-black",type="virtual"}
+
+--print(serpent.block(romdata))
+
+
+
+local addrsignal="signal-black"
 local dir = 4
-
-
-local romsites = {}
-
--- This works through the .NET program data objects and builds constant combinator
--- filters in romsites. Each filterset includes the data and inverted address for
--- a single ROM location.
-
---TODO: make pairs() work nicely on IEnumerable to make this cleaner? or proper Lua types...
-local addr = parser.programData.Offset
-local enumerator = parser.programData:GetEnumerator()
-while enumerator:MoveNext() do
-  local i = 1
-  local d = {}
-  table.insert(d,{index=i,count=-addr,signal=addrsignal})
-
-  local dataen = enumerator.Current:GetEnumerator()
-  while dataen:MoveNext() do
-    local signal = dataen.Current.Key
-    local val = dataen.Current.Value
-    i=i+1
-    table.insert(d,
-      {
-        index=i,
-        count=val:resolve(addr,parser.programData.symbols),
-        signal={name=signal.signal,type=signal.type}
-      })
-  end
-  table.insert(romsites,d)
-  addr=addr+1
-end
-
 
 local entities = {}
 local count = 1
-
--- Map a character to it's string or constant-combinator sign signal equvialent
-function signChar(s,i)
-  local csig = parser:mapChar(s)
-  return {index=i,count=1,signal={name=csig.signal,type=csig.type}}
-
-end
-
--- Generate a constant-combinator configured as a sign for two or four characters of text
-function signCC(position, direction, s1,s2)
-  local f = {}
-  table.insert(f,signChar((s1 or "  "):sub(1,1),1))
-  table.insert(f,signChar((s1 or "  "):sub(2,2),2))
-
-  if s2 then
-    table.insert(f,signChar(s2:sub(1,1),3))
-    table.insert(f,signChar(s2:sub(2,2),4))
-  end
-  return CC(position, direction, f)
-end
 
 function splitFilters(infilters)
   local filters,extrafilters={},{}
@@ -133,34 +84,6 @@ function pole(pos,connections)
   return p
 end
 
--- split off the first two characters of a string - retruns "st","ring"
-function prefix(s)
-  if not s then
-    return nil,nil
-  elseif s == "@@" then
-    return "  ","@@"
-  elseif #s<=2 then
-    return s,"@@"
-  else
-    return s:sub(1,2), s:sub(3)
-  end
-end
-
--- Generate a constant-combinator sign
-function sign(pos,line1,line2)
-  local xpos = pos.x
-  local ypos = pos.y
-  local s1,s2
-  repeat
-    s1,line1 = prefix(line1)
-    s2,line2 = prefix(line2)
-    signCC({x = xpos,y = ypos},dir, s1, s2)
-    count = count + 1
-    xpos = xpos + 1
-  until(
-    (not line1 or line1=="@@") and
-    (not line2 or line2=="@@"))
-end
 
 
 -- Place the connecting pole for the ROM
@@ -170,10 +93,20 @@ local prevIn = {entity_id=1}
 local prevOut = {entity_id=1}
 
 local xpos = 1
-for _,filters in pairs(romsites) do
+for addr,data in pairs(romdata) do
   -- For each ROM site, generate a constant-combinator and an output filter
   local cc_id = count
   local cc,extrafilters
+  data[addrsignal]= -addr
+  local filters = {}
+  for sig,val in pairs(data) do
+  	filters[#filters+1]=
+  		{
+  			index = #filters+1,
+  			count=val,
+  			signal={type=signaltypes[sig],name=sig}
+  		}
+  end  
   cc,extrafilters = CC({x=xpos,y=-1},dir,filters)
   while extrafilters and #extrafilters > 0 do
     cc,extrafilters = extendCC(cc,extrafilters)
@@ -185,9 +118,6 @@ for _,filters in pairs(romsites) do
   xpos=xpos+1
 end
 
---Put program name sign above the ROM
-sign({x=1,y=-2},string.upper(parser.Name),nil)
-
 parser:returnBlueprint(
   parser.Name,
   serpent.dump(
@@ -197,38 +127,3 @@ parser:returnBlueprint(
     icons={{index=1, signal={type="item",name="constant-combinator"}}}
   }))
 
-
-entities = {}
-count = 1
--- Generate address table sign array
-
-local prevsign
-ypos = 0
-local mapenum = parser.programData.symbols:GetEnumerator()
-while mapenum:MoveNext() do
-  local symbol = mapenum.Current.Key
-  local addr = mapenum.Current.Value
-
-  local thissign = string.upper(string.format("%4d %s", addr, symbol.name))
-  if prevsign then
-    sign({x=0,y=ypos},prevsign,thissign)
-    ypos=ypos+1
-    prevsign=nil
-  else
-    prevsign = thissign
-  end
-end
-if prevsign then
-  sign({x=0,y=ypos},prevsign,"@@")
-end
-
-parser:returnBlueprint(
-  parser.Name .. " Addr Table",
-  serpent.dump(
-  {
-    name=parser.Name .. " Addr Table",
-    entities=entities,
-    icons={{index=1, signal={type="item",name="constant-combinator"}}}
-  }))
-
-  -- ]]

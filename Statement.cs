@@ -46,7 +46,7 @@ namespace compiler
 				                                   	datatype=((Table)source).datatype,
 				                                   	data=new List<Table>{(Table)source},
 				                                   });
-				source = new MemVRef{addr=new AddrSExpr{symbol=constname},datatype=((Table)source).datatype};
+				source = new MemVRef{addr=new AddrSExpr{symbol=constname,frame=2},datatype=((Table)source).datatype};
 			}
 			target = (VRef)target.FlattenExpressions(); //VRefs should always flatten to VRefs, specifically RegVRef or MemVRef
 			b.Add(this);			
@@ -425,10 +425,11 @@ namespace compiler
 		public SRef callsite;
 		public bool relative;
 		public bool? setint;
+		public int? frame;
 
 		public override string ToString()
 		{
-			return string.Format("[Jump {0} Callsite={1}, Relative={2}, Setint={3}]", target, callsite, relative, setint);
+			return string.Format("[Jump {0} Callsite={1}, Relative={2}, Setint={3}, Frame={4}]", target, callsite, relative, setint, frame);
 		}
 		
 		public void Print(string prefix)
@@ -453,6 +454,11 @@ namespace compiler
 			if(relative)
 			{
 				op.Add("signal-green",(IntSExpr)1);
+			}
+			
+			if(frame.HasValue)
+			{
+				op.Add("index",(IntSExpr)frame);
 			}
 			
 			if( target is FieldSRef)
@@ -593,8 +599,9 @@ namespace compiler
 		
 			//jump to function, with return in r8.0
 			b.Add(new Jump{
-			      	target = new AddrSExpr{symbol=name},
-			      	callsite = new FieldSRef{varref=r8, fieldname= "signal-0"}
+			      	target = new AddrSExpr{symbol=name,frame=2},
+			      	callsite = new FieldSRef{varref=r8, fieldname= "signal-0"},
+			      	frame=2,
 			      });
 			
 			//capture returned values
