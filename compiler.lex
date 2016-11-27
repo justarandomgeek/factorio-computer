@@ -46,6 +46,7 @@ register r[0-9]+
 
 
 <PROGRAM> "+=" {return (int)Tokens.APPEND;}
+<PROGRAM> ":=" {return (int)Tokens.FUNCASSIGN;}
 <PROGRAM> "="  {return (int)Tokens.ASSIGN;}
 
 <PROGRAM> "+"  {return (int)'+';}

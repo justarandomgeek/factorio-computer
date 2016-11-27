@@ -93,51 +93,84 @@ namespace compiler
 				}));
 			locals = newlocals;
 		}
-		
-		public Block BuildFunction()
-		{
-			var b = new Block();
-			
-			
-			// save parent localints
-			b.Add(new Push{reg = new RegVRef{reg=2},stack=1});
-			
-			// save call site (in r8.signal-0)
-			b.Add(new Push{reg = new RegVRef{reg=8},stack=1});
-			
-			
-			// push regs as needed
-			foreach(var sym in locals.Where(s=>s.type==SymbolType.Register))
-			{
-				if(sym.fixedAddr.HasValue) b.Add(new Push{reg = new RegVRef{reg=sym.fixedAddr.Value},stack=1});
-			}
-			
-			// copy params if named
-			
-			// body
-			b.AddRange(body.Flatten());
-			
-			// convert rjmp __return => rjmp <integer> to here.
-			for (int i = 0; i < b.Count; i++) {
-				var j = b[i] as Jump;
-				if (j!= null && j.relative && j.target is AddrSExpr && ((AddrSExpr)j.target).symbol=="__return")
-				{
-					j.target = new IntSExpr{value=b.Count-i};
-				}
-			}
-			
-			// restore registers
-			foreach(var sym in locals.Where(s=>s.type==SymbolType.Register).Reverse())
-			{
-				if(sym.fixedAddr.HasValue) b.Add(new Pop{reg = new RegVRef{reg=sym.fixedAddr.Value},stack=1});
-			}
-			
-			// get return site
-			b.Add(new Pop{reg = new RegVRef{reg=2},stack=1}); // this was r8 originally
-			b.Add(new SAssign{target = new FieldSRef{varref=new RegVRef{reg=8},fieldname="signal-0"},source=new FieldSRef{varref=new RegVRef{reg=2},fieldname="signal-0"},append=true});
+
+        public Block BuildFunction()
+        {
+            var b = new Block();
+
+
+            // save parent localints
+            b.Add(new Push { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
+
+            // save call site (in r8.signal-0)
+            b.Add(new Push { reg = new RegVRef { reg = 8 }, stack = PointerIndex.CallStack });
+
+
+            // push regs as needed
+            foreach (var sym in locals.Where(s => s.type == SymbolType.Register))
+            {
+                if (sym.fixedAddr.HasValue) b.Add(new Push { reg = new RegVRef { reg = sym.fixedAddr.Value }, stack = PointerIndex.CallStack });
+            }
+
+            // copy params if named
+            //int args or null in r8
+            var intparas = locals.Where(sym => sym.type == SymbolType.Parameter && sym.datatype == "int").ToList();
+            if (intparas.Count() > 0)
+            {
+                for (int i = 0; i < intparas.Count(); i++)
+                {
+
+                    b.Add(new SAssign
+                    {
+                        append = i != 0,
+                        source = new ArithSExpr
+                        {
+                            S1 = new FieldSRef { varref = new RegVRef { reg = 8, datatype = "__li" + name }, fieldname = intparas[i].name },
+                            Op = ArithSpec.Add,
+                            S2 = (IntSExpr)0
+                        },
+                        target = new FieldSRef { varref = new RegVRef { reg = 2, datatype = "__li" + name }, fieldname = intparas[i].name }
+
+                    });
+                }
+            }
+
+            // body
+            b.AddRange(body.Flatten());
+
+            // convert rjmp __return => rjmp <integer> to here.
+            for (int i = 0; i < b.Count; i++) {
+                var j = b[i] as Jump;
+                if (j != null && j.relative && j.target is AddrSExpr && ((AddrSExpr)j.target).symbol == "__return")
+                {
+                    j.target = new IntSExpr { value = b.Count - i };
+                }
+            }
+
+            // restore registers
+            foreach (var sym in locals.Where(s => s.type == SymbolType.Register).Reverse())
+            {
+                if (sym.fixedAddr.HasValue) b.Add(new Pop { reg = new RegVRef { reg = sym.fixedAddr.Value }, stack = PointerIndex.CallStack });
+            }
+
+            // get return site
+            b.Add(new Pop { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack }); // this was r8 originally
+            b.Add(new SAssign
+            {
+                target = new FieldSRef { varref = new RegVRef { reg = 8 }, fieldname = "signal-0" },
+                append = true,
+                source =
+                    new ArithSExpr
+                    {
+                        S1 = new FieldSRef { varref = new RegVRef { reg = 2 }, fieldname = "signal-0" },
+                        Op = ArithSpec.Subtract,
+                        S2 = new FieldSRef { varref = new RegVRef { reg = 8 }, fieldname = "signal-0" },
+                    }
+            });
+        
 			
 			// restore parent localints
-			b.Add(new Pop{reg = new RegVRef{reg=2},stack=1});
+			b.Add(new Pop{reg = new RegVRef{reg=2},stack= PointerIndex.CallStack });
 			
 			// jump to return site
 			b.Add(new Jump{target = new FieldSRef{varref=new RegVRef{reg=8},fieldname="signal-0"} });
@@ -162,6 +195,7 @@ namespace compiler
 		public SymbolType type;
 		public string datatype;
 		public int? fixedAddr;
+        public PointerIndex frame;
 		public int? size
 		{
 			get
@@ -174,7 +208,7 @@ namespace compiler
 						return declsize;
 					case SymbolType.Constant:
 					case SymbolType.Function:
-						return data!=null?(int?)data.Count:null;
+						return data?.Count;
 				}
 			}
 			set
@@ -213,39 +247,6 @@ namespace compiler
 		}
 
 	}
-	
-	public class Instruction //:Statement
-	{
-		public int op;
-				
-		public bool acc;
-		public int index;
-				
-		public int r1;
-		public string s1;
-		
-		public int r2;
-		public string s2;
-		
-		public int rd;
-		public string sd;
-		
-		public int? imm1;
-		public string imm1sym;
-		
-		public int? imm2;
-		public string imm2sym;
-		
-		public int? addr1;
-		public string addr1sym;
-		
-		public int? addr2;
-		public string addr2sym;
-		
-		public int? addr3;
-		public string addr3sym;
-	}
-	
 	
 	public class TableItem
 	{

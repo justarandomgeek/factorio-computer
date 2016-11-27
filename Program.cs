@@ -220,7 +220,7 @@ namespace compiler
 			var progsym = new Table();
 					progsym.Add("constsize",(IntSExpr)(romdata.Count+1));
 					progsym.Add("datasize", (IntSExpr)dataaddr);
-					progsym.Add("mainloc", new AddrSExpr{frame=2,symbol="MAIN"});
+					progsym.Add("mainloc", new AddrSExpr{frame=PointerIndex.ProgConst,symbol="MAIN"});
 					
 					progsym += new Table(Name);
 					

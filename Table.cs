@@ -248,7 +248,13 @@ namespace compiler
 
 		public VExpr FlattenExpressions()
 		{
-			return (Table)this.Select(kv => new KeyValuePair<string, SExpr>(kv.Key, kv.Value.FlattenExpressions()));
+			var flattable = new Table { datatype = this.datatype };
+            foreach (var item in this)
+            {
+                flattable.Add(item.Key, item.Value.FlattenExpressions());
+            }
+            return flattable;
+            
 		}
 	}
 }

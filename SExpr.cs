@@ -80,7 +80,11 @@ namespace compiler
 		{
 			return new IntSExpr{value=i};
 		}
-		public override string ToString()
+        public static implicit operator IntSExpr(PointerIndex i)
+        {
+            return new IntSExpr { value = (int)i };
+        }
+        public override string ToString()
 		{
 			return string.Format("{0}", value);
 		}
@@ -99,7 +103,7 @@ namespace compiler
 		public int Evaluate()
 		{
 			string signal = field;
-			if(type!=null && type != "var" && Program.CurrentProgram.Types[type].ContainsKey(field))  {
+			if((type??"var")!="var" && Program.CurrentProgram.Types[type].ContainsKey(field))  {
 				signal = Program.CurrentProgram.Types[type][field];
 			}
 			return Program.CurrentProgram.NativeFields.IndexOf(signal)+1;
@@ -127,16 +131,17 @@ namespace compiler
 		public int Evaluate()
 		{
 			var s = Program.CurrentProgram.Symbols.Find(sym=>sym.name == symbol);
-			return s.fixedAddr.GetValueOrDefault() + offset.GetValueOrDefault();
+			return (s.fixedAddr??0) + (offset??0);
 		}
 		public string symbol;
 		public int? offset;
-		public int? frame;
+        public PointerIndex frame;
 		public override string ToString()
 		{
-			string f=frame.HasValue?"["+frame+"]":"";
-			string o=offset.HasValue?"+"+offset:"";
-			return string.Format("{2}{0}{1}", symbol,o,f);
+			return string.Format("{2}{0}{1}", 
+                symbol,
+                offset.HasValue ? "+" + offset : "",
+                frame>0 ? "[" + frame + "]" : "");
 			
 		}
 		public SExpr FlattenExpressions()

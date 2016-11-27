@@ -115,9 +115,9 @@ namespace compiler
 			if(offset.IsConstant() & Program.CurrentProgram.Symbols.Exists(s=>s.name==arrname))
 			{
 				var sym = Program.CurrentProgram.Symbols.Find(s=>s.name==arrname);
-				
-				int? f=null;
-				if(!sym.fixedAddr.HasValue) f = sym.type==SymbolType.Data?3:2;
+
+                PointerIndex f = PointerIndex.None;
+				if(!sym.fixedAddr.HasValue) f = sym.type==SymbolType.Data? PointerIndex.ProgData : PointerIndex.ProgConst;
 				
 				return new MemVRef{
 					addr=new AddrSExpr{symbol=arrname,offset=offset.Evaluate(),frame=f},

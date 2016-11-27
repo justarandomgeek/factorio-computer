@@ -46,7 +46,7 @@ namespace compiler
 				                                   	datatype=((Table)source).datatype,
 				                                   	data=new List<Table>{(Table)source},
 				                                   });
-				source = new MemVRef{addr=new AddrSExpr{symbol=constname,frame=2},datatype=((Table)source).datatype};
+				source = new MemVRef{addr=new AddrSExpr{symbol=constname,frame= PointerIndex.ProgConst },datatype=((Table)source).datatype};
 			}
 			target = (VRef)target.FlattenExpressions(); //VRefs should always flatten to VRefs, specifically RegVRef or MemVRef
 			b.Add(this);			
@@ -64,7 +64,8 @@ namespace compiler
 				{
 					//mem write
 					op.Add("op",(IntSExpr)81);
-					var S1 = ((MemVRef)target).addr;
+                    op.Add("R2", (IntSExpr)((RegVRef)source).reg);
+                    var S1 = ((MemVRef)target).addr;
 					if( S1 is FieldSRef)
 					{
 						op.Add("R1",	(IntSExpr)((RegVRef)((FieldSRef)S1).varref).reg);
@@ -78,12 +79,13 @@ namespace compiler
 				}
 			}else if(target is RegVRef)
 			{
-				if(source is RegVRef)
+                op.Add("Rd", (IntSExpr)((RegVRef)target).reg);
+
+                if (source is RegVRef)
 				{
 					// reg copy
 					op.Add("op",(IntSExpr)50); // V+s=>V
-					op.Add("R1",(IntSExpr)((RegVRef)source).reg);
-					op.Add("Rd",(IntSExpr)((RegVRef)target).reg);
+					op.Add("R1",(IntSExpr)((RegVRef)source).reg);	
 				} else if (source is MemVRef) 
 				{
 					//mem read
@@ -98,16 +100,47 @@ namespace compiler
 						op.Add("R1",	(IntSExpr)13);
 						op.Add("S1",	new FieldIndexSExpr{field="Imm1",type="opcode"});
 						op.Add("Imm1",	S1);
+                        if (S1 is AddrSExpr) op.Add("index", (IntSExpr)((AddrSExpr)S1).frame);
 					}
-					op.Add("Rd",(IntSExpr)((RegVRef)target).reg);
+					
 				} else if(source is ArithVExpr)
 				{
 					var expr = (ArithVExpr)source;
 					// must be reg v reg
 					if(expr.V1 is RegVRef && expr.V2 is RegVRef)
 					{
-						// v arith v => v 
-					}
+                        // v arith v => v
+                        switch (expr.Op)
+                        {
+                            case ArithSpec.Subtract:
+                                // remap as vd  = v1 + 0
+                                // remap as vd += v2.Each * -1
+
+                                break;
+
+                            case ArithSpec.Add:
+                                // remap as vd  = v1 + 0
+                                // remap as vd += v2 + 0
+
+                                break;
+                                
+                            case ArithSpec.Multiply:
+                                //VMUL instruction 61
+                                op.Add("op", (IntSExpr)61);
+                                op.Add("R1", (IntSExpr)((RegVRef)expr.V1).reg);
+                                op.Add("R2", (IntSExpr)((RegVRef)expr.V2).reg);
+                                break;
+
+                            case ArithSpec.Divide:
+                                //VDIV instruction 62
+                                op.Add("op", (IntSExpr)62);
+                                op.Add("R1", (IntSExpr)((RegVRef)expr.V1).reg);
+                                op.Add("R2", (IntSExpr)((RegVRef)expr.V2).reg);
+                                break;
+                        }
+
+                        
+                    }
 				} else if(source is ArithVSExpr)
 				{
 					// must be reg v reg.sig
@@ -172,8 +205,47 @@ namespace compiler
 		{
 			Block b = new Block();
 			source = source.FlattenExpressions();
-			target = (SRef)target.FlattenExpressions(); //SRefs should always flatten to SRefs, specifically a FieldSRef over a RegVRef or MemVRef
-			b.Add(this);			
+			target = (FieldSRef)target.FlattenExpressions(); //SRefs should always flatten to a FieldSRef over a RegVRef or MemVRef
+            
+            // fetch memref to scratch and replace with reg ref
+
+            if (source is IntSExpr || source is AddrSExpr || source is FieldIndexSExpr || source is FieldSRef )
+            {
+                // convert to tgt+=src-tgt
+                var arop = new ArithSExpr { S1 = source, Op = ArithSpec.Subtract, S2 = append ? (SExpr)(IntSExpr)0 : target };
+                source = arop;
+                append = true;
+                b.Add(this);
+            }
+            else if (source is ArithSExpr)
+            {
+                int usedIntermediates = 0;
+                // if args aren't single-instruction args, need to generate intermediates...
+
+
+                if (!append)
+                {
+                    // scratch=op result
+                    b.Add(new SAssign { append = usedIntermediates++ > 0, source = source, target = new FieldSRef { fieldname = "signal-0", varref = new RegVRef { reg = 8 } } });
+                    // tgt+=scratch-tgt
+                    var arop = new ArithSExpr
+                    {
+                        S1 = new FieldSRef { fieldname = "signal-0", varref = new RegVRef { reg = 8 } },
+                        Op = ArithSpec.Subtract,
+                        S2 = append ? (SExpr)(IntSExpr)0 : target
+                    };
+                    source = arop;
+                    append = true;
+                }
+                b.Add(this);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+            
+            // restore reg to mem                        
+			
 			return b;
 		}
 
@@ -191,40 +263,29 @@ namespace compiler
 				
 				if(source is FieldSRef || source is IntSExpr || source is AddrSExpr)
 				{
-					// field copy
-					op.Add("op",(IntSExpr)57); // s+s=>s
-					
-					if( source is FieldSRef)
-					{
-						op.Add("R1",	(IntSExpr)((RegVRef)((FieldSRef)source).varref).reg);
-						op.Add("S1",	new FieldIndexSExpr{field=((FieldSRef)source).fieldname,type=((RegVRef)((FieldSRef)source).varref).datatype});
-					} else if( source is IntSExpr || source is AddrSExpr)
-					{
-						op.Add("R1",	(IntSExpr)13);
-						op.Add("S1",	new FieldIndexSExpr{field="Imm1",type="opcode"});
-						op.Add("Imm1",	source);
-					}
+                    // These should all have flattened to arith's
+                    throw new NotImplementedException();
 					
 				} else if(source is ArithSExpr)
 				{
 					var expr = (ArithSExpr)source;
 					
-					// v.each arith s => v, 49-52 -+/*
+					// s arith s => s, 57-60 -+/*
 					switch (expr.Op) {
 						case ArithSpec.Subtract:
-							op.Add("op",(IntSExpr)49);
+							op.Add("op",(IntSExpr)57);
 							break;
 							
 						case ArithSpec.Add:
-							op.Add("op",(IntSExpr)50);
+							op.Add("op",(IntSExpr)58);
 							break;
 							
 						case ArithSpec.Divide:
-							op.Add("op",(IntSExpr)51);
+							op.Add("op",(IntSExpr)59);
 							break;
 							
 						case ArithSpec.Multiply:
-							op.Add("op",(IntSExpr)52);
+							op.Add("op",(IntSExpr)60);
 							break;
 					}
 					
@@ -237,10 +298,14 @@ namespace compiler
 						op.Add("R1",	(IntSExpr)13);
 						op.Add("S1",	new FieldIndexSExpr{field="Imm1",type="opcode"});
 						op.Add("Imm1",	expr.S1);
-					}
-					
-					
-					if( expr.S2 is FieldSRef)
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+
+
+                    if ( expr.S2 is FieldSRef)
 					{
 						op.Add("R2",	(IntSExpr)((RegVRef)((FieldSRef)expr.S2).varref).reg);
 						op.Add("S2",	new FieldIndexSExpr{field=((FieldSRef)expr.S2).fieldname,type=((RegVRef)((FieldSRef)expr.S2).varref).datatype});
@@ -249,9 +314,13 @@ namespace compiler
 						op.Add("R2",	(IntSExpr)13);
 						op.Add("S2",	new FieldIndexSExpr{field="Imm2",type="opcode"});
 						op.Add("Imm2",	expr.S2);
-					}
-					
-				}
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                }
 				
 			}
 			
@@ -488,9 +557,18 @@ namespace compiler
 		}
 	}
 	
+    public enum PointerIndex
+    {
+        None=0,
+        CallStack=1,
+        ProgConst=2,
+        ProgData=3,
+        LocalData=4,
+    }
+
 	public class Push:Statement
 	{
-		public int stack;
+		public PointerIndex stack;
 		public RegVRef reg;
 		
 		public override string ToString()
@@ -522,7 +600,7 @@ namespace compiler
 	
 	public class Pop:Statement
 	{
-		public int stack;
+		public PointerIndex stack;
 		public RegVRef reg;
 		
 		public override string ToString()
@@ -554,7 +632,7 @@ namespace compiler
 	
 	public class FunctionCall:Statement
 	{
-		public string name;
+        public string name;
 		public ExprList args;
 		public RefList returns;
 		public override string ToString()
@@ -580,8 +658,12 @@ namespace compiler
 					
 					b.Add(new SAssign{
 					      	append= i!=0,
-					      	source=args.ints[i],
-					      	target=new FieldSRef{varref=r8, fieldname="signal-"+(i+1)}
+					      	source= new ArithSExpr{
+                                  S1 = args.ints[i],
+                                  Op = ArithSpec.Add,
+                                  S2 = (IntSExpr)0
+                              },
+					      	target=new FieldSRef { varref = r8, fieldname = "signal-" + (i + 1) }
 					      });
 				}
 			} else {
@@ -599,34 +681,29 @@ namespace compiler
 		
 			//jump to function, with return in r8.0
 			b.Add(new Jump{
-			      	target = new AddrSExpr{symbol=name,frame=2},
+			      	target = new AddrSExpr{symbol=name,frame= PointerIndex.ProgConst },
 			      	callsite = new FieldSRef{varref=r8, fieldname= "signal-0"},
 			      	frame=2,
 			      });
 			
 			//capture returned values
 		
-			if(returns!=null)
-			{
-				if(returns.ints.Count > 0)
-				{
-					for (int i = 1; i < returns.ints.Count; i++) {
+			
+			for (int i = 1; i < returns?.ints.Count; i++) {
 						
-						b.Add(new SAssign{
-						      	append= i!=1,
-						      	source=new FieldSRef{varref=r8, fieldname="signal-"+i},
-						      	target=returns.ints[i],
-						      });
-					}	
-				}
+				b.Add(new SAssign{
+						append= i!=1,
+						source=new FieldSRef{varref=r8, fieldname="signal-"+i},
+						target=returns.ints[i],
+						});
+			}	
 				
-				if(returns.var != null)
-				{
-					b.Add(new VAssign{			
-				      	source=args.var??new RegVRef{reg=0},
-				      	target=new RegVRef{reg=7},
-				      });
-				}
+			if(returns?.var != null)
+			{
+				b.Add(new VAssign{
+                    source = new RegVRef { reg = 7 },
+                    target =returns.var??new RegVRef{reg=0},
+				    });
 			}
 			
 			return b;

@@ -137,54 +137,54 @@ Any undefined opcode will halt the machine, but Op=0 is specifically reserved fo
 #### 1-60: ALU Operations
 The ALU performs every possible operation in parallel, and returns the requested operation's result to Scalar Result or Vector Result.
 
-1. R1.Every = R2.S2 => Rd.Every=R1
-2. R1.Every < R2.S2 => Rd.Every=R1
-3. R1.Every > R2.S2 => Rd.Every=R1
-4. R1.Every = R2.S2 => Rd.Every=1
-5. R1.Every < R2.S2 => Rd.Every=1
-6. R1.Every > R2.S2 => Rd.Every=1
-7. R1.Any = R2.S2 => Rd.Every=R1
-8. R1.Any < R2.S2 => Rd.Every=R1
-9. R1.Any > R2.S2 => Rd.Every=R1
-10. R1.Any = R2.S2 => Rd.Every=1
-11. R1.Any < R2.S2 => Rd.Every=1
-12. R1.Any > R2.S2 => Rd.Every=1
-13. R1.S1 = R2.S2 => Rd.Every=R1
-14. R1.S1 < R2.S2 => Rd.Every=R1
-15. R1.S1 > R2.S2 => Rd.Every=R1
-16. R1.S1 = R2.S2 => Rd.Every=1
-17. R1.S1 < R2.S2 => Rd.Every=1
-18. R1.S1 > R2.S2 => Rd.Every=1
-19. R1.Each = R2.S2 => Rd.Each=R1
-20. R1.Each < R2.S2 => Rd.Each=R1
-21. R1.Each > R2.S2 => Rd.Each=R1
-22. R1.Each = R2.S2 => Rd.Each=1
-23. R1.Each < R2.S2 => Rd.Each=1
-24. R1.Each > R2.S2 => Rd.Each=1
-25. R1.Every = R2.S2 => Rd.Sd=R1
-26. R1.Every < R2.S2 => Rd.Sd=R1
-27. R1.Every > R2.S2 => Rd.Sd=R1
-28. R1.Every = R2.S2 => Rd.Sd=1
-29. R1.Every < R2.S2 => Rd.Sd=1
-30. R1.Every > R2.S2 => Rd.Sd=1
-31. R1.Any = R2.S2 => Rd.Sd=R1
-32. R1.Any < R2.S2 => Rd.Sd=R1
-33. R1.Any > R2.S2 => Rd.Sd=R1
-34. R1.Any = R2.S2 => Rd.Sd=1
-35. R1.Any < R2.S2 => Rd.Sd=1
-36. R1.Any > R2.S2 => Rd.Sd=1
-37. R1.S1 = R2.S2 => Rd.Sd=R1
-38. R1.S1 < R2.S2 => Rd.Sd=R1
-39. R1.S1 > R2.S2 => Rd.Sd=R1
-40. R1.S1 = R2.S2 => Rd.Sd=1
-41. R1.S1 < R2.S2 => Rd.Sd=1
-42. R1.S1 > R2.S2 => Rd.Sd=1
-43. R1.Each = R2.S2 => Rd.Sd=R1
-44. R1.Each < R2.S2 => Rd.Sd=R1
-45. R1.Each > R2.S2 => Rd.Sd=R1
-46. R1.Each = R2.S2 => Rd.Sd=1
-47. R1.Each < R2.S2 => Rd.Sd=1
-48. R1.Each > R2.S2 => Rd.Sd=1
+1.  R1.Every = R2.S2 ::> R1 => Rd
+2.  R1.Every < R2.S2 ::> R1 => Rd
+3.  R1.Every > R2.S2 ::> R1 => Rd
+4.  R1.Every = R2.S2 ::> R1 :1=> Rd
+5.  R1.Every < R2.S2 ::> R1 :1=> Rd
+6.  R1.Every > R2.S2 ::> R1 :1=> Rd
+7.  R1.Any = R2.S2 ::> R1 => Rd
+8.  R1.Any < R2.S2 ::> R1 => Rd
+9.  R1.Any > R2.S2 ::> R1 => Rd
+10. R1.Any = R2.S2 ::> R1 :1=> Rd
+11. R1.Any < R2.S2 ::> R1 :1=> Rd
+12. R1.Any > R2.S2 ::> R1 :1=> Rd
+13. R1.S1 = R2.S2 ::> R1 => Rd
+14. R1.S1 < R2.S2 ::> R1 => Rd
+15. R1.S1 > R2.S2 ::> R1 => Rd
+16. R1.S1 = R2.S2 ::> R1 :1=> Rd
+17. R1.S1 < R2.S2 ::> R1 :1=> Rd
+18. R1.S1 > R2.S2 ::> R1 :1=> Rd
+19. R1.Each = R2.S2 => Rd
+20. R1.Each < R2.S2 => Rd
+21. R1.Each > R2.S2 => Rd
+22. R1.Each = R2.S2 :1=> Rd
+23. R1.Each < R2.S2 :1=> Rd
+24. R1.Each > R2.S2 :1=> Rd
+25. R1.Every = R2.S2 ::> R1.Sd=>Rd.Sd
+26. R1.Every < R2.S2 ::> R1.Sd=>Rd.Sd
+27. R1.Every > R2.S2 ::> R1.Sd=>Rd.Sd
+28. R1.Every = R2.S2 ::> 1=>Rd.Sd
+29. R1.Every < R2.S2 ::> 1=>Rd.Sd
+30. R1.Every > R2.S2 ::> 1=>Rd.Sd
+31. R1.Any = R2.S2 ::> R1.Sd=>Rd.Sd
+32. R1.Any < R2.S2 ::> R1.Sd=>Rd.Sd
+33. R1.Any > R2.S2 ::> R1.Sd=>Rd.Sd
+34. R1.Any = R2.S2 ::> 1=>Rd.Sd
+35. R1.Any < R2.S2 ::> 1=>Rd.Sd
+36. R1.Any > R2.S2 ::> 1=>Rd.Sd
+37. R1.S1 = R2.S2 ::> R1.Sd=>Rd.Sd
+38. R1.S1 < R2.S2 ::> R1.Sd=>Rd.Sd
+39. R1.S1 > R2.S2 ::> R1.Sd=>Rd.Sd
+40. R1.S1 = R2.S2 ::> 1=>Rd.Sd
+41. R1.S1 < R2.S2 ::> 1=>Rd.Sd
+42. R1.S1 > R2.S2 ::> 1=>Rd.Sd
+43. R1.Each = R2.S2 ::> R1.Sd=>Rd.Sd
+44. R1.Each < R2.S2 ::> R1.Sd=>Rd.Sd
+45. R1.Each > R2.S2 ::> R1.Sd=>Rd.Sd
+46. R1.Each = R2.S2 ::> 1=>Rd.Sd
+47. R1.Each < R2.S2 ::> 1=>Rd.Sd
+48. R1.Each > R2.S2 ::> 1=>Rd.Sd
 49. R1.Each - R2.S2 => Rd
 50. R1.Each + R2.S2 => Rd
 51. R1.Each / R2.S2 => Rd
@@ -201,8 +201,8 @@ The ALU performs every possible operation in parallel, and returns the requested
 #### 61: Pairwise Vector Multiply
 R1.each * R2.each pairwise => Rd
 
-#### 62: Pairwise Vector Add
-R1.each + R2.each pairwise => Rd
+#### 62: Pairwise Vector Divide (needs hardware update)
+R1.each / R2.each pairwise => Rd
 
 #### 63: Scalar Array Pick (exec)
 * R1.[R2.s2] -> Rd.sd
@@ -212,10 +212,10 @@ R1.each + R2.each pairwise => Rd
 * R1.s1 -> Rd.[R2.s2]
   * exec{0=58,R=R,S=S,V=V,W=[R2.s2],A=A}
 
-#### 6?: Scalar shift up
+#### 65: Scalar shift up (not yet implemented)
 R1 >> R2.s2 -> Rd
 
-#### 6?: Scalar shift down
+#### 66: Scalar shift down (not yet implemented)
 R1 << R2.s2 -> Rd
 
 #### 70: Jump
@@ -253,19 +253,16 @@ Store a frame to one of the stacks in rIndex, as selected by `signal-I`.
 * R2 -> [rIndex.stack-1]
 * rIndex.stack--
 
-
 #### 84: Pop
 Retrieve a frame to one of the stacks in rIndex, as selected by `signal-I`.
 
 * [rIndex.stack] -> Rd
 * rIndex.stack++
 
-
-#### 85: Append (not currently implemented)
-Store a frame to an array in one of the index pointers. Arrays are selected as described for Push. R1 must also be set to rIndex.
+#### 85: Append (not yet implemented)
+Store a frame to an array in one of the index pointers.
 
 * R2 -> [rIndex.stack++]
-
 
 ## IO Devices
 

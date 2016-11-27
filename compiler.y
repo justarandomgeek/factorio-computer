@@ -30,7 +30,7 @@
 %token <compVal> COMPARE
 %token <bVal> COND
 
-%token ASSIGN APPEND
+%token FUNCASSIGN ASSIGN APPEND
 %token DO WHILE IF ELSE END
 %token TYPE FUNCTION RETURN
 %token INT
@@ -99,10 +99,6 @@ block: {$$=new Block();};
 block: statement { $$=new Block(); $$.Add($1); };
 block: block statement { $$=$1; $$.Add($2); };
 
-statement: vassign {$$=$1;};
-statement: sassign {$$=$1;};
-statement: datadef;
-
 branch: sexpr COMPARE sexpr {$$=new Branch{S1=$1,Op=$2,S2=$3};};
 
 statement: IF branch block elseblock END {$$= new If{branch=$2,ifblock=$3,elseblock=$4}; };
@@ -112,7 +108,12 @@ elseblock: {$$=new Block();};
 statement: WHILE branch DO block END {$$= new While{branch=$2,body=$4}; };
 
 statement: FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
-statement: reflist ASSIGN FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$3,args=$5,returns=$1}; };
+statement: reflist FUNCASSIGN FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$3,args=$5,returns=$1}; };
+
+statement: vassign {$$=$1;};
+statement: sassign {$$=$1;};
+statement: datadef;
+
 
 exprlist: { $$=new ExprList(); };
 exprlist: sexpr { $$=new ExprList(); $$.ints.Add($1); };
@@ -143,9 +144,9 @@ sexpr: sref {$$=$1;};
 vexpr: vexpr arith vexpr {$$=new ArithVExpr{V1=$1,Op=$2,V2=$3};};
 vexpr: vexpr arith sexpr {$$=new ArithVSExpr{V1=$1,Op=$2,S2=$3};};
 vexpr: '{' littable '}'{$$=$2;};
-//vexpr: '*' sexpr {};
 vexpr: STRING {$$= new StringVExpr{text=$1};};
 vexpr: vref{$$=$1;};
+//vexpr: '*' sexpr {$$ = new MemVRef{ addr=new AddrSExpr{} }; }; //TODO: turn this into memref of constant/symbol
 
 sref: VAR '.' {ExpectFieldType=GetSymbolDataType($1);} FIELD {$$ = new FieldSRef{varref=new VarVRef{name=$1},fieldname=$4};};
 sref: INTVAR {$$ = new IntVarSRef{name=$1};};
@@ -164,6 +165,7 @@ sassign: sref APPEND sexpr {$$=new SAssign{target=$1,append=true,source=$3};};
 
 
 littable: {$$= new Table();};
+littable: STRING {$$= new Table($1);};
 littable: tableitem {$$= new Table();$$.Add($1);};
 littable: littable ',' tableitem {$$=$1;$$.Add($3);};
 
