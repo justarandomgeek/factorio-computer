@@ -1,4 +1,6 @@
 
+[Complete Machine (Large Image)](http://static.justarandomgeek.com/factorio/WelcomeToTheMachine.png)
+
 ### NixieTerm
 ![NixieTerm](screenshots/NixieTerm2.png)
 
