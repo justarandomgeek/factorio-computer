@@ -33,8 +33,9 @@
 
 %token FUNCASSIGN ASSIGN APPEND
 %token DO WHILE IF ELSE END
-%token TYPE FUNCTION RETURN
+%token REQUIRE TYPE FUNCTION RETURN
 %token INT
+
 
 %type <arithVal> arith
 
@@ -70,6 +71,7 @@ program: program definition {};
 definition: functiondef;
 definition: datadef;
 definition: typedef;
+definition: REQUIRE '(' STRING ')' { Require($3); };
 
 functiondef: FUNCTION UNDEF '(' paramdeflist ')' { BeginFunction($2,$4); } block END { CompleteFunction($2,$7); };
 

@@ -18,7 +18,7 @@ namespace compiler
 		[Option("romgen", HelpText="Use external CompileROM.lua")]
 		public string romscript { get; set; }
 		
-		[Option('m', "map", HelpText="Use custom scalarmap.lua")]
+		[Option('m', "map", HelpText="Use custom mapfile, scalarmap.lua")]
 		public string map { get; set; }
 		
 		[Option("rconhost", DefaultValue="localhost", HelpText="rcon hostname to direct-insert blueprint")]

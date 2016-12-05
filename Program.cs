@@ -43,15 +43,10 @@ namespace compiler
 
 				foreach (var file in Options.Current.sourcefiles)
 				{
-					string prog = "";
-					using (var reader = new StreamReader(file))
-					{
-						prog = reader.ReadToEnd();
-					}
-					CurrentProgram.Parse(prog);
+					CurrentProgram.ParseFile(file);
 				}
-					
-					
+
+
 				Console.WriteLine();
 				Console.WriteLine("Functions:");
 				foreach (var func in CurrentProgram.Functions.Values) {
@@ -138,8 +133,19 @@ namespace compiler
         public string Name {get; set;}
         
         Lua lua = new Lua();
-        
-        public void RegisterType(string typename, TypeInfo typeinfo)
+
+
+		public void ParseFile(string file)
+		{
+			string prog = "";
+			using (var reader = new StreamReader(file))
+			{
+				prog = reader.ReadToEnd();
+			}
+			Parse(prog);
+		}
+
+		public void RegisterType(string typename, TypeInfo typeinfo)
         {
         	Types.Add(typename,typeinfo);
         }
@@ -292,7 +298,7 @@ namespace compiler
         		} 
         	}
         	
-        	if(Types.ContainsKey(ident))
+			if(Types.ContainsKey(ident))
         	{
         		return Tokens.TYPENAME;
         	}
@@ -330,13 +336,21 @@ namespace compiler
         
         public void ReadMachineDesc()
         {
-        	string maptext = Program.GetResourceText("scalarmap");
-        	
-        	//TODO: get filename from options.map
-        	//using(reader = new StreamReader(mapfile))
-        	//{
-        	//maptext = reader.ReadToEnd();
-        	//}
+			string maptext;
+
+			var options = Options.Current;
+
+			if(options.map != null)
+			{
+				using (var reader = new StreamReader(options.map))
+				{
+					maptext = reader.ReadToEnd();
+				}
+			}
+			else
+			{
+				maptext = Program.GetResourceText("scalarmap");
+			}
 			
 			//TODO: use serpent to load this?
 			var signalmap = (LuaTable)lua.DoString(maptext,"scalarmap")[0];
@@ -371,14 +385,14 @@ namespace compiler
         	var options = Options.Current;
         	if(options.rconplayer != null)
         	{
-        		//TODO: rework this for updated Foreman API.
         		var rcon = new Rcon();
         		var rconhost = new System.Net.IPEndPoint(
 	        		System.Net.Dns.GetHostEntry(options.rconhost).AddressList[0],
 	        		options.rconport);
-        		// this command is definitely wrong
-				const string rconcommand = "/c remote.call('foreman','addBlueprintToTable',game.players['{0}'],{1},{2});remote.call('foreman','refreshPrintFrame',game.players['{0}']))";
-	        	rcon.ConnectBlocking(rconhost,options.rconpass); 
+        		const string rconcommand = "/c remote.call('foreman','addBlueprint',game.players['{0}'],{1},{2})";
+
+				Console.WriteLine("Sending {0} to Foreman by RCON...", printName);
+				rcon.ConnectBlocking(rconhost,options.rconpass); 
 	        	rcon.ServerCommandBlocking(
 	        		string.Format(rconcommand,options.rconplayer,Compress(printData),printName));
 	        	rcon.Disconnect();	
@@ -407,7 +421,7 @@ namespace compiler
 				rd[i]= lt;
 			}
 			
-			var compileROM = lua.LoadFile("compileROM.lua");
+			var compileROM = lua.LoadFile("../compileROM.lua");
 			var foo = compileROM.Call();
         }
 
@@ -422,20 +436,36 @@ namespace compiler
         	lua["serpent"]=serpent[0];
         	
         }
-        
-        public void Parse(string input)
+
+
+		public void Parse(string input)
         {
-            var s = new Scanner();
+			var s = new Scanner();
             s.SetSource(input, 0);
             s.Parser=this;
-            this.Scanner = s;
+	        this.Scanner = s;
             this.Parse();
         }
 
 
+		public void Require(string file)
+		{
+			//TODO: be smarter about finding the file
+			string prog = "";
+			using (var reader = new StreamReader(file))
+			{
+				prog = reader.ReadToEnd();
+			}
+
+			Scanner.IncludeSource(prog);
+			
+		}
+
+
     }
 
-    partial class Scanner
+
+	partial class Scanner
     {
     	public Parser Parser;
         public override void yyerror(string format, params object[] args)
@@ -443,5 +473,25 @@ namespace compiler
             //base.yyerror(format, args);
             Console.Error.WriteLine("{0} At line:{1} char:{2}",format, yyline, yycol);
         }
-    }
+
+		Stack<BufferContext> fileStack = new Stack<BufferContext>();
+		public void IncludeSource(string text)
+		{
+			fileStack.Push(MkBuffCtx());
+			SetSource(text, 0);
+		}
+
+		protected override bool yywrap()
+		{
+			if(fileStack.Count > 0 )
+			{
+				RestoreBuffCtx(fileStack.Pop());
+				return false;
+			} else {
+				return true;
+			}
+			
+		}
+
+	}
 }
