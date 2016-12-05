@@ -38,83 +38,82 @@ namespace compiler
 		{
 			if (CommandLine.Parser.Default.ParseArguments(args, Options.Current)) {
 				CurrentProgram = new Parser();
-				CurrentProgram.Name="DEMO";
+				CurrentProgram.Name="DEMO"; //TODO: program name from source or filename or arg or...?
 	            CurrentProgram.ReadMachineDesc();
-	            
-	            foreach (var file in Options.Current.sourcefiles) {
-	            	string prog = "";
-	            	using(var reader = new StreamReader(file))
+
+				foreach (var file in Options.Current.sourcefiles)
+				{
+					string prog = "";
+					using (var reader = new StreamReader(file))
 					{
-	            		prog = reader.ReadToEnd();
-	            	}
+						prog = reader.ReadToEnd();
+					}
 					CurrentProgram.Parse(prog);
+				}
 					
 					
-					
+				Console.WriteLine();
+				Console.WriteLine("Functions:");
+				foreach (var func in CurrentProgram.Functions.Values) {
+					CurrentFunction = func;
+					Console.WriteLine(func.name);
+					func.AllocateLocals();
+						
+					foreach (var field in func.localints) {
+						Console.WriteLine("  {0}:{1}",field.Key,field.Value);
+					}
+					foreach (var symbol in func.locals) {
+						Console.WriteLine("  "+symbol);
+					}
+					func.body.Print("| ");
+					var build = func.BuildFunction();
+					//build.Print("  ");
+						
+					if(func.localints.Count > 0) CurrentProgram.Types.Add("__li"+func.name,func.localints);
+					//Console.WriteLine();
+						
+					CurrentProgram.Symbols.Add(new Symbol{
+						                        name=func.name,
+						                        type=SymbolType.Function,
+						                        datatype="opcode",
+						                        data=build.Select(stat => stat.Opcode()).ToList()
+						                        });
+						
 					Console.WriteLine();
-					Console.WriteLine("Functions:");
-					foreach (var func in CurrentProgram.Functions.Values) {
-						CurrentFunction = func;
-						Console.WriteLine(func.name);
-						func.AllocateLocals();
-						
-						foreach (var field in func.localints) {
-							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
-						}
-						foreach (var symbol in func.locals) {
-							Console.WriteLine("  "+symbol);
-						}
-						//func.body.Print("| ");
-						var build = func.BuildFunction();
-						build.Print("  ");
-						
-						if(func.localints.Count > 0) CurrentProgram.Types.Add("__li"+func.name,func.localints);
-						//Console.WriteLine();
-						
-						CurrentProgram.Symbols.Add(new Symbol{
-						                           	name=func.name,
-						                           	type=SymbolType.Function,
-						                           	datatype="opcode",
-						                           	data=build.Select(stat => stat.Opcode()).ToList()
-						                           });
-						
-						Console.WriteLine();
-					}
-					CurrentFunction = null;
-					
-					foreach (var typedata in CurrentProgram.Types) {
-						Console.WriteLine("Type: {0}",typedata.Key);
-						if(typedata.Value.hasString) Console.WriteLine("  _string_");
-						foreach (var field in typedata.Value) {
-							Console.WriteLine("  {0}:{1}",field.Key,field.Value);
-						}						
-					}
+				}
+				CurrentFunction = null;
+
+				CurrentProgram.AllocateTypes();
+
+				foreach (var typedata in CurrentProgram.Types) {
+					Console.WriteLine("Type: {0}",typedata.Key);
+					if(typedata.Value.hasString) Console.WriteLine("  _string_");
+					foreach (var field in typedata.Value) {
+						Console.WriteLine("  {0}:{1}",field.Key,field.Value);
+					}						
+				}
 					
 					
-					CurrentProgram.AllocateSymbols();
+				CurrentProgram.AllocateSymbols();
 					
-					Console.WriteLine();
-					Console.WriteLine("Symbols:");
-					foreach (var symbol in CurrentProgram.Symbols) {
-						Console.WriteLine(symbol);
-					}
+				Console.WriteLine();
+				Console.WriteLine("Symbols:");
+				foreach (var symbol in CurrentProgram.Symbols) {
+					Console.WriteLine(symbol);
+				}
+
+				Console.WriteLine("Rom Data:");
+
+				foreach (var element in CurrentProgram.romdata)
+				{
+					Console.WriteLine(element.Evaluate());
+				}
+
+				CurrentProgram.MakeROM();
 					
+				Console.ReadLine();
 					
-					
-					
-					//CurrentProgram.romdata = CurrentProgram.romdata.Select(t=>t.Evaluate()).ToList();
-					
-					Console.WriteLine("Rom Data:");
-					
-					foreach (var element in CurrentProgram.romdata) {
-						Console.WriteLine(element.Evaluate());
-					}
-					
-					CurrentProgram.MakeROM();
-					
-					Console.ReadLine();
-					
-	            }
+	            
 			}
 		}
 	}
@@ -189,11 +188,28 @@ namespace compiler
         	InFunction=null;
         }
         
+		public void AllocateTypes()
+		{
+			foreach (var typename in Types.Keys)
+			{
+				Types[typename].Allocate();
+			}
+		}
+
+
         public void AllocateSymbols()
         {
         	// 0 in both frames is reserved. Const space has progsym, data space reserved for future use by memory allocator or other system services.
 			int constaddr=1;
 			romdata = new List<Table>();
+
+			// leave space for symtable starting at 1
+			int symtsize = Symbols.Count(sym =>
+				sym.name.All(c=>"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c))
+			);
+			constaddr += symtsize;
+
+
 			int dataaddr=1;
 			var newsyms = new SymbolList();
 			foreach (var symbol in Symbols.OrderByDescending(s=>s.type)) {
@@ -216,18 +232,53 @@ namespace compiler
 				newsyms.Add(symbol);
 			}
 			Symbols= newsyms;
+
+			var progsym = new Table(Name);
+			progsym.Add("symtsize", (IntSExpr)symtsize);
+			progsym.Add("romsize",(IntSExpr)(romdata.Count+1));
+			progsym.Add("datasize", (IntSExpr)dataaddr);
+			progsym.Add("mainloc", new AddrSExpr{frame=PointerIndex.ProgConst,symbol="MAIN"});
 			
-			var progsym = new Table();
-					progsym.Add("constsize",(IntSExpr)(romdata.Count+1));
-					progsym.Add("datasize", (IntSExpr)dataaddr);
-					progsym.Add("mainloc", new AddrSExpr{frame=PointerIndex.ProgConst,symbol="MAIN"});
-					
-					progsym += new Table(Name);
-					
-					progsym.datatype = "progsym";
+			progsym.datatype = "progsym";
 										
-					romdata.Insert(0,progsym);
-        }
+			romdata.Insert(0,progsym);
+
+			romdata.InsertRange(
+				1,
+				Symbols.Where(
+					sym => sym.name.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c))
+					).Select(
+					sym =>
+					{
+						var symtable = new Table(sym.name);
+						symtable.datatype = "symbol";
+
+						//DATA = 1 FUNC = 2 CONST = 3
+						switch (sym.type)
+						{
+							case SymbolType.Data:
+								symtable.Add("symtype", (IntSExpr)1);
+								break;
+							case SymbolType.Function:
+								symtable.Add("symtype", (IntSExpr)2);
+								break;
+							case SymbolType.Constant:
+								symtable.Add("symtype", (IntSExpr)3);
+								break;
+							default:
+								throw new NotImplementedException();
+						}
+						
+						symtable.Add("addr", (IntSExpr)sym.fixedAddr);
+						symtable.Add("size", (IntSExpr)sym.size);
+						
+						return symtable;
+					})
+				);
+
+
+
+		}
         
         
         public Tokens GetIdentType(string ident)

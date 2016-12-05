@@ -38,9 +38,43 @@ namespace compiler
 	public class TypeInfo:Dictionary<string,string>
 	{
 		public bool hasString;
+		
 		public void Add(FieldInfo fi)
 		{
 			this.Add(fi.name,fi.basename);
+		}
+
+		public void Allocate()
+		{
+			if (!this.ContainsValue(null)) return;
+
+			string nextSignal = hasString ? "signal-red" : "signal-A";
+
+			if(this.Any(f=>f.Value != null))
+			{
+				
+				var lastField = this.OrderBy(
+					f =>
+					Program.CurrentProgram.NativeFields.IndexOf(f.Value)
+					).Last();
+
+				if (Program.CurrentProgram.NativeFields.IndexOf(lastField.Value) >
+					Program.CurrentProgram.NativeFields.IndexOf(nextSignal))
+					nextSignal = Program.CurrentProgram.NativeFields[
+						Program.CurrentProgram.NativeFields.IndexOf(lastField.Value)+1
+						];
+
+			}
+
+			int nextIndex = Program.CurrentProgram.NativeFields.IndexOf(nextSignal);
+
+			foreach (var field in this.Where(f => f.Value == null).Select(f => f.Key).ToList())
+			{
+				this[field] = Program.CurrentProgram.NativeFields[nextIndex++];
+			}
+
+
+
 		}
 	}
 	public struct FieldInfo{
@@ -76,11 +110,8 @@ namespace compiler
 			foreach (var p in locals.Where(sym=>sym.type == SymbolType.Parameter && sym.datatype == "int")) {
 				localints.Add(p.name,"signal-" + p.fixedAddr);
 			}
-			foreach (var localint in localints) {
-				if (localint.Value == null) {
-					//TODO: allocate ints in __liFUNC. maybe skip a few for argument/return passing?
-				}
-			}
+			
+			
 			var newlocals = new SymbolList();
 			newlocals.AddRange(locals.Select((symbol) =>
 				{
@@ -98,14 +129,12 @@ namespace compiler
         {
             var b = new Block();
 
+			// save call site (in r8.signal-0)
+			b.Add(new Push { reg = new RegVRef { reg = 8 }, stack = PointerIndex.CallStack });
 
-            // save parent localints
-            b.Add(new Push { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
-
-            // save call site (in r8.signal-0)
-            b.Add(new Push { reg = new RegVRef { reg = 8 }, stack = PointerIndex.CallStack });
-
-
+			// save parent localints
+			b.Add(new Push { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
+			
             // push regs as needed
             foreach (var sym in locals.Where(s => s.type == SymbolType.Register))
             {
@@ -153,25 +182,26 @@ namespace compiler
                 if (sym.fixedAddr.HasValue) b.Add(new Pop { reg = new RegVRef { reg = sym.fixedAddr.Value }, stack = PointerIndex.CallStack });
             }
 
-            // get return site
-            b.Add(new Pop { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack }); // this was r8 originally
-            b.Add(new SAssign
-            {
-                target = new FieldSRef { varref = new RegVRef { reg = 8 }, fieldname = "signal-0" },
-                append = true,
-                source =
-                    new ArithSExpr
-                    {
-                        S1 = new FieldSRef { varref = new RegVRef { reg = 2 }, fieldname = "signal-0" },
-                        Op = ArithSpec.Subtract,
-                        S2 = new FieldSRef { varref = new RegVRef { reg = 8 }, fieldname = "signal-0" },
-                    }
-            });
-        
-			
 			// restore parent localints
-			b.Add(new Pop{reg = new RegVRef{reg=2},stack= PointerIndex.CallStack });
-			
+			b.Add(new Pop { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
+
+			// get return site
+			b.Add(new Exchange { source = new RegVRef { reg = 7 }, dest = new RegVRef { reg = 7 }, frame = PointerIndex.CallStack, addr = (IntSExpr)0 });
+			b.Add(new SAssign
+			{
+				target = new FieldSRef { varref = new RegVRef { reg = 8 }, fieldname = "signal-0" },
+				append = true,
+				source =
+					new ArithSExpr
+					{
+						S1 = new FieldSRef { varref = new RegVRef { reg = 7 }, fieldname = "signal-0" },
+						Op = ArithSpec.Subtract,
+						S2 = new FieldSRef { varref = new RegVRef { reg = 8 }, fieldname = "signal-0" },
+					}
+			});
+			b.Add(new Pop { reg = new RegVRef { reg = 7 }, stack = PointerIndex.CallStack });
+
+
 			// jump to return site
 			b.Add(new Jump{target = new FieldSRef{varref=new RegVRef{reg=8},fieldname="signal-0"} });
 			
@@ -195,7 +225,7 @@ namespace compiler
 		public SymbolType type;
 		public string datatype;
 		public int? fixedAddr;
-        public PointerIndex frame;
+        //public PointerIndex frame; // one day...
 		public int? size
 		{
 			get

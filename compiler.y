@@ -21,6 +21,7 @@
   internal Branch brVal;
   internal ExprList elVal;
   internal RefList rlVal;
+  internal FunctionCall fcVal;
 }
 
 %token <iVal> INTEGER
@@ -54,6 +55,7 @@
 %type <brVal> branch
 %type <elVal> exprlist
 %type <rlVal> reflist
+%type <fcVal> funccall
 
 %start program
 
@@ -82,8 +84,11 @@ datadef: TYPENAME '@' REGISTER UNDEF { CreateSym(new Symbol{name=$4,type=SymbolT
 datadef: TYPENAME              UNDEF { CreateSym(new Symbol{name=$2,type=InFunction!=null?SymbolType.Register:SymbolType.Data,datatype=$1}); };
 datadef: INT                   UNDEF { CreateInt($2); };
 
-datadef: TYPENAME '@' INTEGER  UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$4,type=SymbolType.Data,size=$6,datatype=$1,fixedAddr=$3}); };
-datadef: TYPENAME              UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$2,type=SymbolType.Data,size=$4,datatype=$1}); };
+//datadef: TYPENAME '@' INTEGER  UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$4,type=SymbolType.Data,size=$6,datatype=$1,fixedAddr=$3}); };
+//datadef: TYPENAME              UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$2,type=SymbolType.Data,size=$4,datatype=$1}); };
+
+datadef: TYPENAME '[' INTEGER ']' '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$7,type=SymbolType.Data,size=$3,datatype=$1,fixedAddr=$6}); };
+datadef: TYPENAME '[' INTEGER ']'              UNDEF { CreateSym(new Symbol{name=$5,type=SymbolType.Data,size=$3,datatype=$1}); };
 
 typedef: TYPE UNDEF '{' fielddeflist '}'     { RegisterType($2,$4); };
 typedef: TYPE UNDEF '{' fielddeflist ',' '}' { RegisterType($2,$4); }; // allow trailing comma
@@ -99,20 +104,24 @@ block: {$$=new Block();};
 block: statement { $$=new Block(); $$.Add($1); };
 block: block statement { $$=$1; $$.Add($2); };
 
-branch: sexpr COMPARE sexpr {$$=new Branch{S1=$1,Op=$2,S2=$3};};
+branch: sexpr COMPARE sexpr {$$=new Branch{ S1=$1, Op=$2, S2=$3};};
 
-statement: IF branch block elseblock END {$$= new If{branch=$2,ifblock=$3,elseblock=$4}; };
+statement: IF branch block elseblock END { $$ = new If{branch=$2,ifblock=$3,elseblock=$4}; };
 elseblock: ELSE block { $$ = $2; };
 elseblock: {$$=new Block();};
 
-statement: WHILE branch DO block END {$$= new While{branch=$2,body=$4}; };
+statement: WHILE branch DO block END { $$ = new While{branch=$2,body=$4}; };
 
-statement: FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
-statement: reflist FUNCASSIGN FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$3,args=$5,returns=$1}; };
+funccall: FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
+statement: funccall {$$ = $1;};
+vexpr: funccall {$$ = $1;};
+//sexpr: funccall {$$ = $1;};
+statement: reflist FUNCASSIGN funccall { $3.returns = $1; $$ = $3; };
 
 statement: vassign {$$=$1;};
 statement: sassign {$$=$1;};
 statement: datadef;
+
 
 
 exprlist: { $$=new ExprList(); };
@@ -135,18 +144,17 @@ arith: '/' {$$ = ArithSpec.Divide;};
 sexpr: sexpr arith sexpr {$$=new ArithSExpr{S1=$1,Op=$2,S2=$3};};
 sexpr: INTEGER {$$=new IntSExpr{value=$1};};
 sexpr: sref {$$=$1;};
-//sexpr: sum(vexpr)
-//sexpr: '&' VAR {};
-//sexpr: '&' ARRAY {};
-//sexpr: '&' ARRAY '[' sexpr ']' {};
-
+//sexpr: sum '(' vexpr ')' {$$ = new FieldSRef{varref=new VarVRef{name=$1},fieldname="signal-each"};}
+//sexpr: '&' VAR { $$ = new AddrSExpr{symbol = $2}; };
+//sexpr: '&' ARRAY { $$ = new AddrSExpr{symbol = $2}; };
+//sexpr: '&' ARRAY '[' sexpr ']' { $$ = new ArithSExpr{S1 = new AddrSExpr{symbol = $2}, Op=ArithSpec.Add, S2 = $4}; };
 
 vexpr: vexpr arith vexpr {$$=new ArithVExpr{V1=$1,Op=$2,V2=$3};};
 vexpr: vexpr arith sexpr {$$=new ArithVSExpr{V1=$1,Op=$2,S2=$3};};
 vexpr: '{' littable '}'{$$=$2;};
 vexpr: STRING {$$= new StringVExpr{text=$1};};
 vexpr: vref{$$=$1;};
-//vexpr: '*' sexpr {$$ = new MemVRef{ addr=new AddrSExpr{} }; }; //TODO: turn this into memref of constant/symbol
+vexpr: '@' sexpr {$$ = new MemVRef{ addr=$2 }; };
 
 sref: VAR '.' {ExpectFieldType=GetSymbolDataType($1);} FIELD {$$ = new FieldSRef{varref=new VarVRef{name=$1},fieldname=$4};};
 sref: INTVAR {$$ = new IntVarSRef{name=$1};};

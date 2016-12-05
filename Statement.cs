@@ -36,7 +36,9 @@ namespace compiler
 		{
 			Block b = new Block();
 			source = source.FlattenExpressions();
-			if(source is Table)
+			target = (VRef)target.FlattenExpressions(); //VRefs should always flatten to VRefs, specifically RegVRef or MemVRef
+
+			if (source is Table)
 			{
 				//Convert literal tables to constants and address them by symbol name
 				var constname = "__const"+source.GetHashCode();
@@ -47,8 +49,13 @@ namespace compiler
 				                                   	data=new List<Table>{(Table)source},
 				                                   });
 				source = new MemVRef{addr=new AddrSExpr{symbol=constname,frame= PointerIndex.ProgConst },datatype=((Table)source).datatype};
+			} else if (source is FunctionCall)
+			{
+				var func = source as FunctionCall;
+				func.returns = new RefList { var = target };
+				return func.Flatten();
 			}
-			target = (VRef)target.FlattenExpressions(); //VRefs should always flatten to VRefs, specifically RegVRef or MemVRef
+			
 			b.Add(this);			
 			return b;
 		}
@@ -81,104 +88,114 @@ namespace compiler
 			{
                 op.Add("Rd", (IntSExpr)((RegVRef)target).reg);
 
-                if (source is RegVRef)
+				if (source is RegVRef)
 				{
 					// reg copy
-					op.Add("op",(IntSExpr)50); // V+s=>V
-					op.Add("R1",(IntSExpr)((RegVRef)source).reg);	
-				} else if (source is MemVRef) 
+					op.Add("op", (IntSExpr)50); // V+s=>V
+					op.Add("R1", (IntSExpr)((RegVRef)source).reg);
+				}
+				else if (source is MemVRef)
 				{
 					//mem read
-					op.Add("op",(IntSExpr)82);
+					op.Add("op", (IntSExpr)82);
 					var S1 = ((MemVRef)source).addr;
-					if( S1 is FieldSRef)
+					if (S1 is FieldSRef)
 					{
-						op.Add("R1",	(IntSExpr)((RegVRef)((FieldSRef)S1).varref).reg);
-						op.Add("S1",	new FieldIndexSExpr{field=((FieldSRef)S1).fieldname,type=((RegVRef)((FieldSRef)S1).varref).datatype});
-					} else if( S1 is IntSExpr || S1 is AddrSExpr)
-					{
-						op.Add("R1",	(IntSExpr)13);
-						op.Add("S1",	new FieldIndexSExpr{field="Imm1",type="opcode"});
-						op.Add("Imm1",	S1);
-                        if (S1 is AddrSExpr) op.Add("index", (IntSExpr)((AddrSExpr)S1).frame);
+						op.Add("R1", (IntSExpr)((RegVRef)((FieldSRef)S1).varref).reg);
+						op.Add("S1", new FieldIndexSExpr { field = ((FieldSRef)S1).fieldname, type = ((RegVRef)((FieldSRef)S1).varref).datatype });
 					}
-					
-				} else if(source is ArithVExpr)
+					else if (S1 is IntSExpr || S1 is AddrSExpr)
+					{
+						op.Add("R1", (IntSExpr)13);
+						op.Add("S1", new FieldIndexSExpr { field = "Imm1", type = "opcode" });
+						op.Add("Imm1", S1);
+						if (S1 is AddrSExpr) op.Add("index", (IntSExpr)((AddrSExpr)S1).frame);
+					}
+
+				}
+				else if (source is ArithVExpr)
 				{
 					var expr = (ArithVExpr)source;
 					// must be reg v reg
-					if(expr.V1 is RegVRef && expr.V2 is RegVRef)
+					if (expr.V1 is RegVRef && expr.V2 is RegVRef)
 					{
-                        // v arith v => v
-                        switch (expr.Op)
-                        {
-                            case ArithSpec.Subtract:
-                                // remap as vd  = v1 + 0
-                                // remap as vd += v2.Each * -1
+						// v arith v => v
+						switch (expr.Op)
+						{
+							case ArithSpec.Subtract:
+								// remap as vd  = v1 + 0
+								// remap as vd += v2.Each * -1
 
-                                break;
+								break;
 
-                            case ArithSpec.Add:
-                                // remap as vd  = v1 + 0
-                                // remap as vd += v2 + 0
+							case ArithSpec.Add:
+								// remap as vd  = v1 + 0
+								// remap as vd += v2 + 0
 
-                                break;
-                                
-                            case ArithSpec.Multiply:
-                                //VMUL instruction 61
-                                op.Add("op", (IntSExpr)61);
-                                op.Add("R1", (IntSExpr)((RegVRef)expr.V1).reg);
-                                op.Add("R2", (IntSExpr)((RegVRef)expr.V2).reg);
-                                break;
+								break;
 
-                            case ArithSpec.Divide:
-                                //VDIV instruction 62
-                                op.Add("op", (IntSExpr)62);
-                                op.Add("R1", (IntSExpr)((RegVRef)expr.V1).reg);
-                                op.Add("R2", (IntSExpr)((RegVRef)expr.V2).reg);
-                                break;
-                        }
+							case ArithSpec.Multiply:
+								//VMUL instruction 61
+								op.Add("op", (IntSExpr)61);
+								op.Add("R1", (IntSExpr)((RegVRef)expr.V1).reg);
+								op.Add("R2", (IntSExpr)((RegVRef)expr.V2).reg);
+								break;
 
-                        
-                    }
-				} else if(source is ArithVSExpr)
+							case ArithSpec.Divide:
+								//VDIV instruction 62
+								op.Add("op", (IntSExpr)62);
+								op.Add("R1", (IntSExpr)((RegVRef)expr.V1).reg);
+								op.Add("R2", (IntSExpr)((RegVRef)expr.V2).reg);
+								break;
+						}
+
+
+					}
+				}
+				else if (source is ArithVSExpr)
 				{
 					// must be reg v reg.sig
 					var expr = (ArithVSExpr)source;
-					
-					if(expr.V1 is RegVRef)
+
+					if (expr.V1 is RegVRef)
 					{
 						// v.each arith s => v, 49-52 -+/*
-						switch (expr.Op) {
+						switch (expr.Op)
+						{
 							case ArithSpec.Subtract:
-								op.Add("op",(IntSExpr)49);
+								op.Add("op", (IntSExpr)49);
 								break;
-								
+
 							case ArithSpec.Add:
-								op.Add("op",(IntSExpr)50);
+								op.Add("op", (IntSExpr)50);
 								break;
-								
+
 							case ArithSpec.Divide:
-								op.Add("op",(IntSExpr)51);
+								op.Add("op", (IntSExpr)51);
 								break;
-								
+
 							case ArithSpec.Multiply:
-								op.Add("op",(IntSExpr)52);
+								op.Add("op", (IntSExpr)52);
 								break;
 						}
-						
-						if( expr.S2 is FieldSRef)
+
+						if (expr.S2 is FieldSRef)
 						{
-							op.Add("R2",	(IntSExpr)((RegVRef)((FieldSRef)expr.S2).varref).reg);
-							op.Add("S2",	new FieldIndexSExpr{field=((FieldSRef)expr.S2).fieldname,type=((RegVRef)((FieldSRef)expr.S2).varref).datatype});
-						} else if( expr.S2 is IntSExpr || expr.S2 is AddrSExpr)
+							op.Add("R2", (IntSExpr)((RegVRef)((FieldSRef)expr.S2).varref).reg);
+							op.Add("S2", new FieldIndexSExpr { field = ((FieldSRef)expr.S2).fieldname, type = ((RegVRef)((FieldSRef)expr.S2).varref).datatype });
+						}
+						else if (expr.S2 is IntSExpr || expr.S2 is AddrSExpr)
 						{
-							op.Add("R2",	(IntSExpr)13);
-							op.Add("S2",	new FieldIndexSExpr{field="Imm2",type="opcode"});
-							op.Add("Imm2",	expr.S2);
+							op.Add("R2", (IntSExpr)13);
+							op.Add("S2", new FieldIndexSExpr { field = "Imm2", type = "opcode" });
+							op.Add("Imm2", expr.S2);
 						}
 					}
-					
+
+				}
+				else
+				{
+					throw new NotImplementedException("Assignment from unimplemented vector expression");
 				}
 				
 			}
@@ -436,7 +453,11 @@ namespace compiler
 			Block b = new Block();
 			Block flatif = ifblock.Flatten();
 			Block flatelse = elseblock.Flatten();
-			//TODO: flatten the branch and link to the two blocks
+
+			flatif.Add(new Jump { relative = true, target = (IntSExpr)flatelse.Count });
+			b.Add(branch.Flatten(1, flatif.Count + 1));
+			b.AddRange(flatif);
+			b.AddRange(flatelse);
 			return b;
 			
 		}
@@ -566,6 +587,58 @@ namespace compiler
         LocalData=4,
     }
 
+	public class Exchange : Statement
+	{
+		public PointerIndex frame;
+		public SExpr addr;
+		public RegVRef source;
+		public RegVRef dest;
+
+		public override string ToString()
+		{
+			return string.Format("[Exchange {0}+{1} {2} => {3}]", frame, addr, source, dest);
+		}
+
+		public void Print(string prefix)
+		{
+			Console.WriteLine("{1}{0}", this, prefix);
+		}
+
+		public Block Flatten()
+		{
+			Block b = new Block();
+			b.Add(this);
+			return b;
+		}
+
+		public Table Opcode()
+		{
+			var op = new Table { datatype = "opcode" };
+			//mem write
+			op.Add("op", (IntSExpr)81);
+			op.Add("index", (IntSExpr)frame);
+			op.Add("R2", (IntSExpr)source.reg);
+			op.Add("RD", (IntSExpr)dest.reg);
+
+			var S1 = addr;
+			if (S1 is FieldSRef)
+			{
+				op.Add("R1", (IntSExpr)((RegVRef)((FieldSRef)S1).varref).reg);
+				op.Add("S1", new FieldIndexSExpr { field = ((FieldSRef)S1).fieldname, type = ((RegVRef)((FieldSRef)S1).varref).datatype });
+				
+			}
+			else if (S1 is IntSExpr || S1 is AddrSExpr)
+			{
+				op.Add("R1", (IntSExpr)13);
+				op.Add("S1", new FieldIndexSExpr { field = "Imm1", type = "opcode" });
+				op.Add("Imm1", S1);
+			}
+			
+			
+			return op;
+		}
+	}
+
 	public class Push:Statement
 	{
 		public PointerIndex stack;
@@ -630,7 +703,39 @@ namespace compiler
 		}
 	}
 	
-	public class FunctionCall:Statement
+
+	public static class BuiltinFunctions
+	{
+		public static Block GetBuiltin(FunctionCall call)
+		{
+			switch (call.name)
+			{
+				case "sum":
+					// needs function as sexpr - use vexpr.signal-each in the mean time
+					throw new NotImplementedException();
+				case "playerinfo":
+					// playerinfo(int playerid)
+					// asm(100, r.s=playerid,return to r7?
+					throw new NotImplementedException();
+				case "memexchange":
+					// prevdata = memexchange(newdata,addr)
+					Block b = new Block();
+					b.Add(new Exchange {
+						addr = call.args.ints[0],
+						source = call.args.var as RegVRef ?? new RegVRef { reg = 7 },
+						dest = call?.returns?.var as RegVRef ?? new RegVRef { reg = 7 },
+						//frame == 
+
+					});
+					return b;
+				default:
+					return null;
+			}
+		}
+	}
+
+
+	public class FunctionCall:Statement, VExpr, SExpr
 	{
         public string name;
 		public ExprList args;
@@ -646,6 +751,9 @@ namespace compiler
 				
 		public Block Flatten()
 		{
+			Block builtin = BuiltinFunctions.GetBuiltin(this);
+			if (builtin != null) return builtin;
+
 			Block b = new Block();
 			args.CollapseConstants();
 			
@@ -675,7 +783,7 @@ namespace compiler
 			
 			//table arg or null in r7
 			b.Add(new VAssign{			
-		      	source=args.var??new RegVRef{reg=0},
+		      	source=args.var?.FlattenExpressions()??new RegVRef{reg=0},
 		      	target=new RegVRef{reg=7},
 		      });
 		
@@ -687,31 +795,34 @@ namespace compiler
 			      });
 			
 			//capture returned values
-		
-			
 			for (int i = 1; i < returns?.ints.Count; i++) {
 						
-				b.Add(new SAssign{
-						append= i!=1,
+				b.AddRange(new SAssign{
 						source=new FieldSRef{varref=r8, fieldname="signal-"+i},
 						target=returns.ints[i],
-						});
-			}	
+						}.Flatten());
+			}
 				
 			if(returns?.var != null)
 			{
 				b.Add(new VAssign{
                     source = new RegVRef { reg = 7 },
-                    target =returns.var??new RegVRef{reg=0},
+                    target =(VRef)returns.var?.FlattenExpressions()??new RegVRef{reg=0},
 				    });
 			}
 			
 			return b;
 		}
 
+		public bool IsConstant() { return false; }
+		VExpr VExpr.FlattenExpressions() { return this; }
+		SExpr SExpr.FlattenExpressions() { return this; }
+		Table VExpr.Evaluate() { throw new InvalidOperationException(); }
+		int SExpr.Evaluate() { throw new InvalidOperationException(); }
+
 		public Table Opcode()
 		{
-			return new Table();
+			throw new InvalidOperationException();
 		}
 	}
 	

@@ -1,0 +1,33 @@
+require('defines')
+
+--dynamically manage this? or just reserve excessively large number?
+progsym[6] programs
+
+function LDPROG(int address)
+  -- get the program symbol for the new program
+  progsym ldsym
+  ldsym = @address
+
+  -- allocate local data
+
+
+  -- add the progam to the global list
+
+end
+
+
+function LSTPROGS()
+  int i
+  while i < 6 do --TODO for loop?
+    nixies[i] = programs[i] --TODO * stringmask ?
+
+    i += 1
+  end
+
+end
+
+
+function MAIN()
+  rNixie = "LOADER 0.1"
+
+end

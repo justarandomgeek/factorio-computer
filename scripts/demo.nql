@@ -1,3 +1,4 @@
+-- Standard types:
 type ireg {
   @signal-red    callstack, -- 1 call stack and general stack usage
   @signal-green  progbase,  -- 2 base address for rom symbols (const, func)
@@ -41,38 +42,43 @@ type progsym {
   "",
 
   -- pointers to match up with rIndex
-  -- @signal-red callstack,
-  @signal-green constframe,
-  @signal-blue dataframe,
-  --@signal-yellow unused,
+  @signal-red     csreserved,
+  @signal-green   constframe,    -- not specified in program header, but possibly in copy of it in system's program list
+  @signal-blue    dataframe,     -- not specified in program header, but possibly in copy of it in system's program list
+  @signal-yellow  localreserved,
 
   -- sym table size
-  @signal-pink symtsize,
+  symtsize,
 
-  -- the size and location of the constant section of this program
-  @signal-cyan constsize,
+  -- the size of this program rom - this includes symtable, constant table, and code
+  romsize,
 
-  -- the size and location of the data section of this program
-  @signal-white datasize,
+  -- the size of the data section of this program
+  datasize,
 
   -- the address of MAIN()
-  @signal-grey mainloc
+  mainloc
+}
+
+type symbol {
+  "",
+
+  symtype,   -- DATA=1 FUNC=2 CONST=3
+  addr,
+  size,
 
 }
 
+-- Standard Definitions:
 var     @r0   rNull
---
 -- r1: global ints
 -- r2: local ints - also used for restoring call site
---
 -- r3: local vars
 -- r4: local vars
 -- r5: local vars
 -- r6: local vars
---
 -- r7: compiler scratch, table arg/return
 -- r8: compiler scratch, call/return, int args
---
 ireg    @r9   rIndex
 var     @r10  rRed
 var     @r11  rGreen
@@ -83,31 +89,34 @@ var     @r15  rFlanRX
 var     @r16  rFlanTX
 var     @r17  rKeyboard
 
-var @500 nixies[5]
+var[6] @500 nixies
+--TODO: require('stddefs')
 
-
-
+-- Basic Library Functions, should work even with unset frame pointers
 function CLRDISP()
   -- Clear Display
-  rNixie.signal-grey = 1
-  rNixie.signal-grey = 1
-  rNixie.signal-grey = 1
-  rNixie.signal-grey = 1
-  rNixie.signal-grey = 1
+  rNixie = rNull
+  rNixie = rNull
+  rNixie = rNull
+  rNixie = rNull
+  rNixie = rNull
+  rNixie = rNull
 end
 
 function READLINE()
+  var text
+  while rKeyboard.signal-each == 0 do end
+  text = rKeyboard
   rKeyboard = rNull
-  while rKeyboard.signal-white == 0 do  end
-  return rKeyboard
+  return text
 end
 
+
+-- Demo functions - these demonstrate and test various parts of the machine
 function COLORDEMO()
   -- Print a color demo
   rNixie = { "COLORS", signal-red=1, signal-green=2, signal-blue=4, signal-cyan=8, signal-pink=16, signal-yellow=32 }
-  rNixie.signal-grey = 1
   rNixie = { "RED GREEN BLUE", signal-red=7, signal-green=496, signal-blue=15360}
-  rNixie.signal-grey = 1
   rNixie = { "CYAN PINK YELLOW", signal-cyan=15, signal-pink=480, signal-yellow=64512}
 end
 
@@ -140,24 +149,23 @@ end
 function KEYBDDEMO()
   var text
   while text.signal-red == 0 do
-    text := READLINE()
-	rNixie = text
-    rNixie.signal-grey=1
+    text = READLINE()
+	  rNixie = text
   end
 end
+
 
 function MAIN()
   CLRDISP()
 
   -- Print helloworld
   rNixie = "HELLO WORLD"
-  rNixie.signal-grey = 1
   COLORDEMO()
 
   CLRDISP()
   MATHDEMO(10)
 
-  rNixie.signal-grey = 1
+  rNixie = rNull
 
   KEYBDDEMO()
 end
