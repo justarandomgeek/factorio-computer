@@ -1,21 +1,8 @@
+## justarandomgeek's Combinator Computer Mk4
 
-[Complete Machine (Large Image)](http://static.justarandomgeek.com/factorio/WelcomeToTheMachine.png)
+[![Complete Machine](screenshots/WelcomeToTheMachine_25.png) (Click to Embiggen - 75MB)](http://static.justarandomgeek.com/factorio/WelcomeToTheMachine.png)
 
-### NixieTerm
-![NixieTerm](screenshots/NixieTerm2.png)
-
-NixieTerm is a multi-line Alpha Nixie display. It can be accessed as an array of bit-packed strings in memory starting at 500, or the lowermost row can be accessed as a `rNixie`, and shifted upward.
-
-Any signals written in register mode will be added to the sum for the lowermost row. Clearing the register will shift all rows upward and clear the lower row.
-
-Two numeric displays are provided beside each row, showing `signal-grey`(top) and `signal-white`(bottom) of the corresponding cell.
-
-NixieTerm supports all the characters supported by the Alpha Nixie:
-* A-Z0-9 as their correspnding signals
-* . as `train-stop`
-* \- as `fast-splitter`
-
-Color signals may be bit-packed along with characters.
+This is a programmable computer constructed entirely of vanilla combinator logic, with some mods for peripherals (Notably, Pushbuttons and Nixie Tubes everywhere for IO devices, and Color Coding for clarity). The machine has a set of registers which can be used directly in operations, and a shared memory bus for RAM, ROM, and memory-mapped devices. These registers and memories all store circuit-frames, sets of signal/value pairs. There is no system-wide clock, the machine runs by passing a pulse around in cycles - each instruction returns the pulse to the Instruction Fetch block to be sent out again to the next instruction.
 
 ### Main Bus Signals
 
@@ -110,6 +97,22 @@ This block recieves the PC Update frames produced by other blocks and acts on th
 In the case of an Exec command, instead of fetching a frame from memory, the command itself will be used.
 
 When interrupts are enabled (using a jmp instruction with `signal-cyan` set), this block also handles jumping to the interrupt vector when an interrupt is triggered, signalled by raising `signal-cyan` on the To PC wire. When an interrupt is caught, the next value of PC is calculated, stored in rStatus.intreturn, and then execution jumps to rIndex.intvect to handle the interrupt.
+
+### NixieTerm
+![NixieTerm](screenshots/NixieTerm2.png)
+
+NixieTerm is a multi-line Alpha Nixie display. It can be accessed as an array of bit-packed strings in memory starting at 500, or the lowermost row can be accessed as a `rNixie`, and shifted upward.
+
+Any signals written in register mode will be added to the sum for the lowermost row. Clearing the register will shift all rows upward and clear the lower row.
+
+Two numeric displays are provided beside each row, showing `signal-grey`(top) and `signal-white`(bottom) of the corresponding cell.
+
+NixieTerm supports all the characters supported by the Alpha Nixie:
+* A-Z0-9 as their correspnding signals
+* . as `train-stop`
+* \- as `fast-splitter`
+
+Color signals may be bit-packed along with characters.
 
 ### Operations
 

@@ -158,22 +158,6 @@ namespace compiler
 			return tres;
 		}
 
-		public static Table operator +(Table t, int i) {
-			return t + (IntSExpr)i;
-		}
-
-		public static Table operator -(Table t, int i) {
-			return t - (IntSExpr)i;
-		}
-
-		public static Table operator *(Table t, int i) {
-			return t * (IntSExpr)i;
-		}
-
-		public static Table operator /(Table t, int i) {
-			return t / (IntSExpr)i;
-		}
-
 		public static Table operator +(Table t, SExpr s) {
 			var tres = new Table();
 			foreach (var ti in t) {

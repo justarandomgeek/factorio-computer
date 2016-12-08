@@ -121,7 +121,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <EmbeddedResource Include="CompileROM.lua">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LogicalName>CompileROM</LogicalName>
     </EmbeddedResource>
     <None Include="compiler.lex" />
     <None Include="compiler.y" />
@@ -159,7 +159,7 @@
     </BeforeBuildDependsOn>
   </PropertyGroup>
   <Target Name="gppg" Inputs="@(gppg)" Outputs="@(gppg->'%(Filename)_Parser.cs')">
-    <Exec Command="$(ProjectDir)\gp\gppg.exe /gplex @(gppg) &gt; %(Filename)_Parser.cs" />
+    <Exec Command="$(ProjectDir)\gp\gppg.exe /report /verbose /gplex @(gppg) &gt; %(Filename)_Parser.cs" />
   </Target>
   <Target Name="gplex" Inputs="@(gplex)" Outputs="@(gplex->'%(Filename)_Lexer.cs')">
     <Exec Command="$(ProjectDir)\gp\gplex.exe /out:%(Filename)_Lexer.cs @(gplex)" />

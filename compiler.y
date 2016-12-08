@@ -31,8 +31,10 @@
 %token <compVal> COMPARE
 %token <bVal> COND
 
+%token <sVal> BUILTIN SBUILTIN VBUILTIN
+
 %token FUNCASSIGN ASSIGN APPEND
-%token DO WHILE IF ELSE END
+%token DO WHILE IF THEN ELSE END
 %token REQUIRE TYPE FUNCTION RETURN
 %token INT
 
@@ -86,9 +88,6 @@ datadef: TYPENAME '@' REGISTER UNDEF { CreateSym(new Symbol{name=$4,type=SymbolT
 datadef: TYPENAME              UNDEF { CreateSym(new Symbol{name=$2,type=InFunction!=null?SymbolType.Register:SymbolType.Data,datatype=$1}); };
 datadef: INT                   UNDEF { CreateInt($2); };
 
-//datadef: TYPENAME '@' INTEGER  UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$4,type=SymbolType.Data,size=$6,datatype=$1,fixedAddr=$3}); };
-//datadef: TYPENAME              UNDEF '[' INTEGER ']' { CreateSym(new Symbol{name=$2,type=SymbolType.Data,size=$4,datatype=$1}); };
-
 datadef: TYPENAME '[' INTEGER ']' '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$7,type=SymbolType.Data,size=$3,datatype=$1,fixedAddr=$6}); };
 datadef: TYPENAME '[' INTEGER ']'              UNDEF { CreateSym(new Symbol{name=$5,type=SymbolType.Data,size=$3,datatype=$1}); };
 
@@ -108,7 +107,7 @@ block: block statement { $$=$1; $$.Add($2); };
 
 branch: sexpr COMPARE sexpr {$$=new Branch{ S1=$1, Op=$2, S2=$3};};
 
-statement: IF branch block elseblock END { $$ = new If{branch=$2,ifblock=$3,elseblock=$4}; };
+statement: IF branch THEN block elseblock END { $$ = new If{branch=$2,ifblock=$4,elseblock=$5}; };
 elseblock: ELSE block { $$ = $2; };
 elseblock: {$$=new Block();};
 

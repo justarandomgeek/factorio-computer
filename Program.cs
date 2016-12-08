@@ -18,6 +18,10 @@ using SourceRconLib;
 using CommandLine;
 
 
+//TODO: use conditional ALU ops
+
+
+
 namespace compiler
 {
 	class Program
@@ -37,74 +41,84 @@ namespace compiler
 		public static void Main(string[] args)
 		{
 			if (CommandLine.Parser.Default.ParseArguments(args, Options.Current)) {
-				CurrentProgram = new Parser();
-				CurrentProgram.Name="DEMO"; //TODO: program name from source or filename or arg or...?
-	            CurrentProgram.ReadMachineDesc();
-
 				foreach (var file in Options.Current.sourcefiles)
 				{
+					CurrentProgram = new Parser();
+					CurrentProgram.Name = file.Split('\\', '/').Last().ToUpper();
+					CurrentProgram.ReadMachineDesc();
+
+
 					CurrentProgram.ParseFile(file);
-				}
 
+					//TODO: command line options for various print styles/segments
 
-				Console.WriteLine();
-				Console.WriteLine("Functions:");
-				foreach (var func in CurrentProgram.Functions.Values) {
-					CurrentFunction = func;
-					Console.WriteLine(func.name);
-					func.AllocateLocals();
-						
-					foreach (var field in func.localints) {
-						Console.WriteLine("  {0}:{1}",field.Key,field.Value);
-					}
-					foreach (var symbol in func.locals) {
-						Console.WriteLine("  "+symbol);
-					}
-					func.body.Print("| ");
-					var build = func.BuildFunction();
-					//build.Print("  ");
-						
-					if(func.localints.Count > 0) CurrentProgram.Types.Add("__li"+func.name,func.localints);
-					//Console.WriteLine();
-						
-					CurrentProgram.Symbols.Add(new Symbol{
-						                        name=func.name,
-						                        type=SymbolType.Function,
-						                        datatype="opcode",
-						                        data=build.Select(stat => stat.Opcode()).ToList()
-						                        });
-						
 					Console.WriteLine();
+					Console.WriteLine("Functions:");
+					foreach (var func in CurrentProgram.Functions.Values)
+					{
+						CurrentFunction = func;
+						Console.WriteLine(func.name);
+						func.AllocateLocals();
+
+						foreach (var field in func.localints)
+						{
+							Console.WriteLine("  {0}:{1}", field.Key, field.Value);
+						}
+						foreach (var symbol in func.locals)
+						{
+							Console.WriteLine("  " + symbol);
+						}
+						func.body.Print("| ");
+						var build = func.BuildFunction();
+						//build.Print("  ");
+
+						if (func.localints.Count > 0) CurrentProgram.Types.Add("__li" + func.name, func.localints);
+						//Console.WriteLine();
+
+						CurrentProgram.Symbols.Add(new Symbol
+						{
+							name = func.name,
+							type = SymbolType.Function,
+							datatype = "opcode",
+							data = build.Select(stat => stat.Opcode()).ToList()
+						});
+
+						Console.WriteLine();
+					}
+					CurrentFunction = null;
+
+					CurrentProgram.AllocateTypes();
+
+					foreach (var typedata in CurrentProgram.Types)
+					{
+						Console.WriteLine("Type: {0}", typedata.Key);
+						if (typedata.Value.hasString) Console.WriteLine("  _string_");
+						foreach (var field in typedata.Value)
+						{
+							Console.WriteLine("  {0}:{1}", field.Key, field.Value);
+						}
+					}
+
+
+					CurrentProgram.AllocateSymbols();
+
+					Console.WriteLine();
+					Console.WriteLine("Symbols:");
+					foreach (var symbol in CurrentProgram.Symbols)
+					{
+						Console.WriteLine(symbol);
+					}
+
+					//Console.WriteLine("Rom Data:");
+
+					//foreach (var element in CurrentProgram.romdata)
+					//{
+					//	Console.WriteLine(element.Evaluate());
+					//}
+
+					CurrentProgram.MakeROM();
+
 				}
-				CurrentFunction = null;
-
-				CurrentProgram.AllocateTypes();
-
-				foreach (var typedata in CurrentProgram.Types) {
-					Console.WriteLine("Type: {0}",typedata.Key);
-					if(typedata.Value.hasString) Console.WriteLine("  _string_");
-					foreach (var field in typedata.Value) {
-						Console.WriteLine("  {0}:{1}",field.Key,field.Value);
-					}						
-				}
-					
-					
-				CurrentProgram.AllocateSymbols();
-					
-				Console.WriteLine();
-				Console.WriteLine("Symbols:");
-				foreach (var symbol in CurrentProgram.Symbols) {
-					Console.WriteLine(symbol);
-				}
-
-				Console.WriteLine("Rom Data:");
-
-				foreach (var element in CurrentProgram.romdata)
-				{
-					Console.WriteLine(element.Evaluate());
-				}
-
-				CurrentProgram.MakeROM();
 					
 				Console.ReadLine();
 					
@@ -285,9 +299,55 @@ namespace compiler
 
 
 		}
-        
-        
-        public Tokens GetIdentType(string ident)
+
+
+		public static class BuiltinFunctions
+		{
+			public static Block GetBuiltin(FunctionCall call)
+			{
+				switch (call.name)
+				{
+					case "playerinfo":
+						// playerinfo(int playerid)
+						// asm(100, r.s=playerid,rd=r7
+						throw new NotImplementedException();
+					case "memexchange":
+						// prevdata = memexchange(newdata,addr,frame)
+						Block b = new Block();
+						b.Add(new Exchange
+						{
+							addr = call.args.ints[0],
+							source = call.args.var as RegVRef ?? new RegVRef { reg = 7 },
+							dest = call.returns?.var as RegVRef ?? new RegVRef { reg = 7 },
+							frame = (PointerIndex)call.args.ints[1].Evaluate(),
+
+						});
+						return b;
+					default:
+						return null;
+				}
+			}
+		}
+
+		public Dictionary<string, Func<FunctionCall, Block>> Builtins = new Dictionary<string, Func<FunctionCall, Block>>{
+			{ "playerinfo", fcall=> { throw new NotImplementedException(); } },
+			{ "memexchange", fcall => {
+				// prevdata = memexchange(newdata,addr,frame)
+				Block b = new Block();
+				b.Add(new Exchange
+				{
+					addr = fcall.args.ints[0],
+					source = fcall.args.var as RegVRef ?? new RegVRef { reg = 7 },
+					dest = fcall.returns?.var as RegVRef ?? new RegVRef { reg = 7 },
+					frame = (PointerIndex)fcall.args.ints[1].Evaluate(),
+
+				});
+				return b;
+			}},
+
+			};
+
+		public Tokens GetIdentType(string ident)
         {
         	if (ExpectFieldType != null)
         	{
@@ -297,8 +357,14 @@ namespace compiler
         			return Tokens.FIELD;	
         		} 
         	}
-        	
-			if(Types.ContainsKey(ident))
+
+			// if ident is a builtin function, return the relevant token type... VBUILTIN, SBUILTIN
+			if (Builtins.ContainsKey(ident))
+			{
+				return Tokens.BUILTIN;
+			}
+
+			if (Types.ContainsKey(ident))
         	{
         		return Tokens.TYPENAME;
         	}
@@ -352,7 +418,6 @@ namespace compiler
 				maptext = Program.GetResourceText("scalarmap");
 			}
 			
-			//TODO: use serpent to load this?
 			var signalmap = (LuaTable)lua.DoString(maptext,"scalarmap")[0];
 			lua.NewTable("signaltypes");
 			LuaTable sigtypes = (LuaTable)lua["signaltypes"];
@@ -420,8 +485,22 @@ namespace compiler
             	}			                                    	
 				rd[i]= lt;
 			}
-			
-			var compileROM = lua.LoadFile("../compileROM.lua");
+
+			var options = Options.Current;
+			string romgen;
+			if (options.romscript != null)
+			{
+				using (var reader = new StreamReader(options.romscript))
+				{
+					romgen = reader.ReadToEnd();
+				}
+			}
+			else
+			{
+				romgen = Program.GetResourceText("CompileROM");
+			}
+			//TODO: include this as a resource string, take alternate from options
+			var compileROM = lua.LoadString(romgen, "CompileROM");
 			var foo = compileROM.Call();
         }
 

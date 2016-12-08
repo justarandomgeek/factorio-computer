@@ -82,13 +82,13 @@ namespace compiler
 			}
 			switch (Op) {
 				case ArithSpec.Add:
-					return V1.Evaluate() + S2.Evaluate();
+					return V1.Evaluate() + (IntSExpr)S2.Evaluate();
 				case ArithSpec.Subtract:
-					return V1.Evaluate() - S2.Evaluate();
+					return V1.Evaluate() - (IntSExpr)S2.Evaluate();
 				case ArithSpec.Multiply:
-					return V1.Evaluate() * S2.Evaluate();
+					return V1.Evaluate() * (IntSExpr)S2.Evaluate();
 				case ArithSpec.Divide:
-					return V1.Evaluate() / S2.Evaluate();
+					return V1.Evaluate() / (IntSExpr)S2.Evaluate();
 				default:
 					throw new InvalidOperationException();
 			} 

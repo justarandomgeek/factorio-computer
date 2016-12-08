@@ -28,6 +28,7 @@ register r[0-9]+
 <PROGRAM> "while"     {return (int)Tokens.WHILE;}
 <PROGRAM> "do"        {return (int)Tokens.DO;}
 <PROGRAM> "if"        {return (int)Tokens.IF;}
+<PROGRAM> "then"        {return (int)Tokens.THEN;}
 <PROGRAM> "else"      {return (int)Tokens.ELSE;}
 <PROGRAM> "end"       {return (int)Tokens.END;}
 

@@ -132,9 +132,12 @@ namespace compiler
 			// save call site (in r8.signal-0)
 			b.Add(new Push { reg = new RegVRef { reg = 8 }, stack = PointerIndex.CallStack });
 
-			// save parent localints
-			b.Add(new Push { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
-			
+			if (localints.Count > 0)
+			{
+				// save parent localints
+				b.Add(new Push { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
+			}
+
             // push regs as needed
             foreach (var sym in locals.Where(s => s.type == SymbolType.Register))
             {
@@ -182,8 +185,11 @@ namespace compiler
                 if (sym.fixedAddr.HasValue) b.Add(new Pop { reg = new RegVRef { reg = sym.fixedAddr.Value }, stack = PointerIndex.CallStack });
             }
 
-			// restore parent localints
-			b.Add(new Pop { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
+			if (localints.Count > 0)
+			{
+				// restore parent localints
+				b.Add(new Pop { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
+			}
 
 			// get return site
 			b.Add(new Exchange { source = new RegVRef { reg = 7 }, dest = new RegVRef { reg = 7 }, frame = PointerIndex.CallStack, addr = (IntSExpr)0 });
@@ -256,7 +262,6 @@ namespace compiler
 		
 		public override string ToString()
 		{
-			//return string.Format("{1}:{2} {0}", name, type.ToString()[0], datatype);
 			return string.Format("{0}{1,5}:{4,-3} {2,10} {3}",type.ToString()[0],fixedAddr,datatype,name,size);
 		}
 		

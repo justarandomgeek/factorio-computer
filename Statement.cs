@@ -704,37 +704,6 @@ namespace compiler
 	}
 	
 
-	public static class BuiltinFunctions
-	{
-		public static Block GetBuiltin(FunctionCall call)
-		{
-			switch (call.name)
-			{
-				case "sum":
-					// needs function as sexpr - use vexpr.signal-each in the mean time
-					throw new NotImplementedException();
-				case "playerinfo":
-					// playerinfo(int playerid)
-					// asm(100, r.s=playerid,return to r7?
-					throw new NotImplementedException();
-				case "memexchange":
-					// prevdata = memexchange(newdata,addr,frame)
-					Block b = new Block();
-					b.Add(new Exchange {
-						addr = call.args.ints[0],
-						source = call.args.var as RegVRef ?? new RegVRef { reg = 7 },
-						dest = call?.returns?.var as RegVRef ?? new RegVRef { reg = 7 },
-						frame = (PointerIndex)call.args.ints[1].Evaluate(),
-
-					});
-					return b;
-				default:
-					return null;
-			}
-		}
-	}
-
-
 	public class FunctionCall:Statement, VExpr, SExpr
 	{
         public string name;
@@ -751,8 +720,9 @@ namespace compiler
 				
 		public Block Flatten()
 		{
-			Block builtin = BuiltinFunctions.GetBuiltin(this);
-			if (builtin != null) return builtin;
+			//TODO: handle builtin functions
+			//Block builtin = BuiltinFunctions.GetBuiltin(this);
+			//if (builtin != null) return builtin;
 
 			Block b = new Block();
 			args.CollapseConstants();
