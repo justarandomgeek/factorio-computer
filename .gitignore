@@ -5,3 +5,4 @@ obj
 *.lst
 /*.user
 /.vs/compiler/v14/*.suo
+/compiler.report.html

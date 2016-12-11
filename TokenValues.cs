@@ -100,6 +100,7 @@ namespace compiler
 	
 	public class FunctionInfo{
 		public string name;
+		public string returntype;
 		public SymbolList locals = new SymbolList();
 		public TypeInfo localints = new TypeInfo();
 		public Block body;
@@ -130,18 +131,18 @@ namespace compiler
             var b = new Block();
 
 			// save call site (in r8.signal-0)
-			b.Add(new Push { reg = new RegVRef { reg = 8 }, stack = PointerIndex.CallStack });
+			b.Add(new Push { reg = RegVRef.rScratch, stack = PointerIndex.CallStack });
 
 			if (localints.Count > 0)
 			{
 				// save parent localints
-				b.Add(new Push { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
+				b.Add(new Push { reg = new RegVRef(2), stack = PointerIndex.CallStack });
 			}
 
             // push regs as needed
             foreach (var sym in locals.Where(s => s.type == SymbolType.Register))
             {
-                if (sym.fixedAddr.HasValue) b.Add(new Push { reg = new RegVRef { reg = sym.fixedAddr.Value }, stack = PointerIndex.CallStack });
+                if (sym.fixedAddr.HasValue) b.Add(new Push { reg = new RegVRef(sym.fixedAddr.Value), stack = PointerIndex.CallStack });
             }
 
             // copy params if named
@@ -152,18 +153,18 @@ namespace compiler
                 for (int i = 0; i < intparas.Count(); i++)
                 {
 
-                    b.Add(new SAssign
-                    {
-                        append = i != 0,
-                        source = new ArithSExpr
-                        {
-                            S1 = new FieldSRef { varref = new RegVRef { reg = 8, datatype = "__li" + name }, fieldname = intparas[i].name },
-                            Op = ArithSpec.Add,
-                            S2 = (IntSExpr)0
-                        },
-                        target = new FieldSRef { varref = new RegVRef { reg = 2, datatype = "__li" + name }, fieldname = intparas[i].name }
+					b.Add(new SAssign
+					{
+						append = i != 0,
+						source = new ArithSExpr
+						{
+							S1 = FieldSRef.IntArg(name, intparas[i].name),
+							Op = ArithSpec.Add,
+							S2 = (IntSExpr)0
+						},
+						target = FieldSRef.LocalInt(name, intparas[i].name)
 
-                    });
+					});
                 }
             }
 
@@ -182,34 +183,32 @@ namespace compiler
             // restore registers
             foreach (var sym in locals.Where(s => s.type == SymbolType.Register).Reverse())
             {
-                if (sym.fixedAddr.HasValue) b.Add(new Pop { reg = new RegVRef { reg = sym.fixedAddr.Value }, stack = PointerIndex.CallStack });
+                if (sym.fixedAddr.HasValue) b.Add(new Pop { reg = new RegVRef(sym.fixedAddr.Value), stack = PointerIndex.CallStack });
             }
 
 			if (localints.Count > 0)
 			{
 				// restore parent localints
-				b.Add(new Pop { reg = new RegVRef { reg = 2 }, stack = PointerIndex.CallStack });
+				b.Add(new Pop { reg = RegVRef.rLocalInts(name), stack = PointerIndex.CallStack });
 			}
 
 			// get return site
-			b.Add(new Exchange { source = new RegVRef { reg = 7 }, dest = new RegVRef { reg = 7 }, frame = PointerIndex.CallStack, addr = (IntSExpr)0 });
+			b.Add(new Exchange { source = RegVRef.rScratch2, dest = RegVRef.rScratch2, frame = PointerIndex.CallStack, addr = (IntSExpr)0 });
 			b.Add(new SAssign
 			{
-				target = new FieldSRef { varref = new RegVRef { reg = 8 }, fieldname = "signal-0" },
+				target = FieldSRef.CallSite,
 				append = true,
-				source =
-					new ArithSExpr
-					{
-						S1 = new FieldSRef { varref = new RegVRef { reg = 7 }, fieldname = "signal-0" },
-						Op = ArithSpec.Subtract,
-						S2 = new FieldSRef { varref = new RegVRef { reg = 8 }, fieldname = "signal-0" },
-					}
+				source = new ArithSExpr
+				{
+					S1 = FieldSRef.VarField(RegVRef.rScratch2, "signal-0"),
+					Op = ArithSpec.Subtract,
+					S2 = FieldSRef.CallSite,
+				}
 			});
-			b.Add(new Pop { reg = new RegVRef { reg = 7 }, stack = PointerIndex.CallStack });
-
+			b.Add(new Pop { reg = RegVRef.rScratch2, stack = PointerIndex.CallStack });
 
 			// jump to return site
-			b.Add(new Jump{target = new FieldSRef{varref=new RegVRef{reg=8},fieldname="signal-0"} });
+			b.Add(new Jump{target = FieldSRef.CallSite });
 			
 			return b;
 		}
@@ -275,7 +274,8 @@ namespace compiler
 				case SymbolType.Register:
 					return datatype=="int"?Tokens.INTVAR:Tokens.VAR;
 				case SymbolType.Function:
-					return Tokens.FUNCNAME;
+					var func = Program.CurrentProgram.Functions[name];
+					return func.returntype == "int" ? Tokens.SFUNCNAME : Tokens.VFUNCNAME;
 				default:
 					return Tokens.error;
 			}

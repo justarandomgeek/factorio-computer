@@ -20,18 +20,15 @@
   internal Block blockVal;
   internal Branch brVal;
   internal ExprList elVal;
-  internal RefList rlVal;
-  internal FunctionCall fcVal;
+  //internal FunctionCall fcVal;
 }
 
 %token <iVal> INTEGER
 %token <sVal> STRING SIGNAL
-%token <sVal> UNDEF TYPENAME FIELD FUNCNAME VAR INTVAR ARRAY INTARRAY
+%token <sVal> UNDEF TYPENAME FIELD VFUNCNAME SFUNCNAME VAR INTVAR ARRAY INTARRAY
 %token <iVal> REGISTER
 %token <compVal> COMPARE
 %token <bVal> COND
-
-%token <sVal> BUILTIN SBUILTIN VBUILTIN
 
 %token FUNCASSIGN ASSIGN APPEND
 %token DO WHILE IF THEN ELSE END
@@ -57,8 +54,7 @@
 %type <blockVal> block elseblock
 %type <brVal> branch
 %type <elVal> exprlist
-%type <rlVal> reflist
-%type <fcVal> funccall
+//%type <fcVal> funccall
 
 %start program
 
@@ -70,12 +66,14 @@
 program: definition {};
 program: program definition {};
 
+definition: REQUIRE '(' STRING ')' { Require($3); };
 definition: functiondef;
 definition: datadef;
 definition: typedef;
-definition: REQUIRE '(' STRING ')' { Require($3); };
 
-functiondef: FUNCTION UNDEF '(' paramdeflist ')' { BeginFunction($2,$4); } block END { CompleteFunction($2,$7); };
+functiondef:          FUNCTION UNDEF '(' paramdeflist ')' { BeginFunction($2,"var",$4); } block END { CompleteFunction($2,$7); };
+functiondef: TYPENAME FUNCTION UNDEF '(' paramdeflist ')' { BeginFunction($3,   $1,$5); } block END { CompleteFunction($3,$8); };
+functiondef: INT      FUNCTION UNDEF '(' paramdeflist ')' { BeginFunction($3,"int",$5); } block END { CompleteFunction($3,$8); };
 
 paramdeflist: {$$ = new SymbolList();};
 paramdeflist: paramdef {$$ = new SymbolList(); $$.AddParam($1);};
@@ -101,7 +99,7 @@ fielddeflist: fielddeflist ',' fielddef { $$=$1; $$.Add($3); };
 fielddef: '@' FIELD UNDEF { $$ = new FieldInfo{name=$3,basename=$2}; };
 fielddef:           UNDEF { $$ = new FieldInfo{name=$1}; };
 
-block: {$$=new Block();};
+//block: {$$=new Block();};
 block: statement { $$=new Block(); $$.Add($1); };
 block: block statement { $$=$1; $$.Add($2); };
 
@@ -112,52 +110,51 @@ elseblock: ELSE block { $$ = $2; };
 elseblock: {$$=new Block();};
 
 statement: WHILE branch DO block END { $$ = new While{branch=$2,body=$4}; };
+statement: WHILE branch DO       END { $$ = new While{branch=$2,body=new Block()}; };
 
-funccall: FUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
-statement: funccall {$$ = $1;};
-vexpr: funccall {$$ = $1;};
-//sexpr: funccall {$$ = $1;};
-statement: reflist FUNCASSIGN funccall { $3.returns = $1; $$ = $3; };
+vexpr: VFUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
+sexpr: SFUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
+statement: VFUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
+statement: SFUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
 
 statement: vassign {$$=$1;};
 statement: sassign {$$=$1;};
+
 statement: datadef;
-
-
 
 exprlist: { $$=new ExprList(); };
 exprlist: sexpr { $$=new ExprList(); $$.ints.Add($1); };
 exprlist: exprlist ',' sexpr { $$=$1; $$.ints.Add($3); };
 exprlist: vexpr { $$=new ExprList(); $$.var=$1; };
 
-reflist: { $$=new RefList(); };
-reflist: sref { $$=new RefList(); $$.ints.Add($1); };
-reflist: reflist ',' sref { $$=$1; $$.ints.Add($3); };
-reflist: vref { $$=new RefList(); $$.var=$1; };
-
-statement: RETURN exprlist { $$ = new Return{returns=$2}; };
+statement: RETURN { $$ = new Return(); };
+statement: RETURN sexpr { $$ = new Return($2); };
+statement: RETURN vexpr { $$ = new Return($2); };
 
 arith: '+' {$$ = ArithSpec.Add;};
 arith: '-' {$$ = ArithSpec.Subtract;};
 arith: '*' {$$ = ArithSpec.Multiply;};
 arith: '/' {$$ = ArithSpec.Divide;};
 
+sexpr: '(' sexpr ')' { $$=$2; };
 sexpr: sexpr arith sexpr {$$=new ArithSExpr{S1=$1,Op=$2,S2=$3};};
 sexpr: INTEGER {$$=new IntSExpr{value=$1};};
 sexpr: sref {$$=$1;};
-//sexpr: sum '(' vexpr ')' {$$ = new FieldSRef{varref=new VarVRef{name=$1},fieldname="signal-each"};}
-//sexpr: '&' VAR { $$ = new AddrSExpr{symbol = $2}; };
+sexpr: '&' VAR { $$ = new AddrSExpr{symbol = $2}; };
+sexpr: '&' SFUNCNAME { $$ = new AddrSExpr{symbol = $2}; };
+sexpr: '&' VFUNCNAME { $$ = new AddrSExpr{symbol = $2}; };
 //sexpr: '&' ARRAY { $$ = new AddrSExpr{symbol = $2}; };
 //sexpr: '&' ARRAY '[' sexpr ']' { $$ = new ArithSExpr{S1 = new AddrSExpr{symbol = $2}, Op=ArithSpec.Add, S2 = $4}; };
 
+vexpr: '(' vexpr ')' { $$=$2; };
 vexpr: vexpr arith vexpr {$$=new ArithVExpr{V1=$1,Op=$2,V2=$3};};
 vexpr: vexpr arith sexpr {$$=new ArithVSExpr{V1=$1,Op=$2,S2=$3};};
 vexpr: '{' littable '}'{$$=$2;};
 vexpr: STRING {$$= new StringVExpr{text=$1};};
 vexpr: vref{$$=$1;};
-vexpr: '@' sexpr {$$ = new MemVRef{ addr=$2 }; };
+vexpr: '*' sexpr {$$ = new MemVRef{ addr=$2 }; };
 
-sref: VAR '.' {ExpectFieldType=GetSymbolDataType($1);} FIELD {$$ = new FieldSRef{varref=new VarVRef{name=$1},fieldname=$4};};
+sref: VAR '.' {ExpectFieldType=GetSymbolDataType($1);} FIELD {$$ = FieldSRef.VarField(new VarVRef{name=$1},$4);};
 sref: INTVAR {$$ = new IntVarSRef{name=$1};};
 //sref: VAR '[' sexpr ']' ;
 
@@ -167,11 +164,8 @@ vref: ARRAY '[' sexpr ']' {$$=new ArrayVRef{arrname=$1,offset=$3};};
 vassign: vref ASSIGN vexpr {$$=new VAssign{target=$1,append=false,source=$3};};
 vassign: vref APPEND vexpr {$$=new VAssign{target=$1,append=true,source=$3};};
 
-
 sassign: sref ASSIGN sexpr {$$=new SAssign{target=$1,append=false,source=$3};};
 sassign: sref APPEND sexpr {$$=new SAssign{target=$1,append=true,source=$3};};
-
-
 
 littable: {$$= new Table();};
 littable: STRING {$$= new Table($1);};

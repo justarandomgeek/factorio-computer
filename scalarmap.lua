@@ -3,1225 +3,1290 @@ return {
     id = 1,
     name = "signal-each",
     type = "virtual"
-  } --[[table: 000001FE058A20C0]],
+  } --[[table: 0x000001705721be50]],
   {
     id = 2,
     name = "signal-0",
     type = "virtual"
-  } --[[table: 000001FE44BB8980]],
+  } --[[table: 0x000001705721d7d0]],
   {
     id = 3,
     name = "signal-1",
     type = "virtual"
-  } --[[table: 000001FE44BB9F40]],
+  } --[[table: 0x000001705721f5d0]],
   {
     id = 4,
     name = "signal-2",
     type = "virtual"
-  } --[[table: 000001FE44BBAF00]],
+  } --[[table: 0x0000017057222a50]],
   {
     id = 5,
     name = "signal-3",
     type = "virtual"
-  } --[[table: 000001FE41CAC380]],
+  } --[[table: 0x0000017057204990]],
   {
     id = 6,
     name = "signal-4",
     type = "virtual"
-  } --[[table: 000001FE41CA6620]],
+  } --[[table: 0x0000017057205890]],
   {
     id = 7,
     name = "signal-5",
     type = "virtual"
-  } --[[table: 000001FE41CA7580]],
+  } --[[table: 0x0000017057208470]],
   {
     id = 8,
     name = "signal-6",
     type = "virtual"
-  } --[[table: 000001FE41CA9620]],
+  } --[[table: 0x000001705720a150]],
   {
     id = 9,
     name = "signal-7",
     type = "virtual"
-  } --[[table: 000001FE41CA9CE0]],
+  } --[[table: 0x000001705720d570]],
   {
     id = 10,
     name = "signal-8",
     type = "virtual"
-  } --[[table: 000001FE05A803F0]],
+  } --[[table: 0x000001705720f190]],
   {
     id = 11,
     name = "signal-9",
     type = "virtual"
-  } --[[table: 000001FE05A81410]],
+  } --[[table: 0x0000017057212430]],
   {
     id = 12,
     name = "signal-A",
     type = "virtual"
-  } --[[table: 000001FE05A82C10]],
+  } --[[table: 0x0000017057213810]],
   {
     id = 13,
     name = "signal-B",
     type = "virtual"
-  } --[[table: 000001FE05A7B290]],
+  } --[[table: 0x0000017057216c30]],
   {
     id = 14,
     name = "signal-C",
     type = "virtual"
-  } --[[table: 000001FE05A7C9D0]],
+  } --[[table: 0x0000017057218130]],
   {
     id = 15,
     name = "signal-D",
     type = "virtual"
-  } --[[table: 000001FE05A7E290]],
+  } --[[table: 0x000001705721a0b0]],
   {
     id = 16,
     name = "signal-E",
     type = "virtual"
-  } --[[table: 000001FE436B42C0]],
+  } --[[table: 0x0000017018d53250]],
   {
     id = 17,
     name = "signal-F",
     type = "virtual"
-  } --[[table: 000001FE436B52E0]],
+  } --[[table: 0x0000017018d56430]],
   {
     id = 18,
     name = "signal-G",
     type = "virtual"
-  } --[[table: 000001FE436B0780]],
+  } --[[table: 0x0000017018d57930]],
   {
     id = 19,
     name = "signal-H",
     type = "virtual"
-  } --[[table: 000001FE436B1680]],
+  } --[[table: 0x0000017018d5ab70]],
   {
     id = 20,
     name = "signal-I",
     type = "virtual"
-  } --[[table: 000001FE436B3000]],
+  } --[[table: 0x0000017018d5c790]],
   {
     id = 21,
     name = "signal-J",
     type = "virtual"
-  } --[[table: 000001FE449D7890]],
+  } --[[table: 0x0000017018d5f7f0]],
   {
     id = 22,
     name = "signal-K",
     type = "virtual"
-  } --[[table: 000001FE449D8F10]],
+  } --[[table: 0x0000017018d622b0]],
   {
     id = 23,
     name = "signal-L",
     type = "virtual"
-  } --[[table: 000001FE449DA890]],
+  } --[[table: 0x0000017018d63ff0]],
   {
     id = 24,
     name = "signal-M",
     type = "virtual"
-  } --[[table: 000001FE449DBF10]],
+  } --[[table: 0x0000017018d64470]],
   {
     id = 25,
     name = "signal-N",
     type = "virtual"
-  } --[[table: 000001FE449DD890]],
+  } --[[table: 0x0000017018d68790]],
   {
     id = 26,
     name = "signal-O",
     type = "virtual"
-  } --[[table: 000001FE432C6F30]],
+  } --[[table: 0x0000017018d69ed0]],
   {
     id = 27,
     name = "signal-P",
     type = "virtual"
-  } --[[table: 000001FE432C7BF0]],
+  } --[[table: 0x0000017018d4bf90]],
   {
     id = 28,
     name = "signal-Q",
     type = "virtual"
-  } --[[table: 000001FE432C98D0]],
+  } --[[table: 0x0000017018d4d730]],
   {
     id = 29,
     name = "signal-R",
     type = "virtual"
-  } --[[table: 000001FE432CB730]],
+  } --[[table: 0x0000017018d50790]],
   {
     id = 30,
     name = "signal-S",
     type = "virtual"
-  } --[[table: 000001FE432CC8D0]],
+  } --[[table: 0x00000170587a79d0]],
   {
     id = 31,
     name = "signal-T",
     type = "virtual"
-  } --[[table: 000001FE4323B1A0]],
+  } --[[table: 0x00000170587ad8b0]],
   {
     id = 32,
     name = "signal-U",
     type = "virtual"
-  } --[[table: 000001FE4323CB80]],
+  } --[[table: 0x000001705878f790]],
   {
     id = 33,
     name = "signal-V",
     type = "virtual"
-  } --[[table: 000001FE4323DB40]],
+  } --[[table: 0x00000170587927f0]],
   {
     id = 34,
     name = "signal-W",
     type = "virtual"
-  } --[[table: 000001FE43236760]],
+  } --[[table: 0x0000017058794bf0]],
   {
     id = 35,
     name = "signal-X",
     type = "virtual"
-  } --[[table: 000001FE43238F20]],
+  } --[[table: 0x00000170587970b0]],
   {
     id = 36,
     name = "signal-Y",
     type = "virtual"
-  } --[[table: 000001FE43239760]],
+  } --[[table: 0x0000017058799330]],
   {
     id = 37,
     name = "signal-Z",
     type = "virtual"
-  } --[[table: 000001FE40183030]],
+  } --[[table: 0x000001705879bd30]],
   {
     id = 38,
     name = "signal-red",
     type = "virtual"
-  } --[[table: 000001FE40183630]],
+  } --[[table: 0x000001705879da70]],
   {
     id = 39,
     name = "signal-green",
     type = "virtual"
-  } --[[table: 000001FE4017E6B0]],
+  } --[[table: 0x000001705879f690]],
   {
     id = 40,
     name = "signal-blue",
     type = "virtual"
-  } --[[table: 000001FE4017EC50]],
+  } --[[table: 0x00000170587a24b0]],
   {
     id = 41,
     name = "signal-yellow",
     type = "virtual"
-  } --[[table: 000001FE40180E10]],
+  } --[[table: 0x00000170587a3110]],
   {
     id = 42,
     name = "signal-pink",
     type = "virtual"
-  } --[[table: 000001FE40601210]],
+  } --[[table: 0x00000170587a6f50]],
   {
     id = 43,
     name = "signal-cyan",
     type = "virtual"
-  } --[[table: 000001FE40601E70]],
+  } --[[table: 0x000001701a09cc00]],
   {
     id = 44,
     name = "signal-white",
     type = "virtual"
-  } --[[table: 000001FE405FC890]],
+  } --[[table: 0x000001701a0a0200]],
   {
     id = 45,
     name = "signal-grey",
     type = "virtual"
-  } --[[table: 000001FE405FE8D0]],
+  } --[[table: 0x000001701a0a1100]],
   {
     id = 46,
-    name = "water",
-    type = "fluid"
-  } --[[table: 000001FE405FFD70]],
+    name = "signal-srctick",
+    type = "virtual"
+  } --[[table: 0x000001701a0a3bc0]],
   {
     id = 47,
-    name = "crude-oil",
-    type = "fluid"
-  } --[[table: 000001FE405F7D00]],
+    name = "signal-srcid",
+    type = "virtual"
+  } --[[table: 0x000001701a094f80]],
   {
     id = 48,
-    name = "heavy-oil",
-    type = "fluid"
-  } --[[table: 000001FE405F9A40]],
+    name = "signal-localid",
+    type = "virtual"
+  } --[[table: 0x000001701a097740]],
   {
     id = 49,
-    name = "light-oil",
+    name = "water",
     type = "fluid"
-  } --[[table: 000001FE405FAD00]],
+  } --[[table: 0x000001701a099840]],
   {
     id = 50,
-    name = "petroleum-gas",
+    name = "crude-oil",
     type = "fluid"
-  } --[[table: 000001FE405FBBA0]],
+  } --[[table: 0x000001701a09ba00]],
   {
     id = 51,
-    name = "sulfuric-acid",
+    name = "heavy-oil",
     type = "fluid"
-  } --[[table: 000001FE405F44C0]],
+  } --[[table: 0x0000017019f21a90]],
   {
     id = 52,
-    name = "lubricant",
+    name = "light-oil",
     type = "fluid"
-  } --[[table: 000001FE405F5FC0]],
+  } --[[table: 0x0000017019f25b70]],
   {
     id = 53,
-    name = "wooden-chest",
-    type = "item"
-  } --[[table: 000001FE43780B90]],
+    name = "petroleum-gas",
+    type = "fluid"
+  } --[[table: 0x0000017019f17bf0]],
   {
     id = 54,
-    name = "iron-chest",
-    type = "item"
-  } --[[table: 000001FE43783050]],
+    name = "sulfuric-acid",
+    type = "fluid"
+  } --[[table: 0x0000017019f1b3d0]],
   {
     id = 55,
-    name = "steel-chest",
-    type = "item"
-  } --[[table: 000001FE43783B90]],
+    name = "lubricant",
+    type = "fluid"
+  } --[[table: 0x0000017019f1c390]],
   {
     id = 56,
-    name = "storage-tank",
+    name = "wooden-chest",
     type = "item"
-  } --[[table: 000001FE4377DF50]],
+  } --[[table: 0x0000017019f1fc90]],
   {
     id = 57,
-    name = "transport-belt",
+    name = "get-chest",
     type = "item"
-  } --[[table: 000001FE4377F330]],
+  } --[[table: 0x0000017019f20b30]],
   {
     id = 58,
-    name = "fast-transport-belt",
+    name = "get-combinator",
     type = "item"
-  } --[[table: 000001FE4378D9D0]],
+  } --[[table: 0x000001701aef8170]],
   {
     id = 59,
-    name = "express-transport-belt",
+    name = "get-tank",
     type = "item"
-  } --[[table: 000001FE4378F1D0]],
+  } --[[table: 0x000001701aedaad0]],
   {
     id = 60,
-    name = "underground-belt",
+    name = "inventory-combinator",
     type = "item"
-  } --[[table: 000001FE437909D0]],
+  } --[[table: 0x000001701aedcff0]],
   {
     id = 61,
-    name = "fast-underground-belt",
+    name = "iron-chest",
     type = "item"
-  } --[[table: 000001FE437921D0]],
+  } --[[table: 0x000001701aedf330]],
   {
     id = 62,
-    name = "express-underground-belt",
+    name = "put-chest",
     type = "item"
-  } --[[table: 000001FE43793BB0]],
+  } --[[table: 0x000001701aee1730]],
   {
     id = 63,
-    name = "splitter",
+    name = "put-combinator",
     type = "item"
-  } --[[table: 000001FE437A35F0]],
+  } --[[table: 0x000001701aee3ad0]],
   {
     id = 64,
-    name = "fast-splitter",
+    name = "put-tank",
     type = "item"
-  } --[[table: 000001FE437A5030]],
+  } --[[table: 0x000001701aee5e10]],
   {
     id = 65,
-    name = "express-splitter",
+    name = "steel-chest",
     type = "item"
-  } --[[table: 000001FE4379D770]],
+  } --[[table: 0x000001701aee82d0]],
   {
     id = 66,
-    name = "burner-inserter",
+    name = "storage-tank",
     type = "item"
-  } --[[table: 000001FE4379EF10]],
+  } --[[table: 0x000001701aee9170]],
   {
     id = 67,
-    name = "inserter",
+    name = "transport-belt",
     type = "item"
-  } --[[table: 000001FE437A0DD0]],
+  } --[[table: 0x000001701aeec410]],
   {
     id = 68,
-    name = "long-handed-inserter",
+    name = "fast-transport-belt",
     type = "item"
-  } --[[table: 000001FE437A3110]],
+  } --[[table: 0x000001701aeedc70]],
   {
     id = 69,
-    name = "fast-inserter",
+    name = "express-transport-belt",
     type = "item"
-  } --[[table: 000001FE40B77420]],
+  } --[[table: 0x000001701aef1630]],
   {
     id = 70,
-    name = "filter-inserter",
+    name = "underground-belt",
     type = "item"
-  } --[[table: 000001FE40B78CE0]],
+  } --[[table: 0x000001701aef4b70]],
   {
     id = 71,
-    name = "stack-inserter",
+    name = "fast-underground-belt",
     type = "item"
-  } --[[table: 000001FE40B7A420]],
+  } --[[table: 0x000001701aef5410]],
   {
     id = 72,
-    name = "stack-filter-inserter",
+    name = "express-underground-belt",
     type = "item"
-  } --[[table: 000001FE40B7BCE0]],
+  } --[[table: 0x000001701af32b70]],
   {
     id = 73,
-    name = "small-electric-pole",
+    name = "splitter",
     type = "item"
-  } --[[table: 000001FE40B7D420]],
+  } --[[table: 0x000001701af33710]],
   {
     id = 74,
-    name = "medium-electric-pole",
+    name = "fast-splitter",
     type = "item"
-  } --[[table: 000001FE40B7ECE0]],
+  } --[[table: 0x000001701af375b0]],
   {
     id = 75,
-    name = "big-electric-pole",
+    name = "express-splitter",
     type = "item"
-  } --[[table: 000001FE40B80420]],
+  } --[[table: 0x000001701af389f0]],
   {
     id = 76,
-    name = "substation",
+    name = "burner-inserter",
     type = "item"
-  } --[[table: 000001FE40B81CE0]],
+  } --[[table: 0x000001701af3b6f0]],
   {
     id = 77,
-    name = "pipe",
+    name = "inserter",
     type = "item"
-  } --[[table: 000001FE40B83420]],
+  } --[[table: 0x000001701af3c4d0]],
   {
     id = 78,
-    name = "pipe-to-ground",
+    name = "long-handed-inserter",
     type = "item"
-  } --[[table: 000001FE40B64FA0]],
+  } --[[table: 0x000001701af1e170]],
   {
     id = 79,
-    name = "small-pump",
+    name = "fast-inserter",
     type = "item"
-  } --[[table: 000001FE40B669E0]],
+  } --[[table: 0x000001701af20e70]],
   {
     id = 80,
-    name = "rail",
+    name = "filter-inserter",
     type = "item"
-  } --[[table: 000001FE40B67FA0]],
+  } --[[table: 0x000001701af22970]],
   {
     id = 81,
-    name = "train-stop",
+    name = "stack-inserter",
     type = "item"
-  } --[[table: 000001FE40B699E0]],
+  } --[[table: 0x000001701af25670]],
   {
     id = 82,
-    name = "rail-signal",
+    name = "stack-filter-inserter",
     type = "item"
-  } --[[table: 000001FE40B6AFA0]],
+  } --[[table: 0x000001701af27170]],
   {
     id = 83,
-    name = "rail-chain-signal",
+    name = "small-electric-pole",
     type = "item"
-  } --[[table: 000001FE40B6C9E0]],
+  } --[[table: 0x000001701af28df0]],
   {
     id = 84,
-    name = "diesel-locomotive",
+    name = "medium-electric-pole",
     type = "item"
-  } --[[table: 000001FE40B6DFA0]],
+  } --[[table: 0x000001701af2c510]],
   {
     id = 85,
-    name = "cargo-wagon",
+    name = "big-electric-pole",
     type = "item"
-  } --[[table: 000001FE40B6F140]],
+  } --[[table: 0x000001701af2e670]],
   {
     id = 86,
-    name = "car",
+    name = "substation",
     type = "item"
-  } --[[table: 000001FE40B70FA0]],
+  } --[[table: 0x000001701af30d70]],
   {
     id = 87,
-    name = "tank",
+    name = "pipe",
     type = "item"
-  } --[[table: 000001FE40B72140]],
+  } --[[table: 0x000001701a902cf0]],
   {
     id = 88,
-    name = "logistic-robot",
+    name = "pipe-to-ground",
     type = "item"
-  } --[[table: 000001FE40B73FA0]],
+  } --[[table: 0x000001701a905510]],
   {
     id = 89,
-    name = "construction-robot",
+    name = "small-pump",
     type = "item"
-  } --[[table: 000001FE40B75140]],
+  } --[[table: 0x000001701a9073d0]],
   {
     id = 90,
-    name = "logistic-chest-active-provider",
+    name = "rail",
     type = "item"
-  } --[[table: 000001FE04F2F210]],
+  } --[[table: 0x000001701a909d10]],
   {
     id = 91,
-    name = "logistic-chest-passive-provider",
+    name = "train-stop",
     type = "item"
-  } --[[table: 000001FE04F30E90]],
+  } --[[table: 0x000001701a90b0f0]],
   {
     id = 92,
-    name = "logistic-chest-requester",
+    name = "rail-signal",
     type = "item"
-  } --[[table: 000001FE04F32270]],
+  } --[[table: 0x000001701a90dd90]],
   {
     id = 93,
-    name = "logistic-chest-storage",
+    name = "rail-chain-signal",
     type = "item"
-  } --[[table: 000001FE04F33E90]],
+  } --[[table: 0x000001701a90f890]],
   {
     id = 94,
-    name = "roboport",
+    name = "diesel-locomotive",
     type = "item"
-  } --[[table: 000001FE04F35270]],
+  } --[[table: 0x000001701a9125f0]],
   {
     id = 95,
-    name = "red-wire",
+    name = "cargo-wagon",
     type = "item"
-  } --[[table: 000001FE04F36E90]],
+  } --[[table: 0x000001701a914330]],
   {
     id = 96,
-    name = "green-wire",
+    name = "car",
     type = "item"
-  } --[[table: 000001FE04F19730]],
+  } --[[table: 0x000001701a917570]],
   {
     id = 97,
-    name = "arithmetic-combinator",
+    name = "tank",
     type = "item"
-  } --[[table: 000001FE04F1AED0]],
+  } --[[table: 0x000001701a918bf0]],
   {
     id = 98,
-    name = "decider-combinator",
+    name = "logistic-robot",
     type = "item"
-  } --[[table: 000001FE04F1C310]],
+  } --[[table: 0x000001701a8fadd0]],
   {
     id = 99,
-    name = "constant-combinator",
+    name = "construction-robot",
     type = "item"
-  } --[[table: 000001FE04F1DED0]],
+  } --[[table: 0x000001701a8fc390]],
   {
     id = 100,
-    name = "pushbutton",
+    name = "logistic-chest-active-provider",
     type = "item"
-  } --[[table: 000001FE04F21590]],
+  } --[[table: 0x00000170585210f0]],
   {
     id = 101,
-    name = "nixie-tube",
+    name = "logistic-chest-passive-provider",
     type = "item"
-  } --[[table: 000001FE04F23FF0]],
+  } --[[table: 0x00000170198a7f40]],
   {
     id = 102,
-    name = "nixie-tube-alpha",
+    name = "logistic-chest-requester",
     type = "item"
-  } --[[table: 000001FE04F24590]],
+  } --[[table: 0x000001701ad177e0]],
   {
     id = 103,
-    name = "nixie-tube-small",
+    name = "logistic-chest-storage",
     type = "item"
-  } --[[table: 000001FE04F26FF0]],
+  } --[[table: 0x000001701a500040]],
   {
     id = 104,
-    name = "power-switch",
+    name = "roboport",
     type = "item"
-  } --[[table: 000001FE04F27590]],
+  } --[[table: 0x0000017019e88320]],
   {
     id = 105,
-    name = "stone-brick",
+    name = "red-wire",
     type = "item"
-  } --[[table: 000001FE04F29FF0]],
+  } --[[table: 0x000001701a997520]],
   {
     id = 106,
-    name = "concrete",
+    name = "green-wire",
     type = "item"
-  } --[[table: 000001FE04F2A590]],
+  } --[[table: 0x000001701a57eb50]],
   {
     id = 107,
-    name = "fire-hazard-concrete",
+    name = "arithmetic-combinator",
     type = "item"
-  } --[[table: 000001FE04F2CFF0]],
+  } --[[table: 0x000001705896aab0]],
   {
     id = 108,
-    name = "hazard-concrete",
+    name = "decider-combinator",
     type = "item"
-  } --[[table: 000001FE04F2D590]],
+  } --[[table: 0x000001705870e4a0]],
   {
     id = 109,
-    name = "landfill",
+    name = "constant-combinator",
     type = "item"
-  } --[[table: 000001FE40C1F650]],
+  } --[[table: 0x000001705870efe0]],
   {
     id = 110,
-    name = "iron-axe",
+    name = "location-combinator",
     type = "item"
-  } --[[table: 000001FE40221030]],
+  } --[[table: 0x00000170587114a0]],
   {
     id = 111,
-    name = "steel-axe",
+    name = "player-combinator",
     type = "item"
-  } --[[table: 000001FE40222950]],
+  } --[[table: 0x0000017058711fe0]],
   {
     id = 112,
-    name = "repair-pack",
+    name = "pushbutton",
     type = "item"
-  } --[[table: 000001FE40224030]],
+  } --[[table: 0x00000170587144a0]],
   {
     id = 113,
-    name = "blueprint",
+    name = "research-combinator",
     type = "item"
-  } --[[table: 000001FE40225950]],
+  } --[[table: 0x0000017058714fe0]],
   {
     id = 114,
-    name = "deconstruction-planner",
+    name = "nixie-tube",
     type = "item"
-  } --[[table: 000001FE402077D0]],
+  } --[[table: 0x00000170587174a0]],
   {
     id = 115,
-    name = "blueprint-book",
+    name = "nixie-tube-alpha",
     type = "item"
-  } --[[table: 000001FE40209030]],
+  } --[[table: 0x0000017058717fe0]],
   {
     id = 116,
-    name = "boiler",
+    name = "nixie-tube-small",
     type = "item"
-  } --[[table: 000001FE4020A7D0]],
+  } --[[table: 0x000001705871a4a0]],
   {
     id = 117,
-    name = "steam-engine",
+    name = "power-switch",
     type = "item"
-  } --[[table: 000001FE4020C030]],
+  } --[[table: 0x000001705871afe0]],
   {
     id = 118,
-    name = "small-lamp",
+    name = "stone-brick",
     type = "item"
-  } --[[table: 000001FE4020D7D0]],
+  } --[[table: 0x000001705871d4a0]],
   {
     id = 119,
-    name = "solar-panel",
+    name = "concrete",
     type = "item"
-  } --[[table: 000001FE4020F030]],
+  } --[[table: 0x000001705871dfe0]],
   {
     id = 120,
-    name = "accumulator",
+    name = "fire-hazard-concrete",
     type = "item"
-  } --[[table: 000001FE402107D0]],
+  } --[[table: 0x00000170587204a0]],
   {
     id = 121,
-    name = "burner-mining-drill",
+    name = "hazard-concrete",
     type = "item"
-  } --[[table: 000001FE40212030]],
+  } --[[table: 0x0000017058720fe0]],
   {
     id = 122,
-    name = "electric-mining-drill",
+    name = "landfill",
     type = "item"
-  } --[[table: 000001FE402137D0]],
+  } --[[table: 0x00000170587234a0]],
   {
     id = 123,
-    name = "offshore-pump",
+    name = "iron-axe",
     type = "item"
-  } --[[table: 000001FE40215030]],
+  } --[[table: 0x0000017058723fe0]],
   {
     id = 124,
-    name = "pumpjack",
+    name = "steel-axe",
     type = "item"
-  } --[[table: 000001FE402167D0]],
+  } --[[table: 0x00000170587264a0]],
   {
     id = 125,
-    name = "stone-furnace",
+    name = "repair-pack",
     type = "item"
-  } --[[table: 000001FE40218030]],
+  } --[[table: 0x0000017058726fe0]],
   {
     id = 126,
-    name = "steel-furnace",
+    name = "blueprint",
     type = "item"
-  } --[[table: 000001FE402199B0]],
+  } --[[table: 0x00000170587294a0]],
   {
     id = 127,
-    name = "electric-furnace",
+    name = "deconstruction-planner",
     type = "item"
-  } --[[table: 000001FE4021ADF0]],
+  } --[[table: 0x000001705872a7c0]],
   {
     id = 128,
-    name = "assembling-machine-1",
+    name = "blueprint-book",
     type = "item"
-  } --[[table: 000001FE4021C9B0]],
+  } --[[table: 0x000001705870b4a0]],
   {
     id = 129,
-    name = "assembling-machine-2",
+    name = "boiler",
     type = "item"
-  } --[[table: 000001FE4021DDF0]],
+  } --[[table: 0x000001705870c100]],
   {
     id = 130,
-    name = "assembling-machine-3",
+    name = "steam-engine",
     type = "item"
-  } --[[table: 000001FE4021F290]],
+  } --[[table: 0x000001701abdcf40]],
   {
     id = 131,
-    name = "oil-refinery",
+    name = "small-lamp",
     type = "item"
-  } --[[table: 000001FE401E7820]],
+  } --[[table: 0x000001701abddf00]],
   {
     id = 132,
-    name = "chemical-plant",
+    name = "solar-panel",
     type = "item"
-  } --[[table: 000001FE401E9B00]],
+  } --[[table: 0x000001701abdff40]],
   {
     id = 133,
-    name = "lab",
+    name = "accumulator",
     type = "item"
-  } --[[table: 000001FE401EB0C0]],
+  } --[[table: 0x000001701abe0f00]],
   {
     id = 134,
-    name = "beacon",
+    name = "burner-mining-drill",
     type = "item"
-  } --[[table: 000001FE401EC200]],
+  } --[[table: 0x000001701abe2f40]],
   {
     id = 135,
-    name = "speed-module",
+    name = "electric-mining-drill",
     type = "item"
-  } --[[table: 000001FE401EE0C0]],
+  } --[[table: 0x000001701abe3f00]],
   {
     id = 136,
-    name = "speed-module-2",
+    name = "offshore-pump",
     type = "item"
-  } --[[table: 000001FE401EF200]],
+  } --[[table: 0x000001701abe5f40]],
   {
     id = 137,
-    name = "speed-module-3",
+    name = "pumpjack",
     type = "item"
-  } --[[table: 000001FE401F10C0]],
+  } --[[table: 0x000001701abe67e0]],
   {
     id = 138,
-    name = "effectivity-module",
+    name = "stone-furnace",
     type = "item"
-  } --[[table: 000001FE401F2200]],
+  } --[[table: 0x000001701abe7ce0]],
   {
     id = 139,
-    name = "effectivity-module-2",
+    name = "steel-furnace",
     type = "item"
-  } --[[table: 000001FE401F40C0]],
+  } --[[table: 0x000001701abea4a0]],
   {
     id = 140,
-    name = "effectivity-module-3",
+    name = "electric-furnace",
     type = "item"
-  } --[[table: 000001FE401F5200]],
+  } --[[table: 0x000001701abeace0]],
   {
     id = 141,
-    name = "productivity-module",
+    name = "assembling-machine-1",
     type = "item"
-  } --[[table: 000001FE401F70C0]],
+  } --[[table: 0x000001701abed4a0]],
   {
     id = 142,
-    name = "productivity-module-2",
+    name = "assembling-machine-2",
     type = "item"
-  } --[[table: 000001FE401F8200]],
+  } --[[table: 0x000001701abee7c0]],
   {
     id = 143,
-    name = "productivity-module-3",
+    name = "assembling-machine-3",
     type = "item"
-  } --[[table: 000001FE401FA0C0]],
+  } --[[table: 0x000001701abcf4a0]],
   {
     id = 144,
-    name = "solid-fuel",
+    name = "oil-refinery",
     type = "item"
-  } --[[table: 000001FE401FB200]],
+  } --[[table: 0x000001701abcfce0]],
   {
     id = 145,
-    name = "stone",
+    name = "chemical-plant",
     type = "item"
-  } --[[table: 000001FE401FD0C0]],
+  } --[[table: 0x000001701abd24a0]],
   {
     id = 146,
-    name = "iron-ore",
+    name = "lab",
     type = "item"
-  } --[[table: 000001FE401FE200]],
+  } --[[table: 0x000001701abd2ce0]],
   {
     id = 147,
-    name = "raw-fish",
+    name = "beacon",
     type = "item"
-  } --[[table: 000001FE402000C0]],
+  } --[[table: 0x000001701abd54a0]],
   {
     id = 148,
-    name = "copper-ore",
+    name = "speed-module",
     type = "item"
-  } --[[table: 000001FE40201200]],
+  } --[[table: 0x000001701abd5ce0]],
   {
     id = 149,
-    name = "raw-wood",
+    name = "speed-module-2",
     type = "item"
-  } --[[table: 000001FE402030C0]],
+  } --[[table: 0x000001701abd84a0]],
   {
     id = 150,
-    name = "wood",
+    name = "speed-module-3",
     type = "item"
-  } --[[table: 000001FE40204200]],
+  } --[[table: 0x000001701abd8ce0]],
   {
     id = 151,
-    name = "coal",
+    name = "effectivity-module",
     type = "item"
-  } --[[table: 000001FE402060C0]],
+  } --[[table: 0x000001701abdb4a0]],
   {
     id = 152,
-    name = "iron-plate",
+    name = "effectivity-module-2",
     type = "item"
-  } --[[table: 000001FE4129B8A0]],
+  } --[[table: 0x0000017018364000]],
   {
     id = 153,
-    name = "copper-plate",
+    name = "effectivity-module-3",
     type = "item"
-  } --[[table: 000001FE4129D580]],
+  } --[[table: 0x0000017018364c60]],
   {
     id = 154,
-    name = "steel-plate",
+    name = "productivity-module",
     type = "item"
-  } --[[table: 000001FE4129F260]],
+  } --[[table: 0x0000017018367000]],
   {
     id = 155,
-    name = "sulfur",
+    name = "productivity-module-2",
     type = "item"
-  } --[[table: 000001FE412A0580]],
+  } --[[table: 0x0000017018367c60]],
   {
     id = 156,
-    name = "alien-artifact",
+    name = "productivity-module-3",
     type = "item"
-  } --[[table: 000001FE412A2260]],
+  } --[[table: 0x000001701836a000]],
   {
     id = 157,
-    name = "plastic-bar",
+    name = "solid-fuel",
     type = "item"
-  } --[[table: 000001FE412A3580]],
+  } --[[table: 0x000001701836ac60]],
   {
     id = 158,
-    name = "empty-barrel",
+    name = "stone",
     type = "item"
-  } --[[table: 000001FE412A5260]],
+  } --[[table: 0x000001701836d000]],
   {
     id = 159,
-    name = "crude-oil-barrel",
+    name = "iron-ore",
     type = "item"
-  } --[[table: 000001FE412A6580]],
+  } --[[table: 0x000001701836dc60]],
   {
     id = 160,
-    name = "copper-cable",
+    name = "raw-fish",
     type = "item"
-  } --[[table: 000001FE412A7A20]],
+  } --[[table: 0x0000017018370000]],
   {
     id = 161,
-    name = "iron-stick",
+    name = "copper-ore",
     type = "item"
-  } --[[table: 000001FE412A95E0]],
+  } --[[table: 0x0000017018370c60]],
   {
     id = 162,
-    name = "iron-gear-wheel",
+    name = "raw-wood",
     type = "item"
-  } --[[table: 000001FE412AAA20]],
+  } --[[table: 0x0000017018372dc0]],
   {
     id = 163,
-    name = "electronic-circuit",
+    name = "wood",
     type = "item"
-  } --[[table: 000001FE412AC5E0]],
+  } --[[table: 0x0000017018352c60]],
   {
     id = 164,
-    name = "advanced-circuit",
+    name = "coal",
     type = "item"
-  } --[[table: 000001FE412ADA20]],
+  } --[[table: 0x0000017018355000]],
   {
     id = 165,
-    name = "processing-unit",
+    name = "iron-plate",
     type = "item"
-  } --[[table: 000001FE412AF5E0]],
+  } --[[table: 0x0000017018355c60]],
   {
     id = 166,
-    name = "engine-unit",
+    name = "copper-plate",
     type = "item"
-  } --[[table: 000001FE412B0A20]],
+  } --[[table: 0x0000017018358000]],
   {
     id = 167,
-    name = "electric-engine-unit",
+    name = "steel-plate",
     type = "item"
-  } --[[table: 000001FE412B1A40]],
+  } --[[table: 0x0000017018359140]],
   {
     id = 168,
-    name = "explosives",
+    name = "sulfur",
     type = "item"
-  } --[[table: 000001FE412B4320]],
+  } --[[table: 0x000001701835a760]],
   {
     id = 169,
-    name = "battery",
+    name = "alien-artifact",
     type = "item"
-  } --[[table: 000001FE412B5160]],
+  } --[[table: 0x000001701835bf00]],
   {
     id = 170,
-    name = "flying-robot-frame",
+    name = "plastic-bar",
     type = "item"
-  } --[[table: 000001FE412B71A0]],
+  } --[[table: 0x000001701835d0a0]],
   {
     id = 171,
-    name = "low-density-structure",
+    name = "empty-barrel",
     type = "item"
-  } --[[table: 000001FE412B8160]],
+  } --[[table: 0x000001701835f260]],
   {
     id = 172,
-    name = "rocket-fuel",
+    name = "crude-oil-barrel",
     type = "item"
-  } --[[table: 000001FE412B9600]],
+  } --[[table: 0x0000017018360760]],
   {
     id = 173,
-    name = "rocket-control-unit",
+    name = "copper-cable",
     type = "item"
-  } --[[table: 000001FE412BAA40]],
+  } --[[table: 0x0000017018361900]],
   {
     id = 174,
-    name = "satellite",
+    name = "iron-stick",
     type = "item"
-  } --[[table: 000001FE448167B0]],
+  } --[[table: 0x0000017058b5af60]],
   {
     id = 175,
-    name = "science-pack-1",
+    name = "iron-gear-wheel",
     type = "item"
-  } --[[table: 000001FE44817710]],
+  } --[[table: 0x0000017058b5c100]],
   {
     id = 176,
-    name = "science-pack-2",
+    name = "electronic-circuit",
     type = "item"
-  } --[[table: 000001FE448197B0]],
+  } --[[table: 0x0000017058b5df60]],
   {
     id = 177,
-    name = "science-pack-3",
+    name = "advanced-circuit",
     type = "item"
-  } --[[table: 000001FE4481B850]],
+  } --[[table: 0x0000017058b5f700]],
   {
     id = 178,
-    name = "alien-science-pack",
+    name = "processing-unit",
     type = "item"
-  } --[[table: 000001FE4481C270]],
+  } --[[table: 0x0000017058b60ba0]],
   {
     id = 179,
-    name = "pistol",
+    name = "engine-unit",
     type = "item"
-  } --[[table: 000001FE4481E850]],
+  } --[[table: 0x0000017058b61b60]],
   {
     id = 180,
-    name = "submachine-gun",
+    name = "electric-engine-unit",
     type = "item"
-  } --[[table: 000001FE4481F270]],
+  } --[[table: 0x0000017058b63ba0]],
   {
     id = 181,
-    name = "shotgun",
+    name = "explosives",
     type = "item"
-  } --[[table: 000001FE44821850]],
+  } --[[table: 0x0000017058b64b60]],
   {
     id = 182,
-    name = "combat-shotgun",
+    name = "battery",
     type = "item"
-  } --[[table: 000001FE44822270]],
+  } --[[table: 0x0000017058b66ba0]],
   {
     id = 183,
-    name = "rocket-launcher",
+    name = "flying-robot-frame",
     type = "item"
-  } --[[table: 000001FE44824850]],
+  } --[[table: 0x0000017058b67b60]],
   {
     id = 184,
-    name = "flame-thrower",
+    name = "low-density-structure",
     type = "item"
-  } --[[table: 000001FE44825270]],
+  } --[[table: 0x0000017058b69ba0]],
   {
     id = 185,
-    name = "land-mine",
+    name = "rocket-fuel",
     type = "item"
-  } --[[table: 000001FE44827850]],
+  } --[[table: 0x0000017058b6ab60]],
   {
     id = 186,
-    name = "firearm-magazine",
+    name = "rocket-control-unit",
     type = "item"
-  } --[[table: 000001FE44828270]],
+  } --[[table: 0x0000017058b6cba0]],
   {
     id = 187,
-    name = "piercing-rounds-magazine",
+    name = "satellite",
     type = "item"
-  } --[[table: 000001FE4482A850]],
+  } --[[table: 0x0000017058b6db60]],
   {
     id = 188,
-    name = "shotgun-shell",
+    name = "science-pack-1",
     type = "item"
-  } --[[table: 000001FE4482AAF0]],
+  } --[[table: 0x0000017058b6fb40]],
   {
     id = 189,
-    name = "piercing-shotgun-shell",
+    name = "science-pack-2",
     type = "item"
-  } --[[table: 000001FE4482CEF0]],
+  } --[[table: 0x0000017058b71340]],
   {
     id = 190,
-    name = "cannon-shell",
+    name = "science-pack-3",
     type = "item"
-  } --[[table: 000001FE4482DAF0]],
+  } --[[table: 0x0000017058b72f60]],
   {
     id = 191,
-    name = "explosive-cannon-shell",
+    name = "alien-science-pack",
     type = "item"
-  } --[[table: 000001FE4482FEF0]],
+  } --[[table: 0x0000017058b74340]],
   {
     id = 192,
-    name = "rocket",
+    name = "pistol",
     type = "item"
-  } --[[table: 000001FE448112F0]],
+  } --[[table: 0x0000017058b75f60]],
   {
     id = 193,
-    name = "explosive-rocket",
+    name = "submachine-gun",
     type = "item"
-  } --[[table: 000001FE448136F0]],
+  } --[[table: 0x0000017058b77340]],
   {
     id = 194,
-    name = "flame-thrower-ammo",
+    name = "shotgun",
     type = "item"
-  } --[[table: 000001FE448144D0]],
+  } --[[table: 0x0000017058b78f60]],
   {
     id = 195,
-    name = "grenade",
+    name = "combat-shotgun",
     type = "item"
-  } --[[table: 000001FE433D2E10]],
+  } --[[table: 0x0000017058bb2b00]],
   {
     id = 196,
-    name = "cluster-grenade",
+    name = "rocket-launcher",
     type = "item"
-  } --[[table: 000001FE433D45B0]],
+  } --[[table: 0x0000017058bb4d80]],
   {
     id = 197,
-    name = "poison-capsule",
+    name = "flame-thrower",
     type = "item"
-  } --[[table: 000001FE433D5E10]],
+  } --[[table: 0x0000017058bb5b00]],
   {
     id = 198,
-    name = "slowdown-capsule",
+    name = "land-mine",
     type = "item"
-  } --[[table: 000001FE433D75B0]],
+  } --[[table: 0x0000017058bb7d80]],
   {
     id = 199,
-    name = "defender-capsule",
+    name = "firearm-magazine",
     type = "item"
-  } --[[table: 000001FE433D8E10]],
+  } --[[table: 0x0000017058bb8b00]],
   {
     id = 200,
-    name = "distractor-capsule",
+    name = "piercing-rounds-magazine",
     type = "item"
-  } --[[table: 000001FE433DB390]],
+  } --[[table: 0x0000017058bbc7c0]],
   {
     id = 201,
-    name = "destroyer-capsule",
+    name = "shotgun-shell",
     type = "item"
-  } --[[table: 000001FE433DC5F0]],
+  } --[[table: 0x0000017058b9d8c0]],
   {
     id = 202,
-    name = "discharge-defense-remote",
+    name = "piercing-shotgun-shell",
     type = "item"
-  } --[[table: 000001FE433DE390]],
+  } --[[table: 0x0000017058b9eb80]],
   {
     id = 203,
-    name = "light-armor",
+    name = "cannon-shell",
     type = "item"
-  } --[[table: 000001FE433DF5F0]],
+  } --[[table: 0x0000017058b9fea0]],
   {
     id = 204,
-    name = "heavy-armor",
+    name = "explosive-cannon-shell",
     type = "item"
-  } --[[table: 000001FE433E1390]],
+  } --[[table: 0x0000017058ba1b80]],
   {
     id = 205,
-    name = "modular-armor",
+    name = "rocket",
     type = "item"
-  } --[[table: 000001FE433E25F0]],
+  } --[[table: 0x0000017058ba2ea0]],
   {
     id = 206,
-    name = "power-armor",
+    name = "explosive-rocket",
     type = "item"
-  } --[[table: 000001FE433E4390]],
+  } --[[table: 0x0000017058ba4b80]],
   {
     id = 207,
-    name = "power-armor-mk2",
+    name = "flame-thrower-ammo",
     type = "item"
-  } --[[table: 000001FE433E55F0]],
+  } --[[table: 0x0000017058ba5ea0]],
   {
     id = 208,
-    name = "solar-panel-equipment",
+    name = "grenade",
     type = "item"
-  } --[[table: 000001FE433E7390]],
+  } --[[table: 0x0000017058ba7b80]],
   {
     id = 209,
-    name = "fusion-reactor-equipment",
+    name = "cluster-grenade",
     type = "item"
-  } --[[table: 000001FE433E85F0]],
+  } --[[table: 0x0000017058ba8ea0]],
   {
     id = 210,
-    name = "energy-shield-equipment",
+    name = "poison-capsule",
     type = "item"
-  } --[[table: 000001FE433EA390]],
+  } --[[table: 0x0000017058baab80]],
   {
     id = 211,
-    name = "energy-shield-mk2-equipment",
+    name = "slowdown-capsule",
     type = "item"
-  } --[[table: 000001FE433EB5F0]],
+  } --[[table: 0x0000017058babea0]],
   {
     id = 212,
-    name = "battery-equipment",
+    name = "defender-capsule",
     type = "item"
-  } --[[table: 000001FE433ED630]],
+  } --[[table: 0x0000017058badb80]],
   {
     id = 213,
-    name = "battery-mk2-equipment",
+    name = "distractor-capsule",
     type = "item"
-  } --[[table: 000001FE433CD5F0]],
+  } --[[table: 0x0000017058baeea0]],
   {
     id = 214,
-    name = "personal-laser-defense-equipment",
+    name = "destroyer-capsule",
     type = "item"
-  } --[[table: 000001FE433CF450]],
+  } --[[table: 0x0000017058bb0b80]],
   {
     id = 215,
-    name = "discharge-defense-equipment",
+    name = "discharge-defense-remote",
     type = "item"
-  } --[[table: 000001FE433D05F0]],
+  } --[[table: 0x0000017058bb1ea0]],
   {
     id = 216,
-    name = "exoskeleton-equipment",
+    name = "light-armor",
     type = "item"
-  } --[[table: 000001FE44073CF0]],
+  } --[[table: 0x0000017058beb920]],
   {
     id = 217,
-    name = "personal-roboport-equipment",
+    name = "heavy-armor",
     type = "item"
-  } --[[table: 000001FE440753D0]],
+  } --[[table: 0x0000017058bedea0]],
   {
     id = 218,
-    name = "night-vision-equipment",
+    name = "modular-armor",
     type = "item"
-  } --[[table: 000001FE44076C90]],
+  } --[[table: 0x0000017058bee920]],
   {
     id = 219,
-    name = "stone-wall",
+    name = "power-armor",
     type = "item"
-  } --[[table: 000001FE440783D0]],
+  } --[[table: 0x0000017058bf0ea0]],
   {
     id = 220,
-    name = "gate",
+    name = "power-armor-mk2",
     type = "item"
-  } --[[table: 000001FE44079C90]],
+  } --[[table: 0x0000017058bf1920]],
   {
     id = 221,
-    name = "flamethrower-turret",
+    name = "solar-panel-equipment",
     type = "item"
-  } --[[table: 000001FE4407B3D0]],
+  } --[[table: 0x0000017058bf3ea0]],
   {
     id = 222,
-    name = "gun-turret",
+    name = "fusion-reactor-equipment",
     type = "item"
-  } --[[table: 000001FE4407CC90]],
+  } --[[table: 0x0000017058bf4920]],
   {
     id = 223,
-    name = "laser-turret",
+    name = "energy-shield-equipment",
     type = "item"
-  } --[[table: 000001FE4407E3D0]],
+  } --[[table: 0x0000017058bf6f60]],
   {
     id = 224,
-    name = "radar",
+    name = "energy-shield-mk2-equipment",
     type = "item"
-  } --[[table: 000001FE44061750]],
+  } --[[table: 0x0000017058bf7c20]],
   {
     id = 225,
-    name = "rocket-silo",
+    name = "battery-equipment",
     type = "item"
-  } --[[table: 000001FE440629B0]],
+  } --[[table: 0x0000017058bf9f60]],
   {
     id = 226,
-    name = "small-lamp-red",
+    name = "battery-mk2-equipment",
     type = "item"
-  } --[[table: 000001FE44064750]],
+  } --[[table: 0x0000017058bfac20]],
   {
     id = 227,
-    name = "small-lamp-orange",
+    name = "personal-laser-defense-equipment",
     type = "item"
-  } --[[table: 000001FE440659B0]],
+  } --[[table: 0x0000017058bfcf60]],
   {
     id = 228,
-    name = "small-lamp-yellow",
+    name = "discharge-defense-equipment",
     type = "item"
-  } --[[table: 000001FE44067750]],
+  } --[[table: 0x0000017058bfdc20]],
   {
     id = 229,
-    name = "small-lamp-green",
+    name = "exoskeleton-equipment",
     type = "item"
-  } --[[table: 000001FE440689B0]],
+  } --[[table: 0x0000017058bdf1a0]],
   {
     id = 230,
-    name = "small-lamp-cyan",
+    name = "personal-roboport-equipment",
     type = "item"
-  } --[[table: 000001FE4406A750]],
+  } --[[table: 0x0000017058bdfc20]],
   {
     id = 231,
-    name = "small-lamp-blue",
+    name = "night-vision-equipment",
     type = "item"
-  } --[[table: 000001FE4406B9B0]],
+  } --[[table: 0x0000017058be21a0]],
   {
     id = 232,
-    name = "small-lamp-purple",
+    name = "stone-wall",
     type = "item"
-  } --[[table: 000001FE4406D750]],
+  } --[[table: 0x0000017058be2c20]],
   {
     id = 233,
-    name = "small-lamp-magenta",
+    name = "gate",
     type = "item"
-  } --[[table: 000001FE4406E9B0]],
+  } --[[table: 0x0000017058be5260]],
   {
     id = 234,
-    name = "small-lamp-white",
+    name = "flamethrower-turret",
     type = "item"
-  } --[[table: 000001FE44070750]],
+  } --[[table: 0x0000017058be5980]],
   {
     id = 235,
-    name = "small-lamp-black",
+    name = "gun-turret",
     type = "item"
-  } --[[table: 000001FE440719B0]],
+  } --[[table: 0x0000017058be8260]],
   {
     id = 236,
-    name = "concrete-red",
+    name = "laser-turret",
     type = "item"
-  } --[[table: 000001FE44073750]],
+  } --[[table: 0x0000017058be8980]],
   {
     id = 237,
-    name = "concrete-orange",
+    name = "radar",
     type = "item"
-  } --[[table: 000001FE44A468E0]],
+  } --[[table: 0x0000017058beb260]],
   {
     id = 238,
-    name = "concrete-yellow",
+    name = "rocket-silo",
     type = "item"
-  } --[[table: 000001FE44A26480]],
+  } --[[table: 0x0000017058c08330]],
   {
     id = 239,
-    name = "concrete-green",
+    name = "small-lamp-red",
     type = "item"
-  } --[[table: 000001FE44A28A00]],
+  } --[[table: 0x0000017058c0a250]],
   {
     id = 240,
-    name = "concrete-cyan",
+    name = "small-lamp-orange",
     type = "item"
-  } --[[table: 000001FE44A29480]],
+  } --[[table: 0x0000017058c0b330]],
   {
     id = 241,
-    name = "concrete-blue",
+    name = "small-lamp-yellow",
     type = "item"
-  } --[[table: 000001FE44A2BA00]],
+  } --[[table: 0x0000017058c0d250]],
   {
     id = 242,
-    name = "concrete-purple",
+    name = "small-lamp-green",
     type = "item"
-  } --[[table: 000001FE44A2C480]],
+  } --[[table: 0x0000017058c0e330]],
   {
     id = 243,
-    name = "concrete-magenta",
+    name = "small-lamp-cyan",
     type = "item"
-  } --[[table: 000001FE44A2EA00]],
+  } --[[table: 0x0000017058c10250]],
   {
     id = 244,
-    name = "concrete-white",
+    name = "small-lamp-blue",
     type = "item"
-  } --[[table: 000001FE44A2F480]],
+  } --[[table: 0x0000017058c11330]],
   {
     id = 245,
+    name = "small-lamp-purple",
+    type = "item"
+  } --[[table: 0x0000017058c13250]],
+  {
+    id = 246,
+    name = "small-lamp-magenta",
+    type = "item"
+  } --[[table: 0x0000017058c14330]],
+  {
+    id = 247,
+    name = "small-lamp-white",
+    type = "item"
+  } --[[table: 0x0000017058c16250]],
+  {
+    id = 248,
+    name = "small-lamp-black",
+    type = "item"
+  } --[[table: 0x0000017058c17330]],
+  {
+    id = 249,
+    name = "concrete-red",
+    type = "item"
+  } --[[table: 0x0000017058c19250]],
+  {
+    id = 250,
+    name = "concrete-orange",
+    type = "item"
+  } --[[table: 0x0000017058c1a330]],
+  {
+    id = 251,
+    name = "concrete-yellow",
+    type = "item"
+  } --[[table: 0x0000017058c1c250]],
+  {
+    id = 252,
+    name = "concrete-green",
+    type = "item"
+  } --[[table: 0x0000017058c1d330]],
+  {
+    id = 253,
+    name = "concrete-cyan",
+    type = "item"
+  } --[[table: 0x0000017058c1f250]],
+  {
+    id = 254,
+    name = "concrete-blue",
+    type = "item"
+  } --[[table: 0x0000017058c20990]],
+  {
+    id = 255,
+    name = "concrete-purple",
+    type = "item"
+  } --[[table: 0x0000017058c01730]],
+  {
+    id = 256,
+    name = "concrete-magenta",
+    type = "item"
+  } --[[table: 0x0000017058c02330]],
+  {
+    id = 257,
+    name = "concrete-white",
+    type = "item"
+  } --[[table: 0x0000017058c04730]],
+  {
+    id = 258,
     name = "concrete-black",
     type = "item"
-  } --[[table: 000001FE44A31A00]]
-} --[[table: 000001FE42EF4240]]
+  } --[[table: 0x0000017058c04eb0]]
+} --[[table: 0x00000170575e8a70]]

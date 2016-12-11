@@ -57,7 +57,7 @@ namespace compiler
 					foreach (var func in CurrentProgram.Functions.Values)
 					{
 						CurrentFunction = func;
-						Console.WriteLine(func.name);
+						Console.WriteLine("{0}:{1}", func.name, func.returntype);
 						func.AllocateLocals();
 
 						foreach (var field in func.localints)
@@ -70,7 +70,7 @@ namespace compiler
 						}
 						func.body.Print("| ");
 						var build = func.BuildFunction();
-						//build.Print("  ");
+						build.Print("  ");
 
 						if (func.localints.Count > 0) CurrentProgram.Types.Add("__li" + func.name, func.localints);
 						//Console.WriteLine();
@@ -109,12 +109,12 @@ namespace compiler
 						Console.WriteLine(symbol);
 					}
 
-					//Console.WriteLine("Rom Data:");
 
-					//foreach (var element in CurrentProgram.romdata)
-					//{
-					//	Console.WriteLine(element.Evaluate());
-					//}
+					Console.WriteLine("Rom Data:");
+					foreach (var element in CurrentProgram.romdata)
+					{
+						Console.WriteLine(element.Evaluate());
+					}
 
 					CurrentProgram.MakeROM();
 
@@ -195,9 +195,9 @@ namespace compiler
         }
         
         
-        public void BeginFunction(string name, SymbolList paramlist)
+        public void BeginFunction(string name, string returntype, SymbolList paramlist)
         {
-        	Functions.Add(name,new FunctionInfo{name=name,locals=paramlist});
+        	Functions.Add(name,new FunctionInfo{name=name, returntype = returntype, locals=paramlist});
         	
         	InFunction = name;
         }
@@ -300,36 +300,7 @@ namespace compiler
 
 		}
 
-
-		public static class BuiltinFunctions
-		{
-			public static Block GetBuiltin(FunctionCall call)
-			{
-				switch (call.name)
-				{
-					case "playerinfo":
-						// playerinfo(int playerid)
-						// asm(100, r.s=playerid,rd=r7
-						throw new NotImplementedException();
-					case "memexchange":
-						// prevdata = memexchange(newdata,addr,frame)
-						Block b = new Block();
-						b.Add(new Exchange
-						{
-							addr = call.args.ints[0],
-							source = call.args.var as RegVRef ?? new RegVRef { reg = 7 },
-							dest = call.returns?.var as RegVRef ?? new RegVRef { reg = 7 },
-							frame = (PointerIndex)call.args.ints[1].Evaluate(),
-
-						});
-						return b;
-					default:
-						return null;
-				}
-			}
-		}
-
-		public Dictionary<string, Func<FunctionCall, Block>> Builtins = new Dictionary<string, Func<FunctionCall, Block>>{
+		public Dictionary<string, Func<FunctionCall, Block>> VBuiltins = new Dictionary<string, Func<FunctionCall, Block>>{
 			{ "playerinfo", fcall=> { throw new NotImplementedException(); } },
 			{ "memexchange", fcall => {
 				// prevdata = memexchange(newdata,addr,frame)
@@ -337,8 +308,8 @@ namespace compiler
 				b.Add(new Exchange
 				{
 					addr = fcall.args.ints[0],
-					source = fcall.args.var as RegVRef ?? new RegVRef { reg = 7 },
-					dest = fcall.returns?.var as RegVRef ?? new RegVRef { reg = 7 },
+					source = fcall.args.var as RegVRef ?? RegVRef.rScratch2,
+					dest = fcall.vreturn as RegVRef ?? RegVRef.rScratch2,
 					frame = (PointerIndex)fcall.args.ints[1].Evaluate(),
 
 				});
@@ -347,28 +318,45 @@ namespace compiler
 
 			};
 
+		public Dictionary<string, Func<FunctionCall, Block>> SBuiltins = new Dictionary<string, Func<FunctionCall, Block>>{
+			//{ "sum", fcall=> {
+			//	Block b = new Block();
+			//	b.Add(new SAssign {target = fcall.sreturn, source = FieldSRef.VarField((VRef)fcall.args.var,"signal-each") });
+			//	return b;
+
+			//}},
+
+			};
+
 		public Tokens GetIdentType(string ident)
         {
-        	if (ExpectFieldType != null)
+			if (ExpectFieldType != null)
         	{
-        		if (ident=="nil"||(ExpectFieldType =="var" && NativeFields.Contains(ident))||(Types[ExpectFieldType].ContainsKey(ident)))
+        		if ( ExpectFieldType != "var" && Types[ExpectFieldType].ContainsKey(ident) )
         		{
-        			ExpectFieldType = null;
         			return Tokens.FIELD;	
-        		} 
-        	}
+        		}
 
-			// if ident is a builtin function, return the relevant token type... VBUILTIN, SBUILTIN
-			if (Builtins.ContainsKey(ident))
-			{
-				return Tokens.BUILTIN;
+				ExpectFieldType = null;
 			}
 
-			if (Types.ContainsKey(ident))
+			if (ident == "nil")
+			{
+				return Tokens.FIELD;
+			}
+			else if (SBuiltins.ContainsKey(ident))
+			{
+				return Tokens.SFUNCNAME;
+			}
+			else if (VBuiltins.ContainsKey(ident))
+			{
+				return Tokens.VFUNCNAME;
+			}
+			else if (Types.ContainsKey(ident))
         	{
         		return Tokens.TYPENAME;
         	}
-        	else if(NativeFields.Contains(ident))
+        	else if (NativeFields.Contains(ident))
 			{
 				return Tokens.FIELD;
 			}
@@ -390,15 +378,14 @@ namespace compiler
         	}
         	else if (Functions.ContainsKey(ident))
         	{
-        		return Tokens.FUNCNAME;
+				return Functions[ident].returntype == "int" ? Tokens.SFUNCNAME : Tokens.VFUNCNAME;
         	}
         	else
 			{
 				return Tokens.UNDEF;
 			}
         }
-        
-        
+          
         
         public void ReadMachineDesc()
         {
@@ -463,7 +450,8 @@ namespace compiler
 	        	rcon.Disconnect();	
         	} else {
         		Console.WriteLine(printName);
-        		Console.WriteLine(Compress(printData));
+				//Console.WriteLine(printData);
+				Console.WriteLine(Compress(printData));
         		Console.WriteLine("");
         	}
         }
@@ -499,7 +487,7 @@ namespace compiler
 			{
 				romgen = Program.GetResourceText("CompileROM");
 			}
-			//TODO: include this as a resource string, take alternate from options
+			
 			var compileROM = lua.LoadString(romgen, "CompileROM");
 			var foo = compileROM.Call();
         }

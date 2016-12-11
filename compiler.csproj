@@ -123,8 +123,6 @@
     <EmbeddedResource Include="CompileROM.lua">
       <LogicalName>CompileROM</LogicalName>
     </EmbeddedResource>
-    <None Include="compiler.lex" />
-    <None Include="compiler.y" />
     <None Include="gp\gplex-input.pdf" />
     <None Include="gp\gplex.exe" />
     <None Include="gp\gplex.pdf" />

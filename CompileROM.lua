@@ -137,13 +137,14 @@ for addr,data in pairs(romdata) do
 end
 
 
+local bpstring = serpent.dump({
+		name=parser.Name,
+		entities=entities,
+		icons={{index=1, signal={type="item",name="constant-combinator"}}}
+})
 
 parser:returnBlueprint(
   parser.Name,
-  serpent.dump(
-  {
-    name=parser.Name,
-    entities=entities,
-    icons={{index=1, signal={type="item",name="constant-combinator"}}}
-  }))
+	bpstring
+	)
 

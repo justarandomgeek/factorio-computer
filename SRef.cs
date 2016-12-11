@@ -34,15 +34,15 @@ namespace compiler
 		{
 			if(Program.CurrentFunction.localints.ContainsKey(name))
 			{
-				return new FieldSRef{varref=new RegVRef{reg=2,datatype="__li"+Program.CurrentFunction.name},fieldname=name};   	
+				return FieldSRef.LocalInt(Program.CurrentFunction.name,name);
 			} else {
-				return new FieldSRef{varref=new RegVRef{reg=1,datatype="__globalints"},fieldname=name};	
+				return FieldSRef.GlobalInt(name);	
 			}
 			
 		}
 	}
-	
-	public class FieldSRef: SRef
+
+	public class FieldSRef : SRef
 	{
 		public bool IsConstant()
 		{
@@ -50,10 +50,21 @@ namespace compiler
 		}
 		public int Evaluate()
 		{
-			throw new InvalidOperationException(); 
+			throw new InvalidOperationException();
 		}
 		public VRef varref;
 		public string fieldname;
+
+		private FieldSRef() { }
+		public static FieldSRef CallSite { get { return new FieldSRef { varref = RegVRef.rScratch, fieldname = "signal-0" }; } }
+		public static FieldSRef ScratchInt { get { return new FieldSRef { varref = RegVRef.rScratch, fieldname = "signal-0" }; } }
+		public static FieldSRef SReturn { get { return new FieldSRef { varref = RegVRef.rScratch, fieldname = "signal-1" }; } }
+		public static FieldSRef GlobalInt(string intname) { return new FieldSRef { varref = RegVRef.rGlobalInts, fieldname = intname }; }
+		public static FieldSRef LocalInt(string funcname, string intname) { return new FieldSRef { varref = RegVRef.rLocalInts(funcname), fieldname = intname }; }
+		public static FieldSRef IntArg(string funcname, string intname) { return new FieldSRef { varref = RegVRef.rIntArgs(funcname), fieldname = intname }; }
+
+		public static FieldSRef VarField(VRef varref, string fieldname) { return new FieldSRef { varref = varref, fieldname = fieldname }; }
+
 		public override string ToString()
 		{
 			return string.Format("[FieldSRef {0}.{1}]", varref, fieldname);

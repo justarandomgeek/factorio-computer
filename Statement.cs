@@ -52,7 +52,7 @@ namespace compiler
 			} else if (source is FunctionCall)
 			{
 				var func = source as FunctionCall;
-				func.returns = new RefList { var = target };
+				func.vreturn = target ;
 				return func.Flatten();
 			}
 			
@@ -243,11 +243,11 @@ namespace compiler
                 if (!append)
                 {
                     // scratch=op result
-                    b.Add(new SAssign { append = usedIntermediates++ > 0, source = source, target = new FieldSRef { fieldname = "signal-0", varref = new RegVRef { reg = 8 } } });
+                    b.Add(new SAssign { append = usedIntermediates++ > 0, source = source, target = FieldSRef.ScratchInt });
                     // tgt+=scratch-tgt
                     var arop = new ArithSExpr
                     {
-                        S1 = new FieldSRef { fieldname = "signal-0", varref = new RegVRef { reg = 8 } },
+                        S1 = FieldSRef.ScratchInt,
                         Op = ArithSpec.Subtract,
                         S2 = append ? (SExpr)(IntSExpr)0 : target
                     };
@@ -345,8 +345,6 @@ namespace compiler
 		}
 	}
 	
-	
-	
 	public class Branch: Statement
 	{
 		public SExpr S1;
@@ -426,7 +424,6 @@ namespace compiler
 			return op;
 		}
 	}
-	
 	public class If:Statement
 	{
 		public Branch branch;
@@ -468,7 +465,6 @@ namespace compiler
 		}
 
 	}
-	
 	public class While:Statement
 	{
 		public Branch branch;
@@ -515,7 +511,7 @@ namespace compiler
 		public SRef callsite;
 		public bool relative;
 		public bool? setint;
-		public int? frame;
+		public PointerIndex? frame;
 
 		public override string ToString()
 		{
@@ -618,7 +614,7 @@ namespace compiler
 			op.Add("op", (IntSExpr)81);
 			op.Add("index", (IntSExpr)frame);
 			op.Add("R2", (IntSExpr)source.reg);
-			op.Add("RD", (IntSExpr)dest.reg);
+			op.Add("Rd", (IntSExpr)dest.reg);
 
 			var S1 = addr;
 			if (S1 is FieldSRef)
@@ -638,7 +634,6 @@ namespace compiler
 			return op;
 		}
 	}
-
 	public class Push:Statement
 	{
 		public PointerIndex stack;
@@ -670,7 +665,6 @@ namespace compiler
 			return op;
 		}
 	}
-	
 	public class Pop:Statement
 	{
 		public PointerIndex stack;
@@ -702,16 +696,16 @@ namespace compiler
 			return op;
 		}
 	}
-	
 
 	public class FunctionCall:Statement, VExpr, SExpr
 	{
         public string name;
 		public ExprList args;
-		public RefList returns;
+		public SRef sreturn;
+		public VRef vreturn;
 		public override string ToString()
 		{
-			return string.Format("[FunctionCall {0}({1}) => {2}]", name, args, returns);
+			return string.Format("[FunctionCall {0}({1}) => {2}|{3}]", name, args, sreturn, vreturn);
 		}
 		public void Print(string prefix)
 		{
@@ -720,14 +714,17 @@ namespace compiler
 				
 		public Block Flatten()
 		{
-			//TODO: handle builtin functions
-			//Block builtin = BuiltinFunctions.GetBuiltin(this);
-			//if (builtin != null) return builtin;
+			if (Program.CurrentProgram.SBuiltins.ContainsKey(name))
+			{
+				return Program.CurrentProgram.SBuiltins[name](this);
+			}
+			else if (Program.CurrentProgram.VBuiltins.ContainsKey(name))
+			{
+				return Program.CurrentProgram.VBuiltins[name](this);
+			}
 
 			Block b = new Block();
 			args.CollapseConstants();
-			
-			var r8 = new RegVRef{reg=8};
 			
 			//int args or null in r8
 			if(args.ints.Count > 0)
@@ -741,43 +738,45 @@ namespace compiler
                                   Op = ArithSpec.Add,
                                   S2 = (IntSExpr)0
                               },
-					      	target=new FieldSRef { varref = r8, fieldname = "signal-" + (i + 1) }
+					      	target=FieldSRef.VarField(RegVRef.rScratch,"signal-" + (i + 1)),
 					      });
 				}
 			} else {
 				b.Add(new VAssign{					      	
-			      	source=new RegVRef{reg=0},
-			      	target=r8,
+			      	source= RegVRef.rNull,
+			      	target= RegVRef.rScratch,
 			      });
 			}
-			
+
 			//table arg or null in r7
-			b.Add(new VAssign{			
-		      	source=args.var?.FlattenExpressions()??new RegVRef{reg=0},
-		      	target=new RegVRef{reg=7},
-		      });
+			b.Add(new VAssign
+			{
+				source = args.var?.FlattenExpressions() ?? RegVRef.rNull,
+				target = RegVRef.rVarArgs,
+			});
 		
 			//jump to function, with return in r8.0
 			b.Add(new Jump{
 			      	target = new AddrSExpr{symbol=name,frame= PointerIndex.ProgConst },
-			      	callsite = new FieldSRef{varref=r8, fieldname= "signal-0"},
-			      	frame=2,
+			      	callsite = FieldSRef.CallSite,
+			      	frame=PointerIndex.ProgConst,
 			      });
-			
+
 			//capture returned values
-			for (int i = 1; i < returns?.ints.Count; i++) {
+			if(sreturn != null)
+			{
 						
 				b.AddRange(new SAssign{
-						source=new FieldSRef{varref=r8, fieldname="signal-"+i},
-						target=returns.ints[i],
+						source=FieldSRef.SReturn,
+						target=sreturn,
 						}.Flatten());
 			}
 				
-			if(returns?.var != null)
+			if(vreturn != null)
 			{
 				b.Add(new VAssign{
-                    source = new RegVRef { reg = 7 },
-                    target =(VRef)returns.var?.FlattenExpressions()??new RegVRef{reg=0},
+                    source = RegVRef.rVarArgs,
+                    target = (VRef)vreturn.FlattenExpressions()?? RegVRef.rNull,
 				    });
 			}
 			
@@ -798,10 +797,22 @@ namespace compiler
 	
 	public class Return:Statement
 	{
-		public ExprList returns;
+		public SExpr sreturn;
+		public VExpr vreturn;
+
+		public Return(){}
+		public Return(SExpr sret)
+		{
+			sreturn = sret;
+		}
+		public Return(VExpr vret)
+		{
+			vreturn = vret;
+		}
+
 		public override string ToString()
 		{
-			return string.Format("[Return {0}]", returns);
+			return string.Format("[Return {0}|{1}]", sreturn, vreturn);
 		}	
 		public void Print(string prefix)
 		{
@@ -811,27 +822,21 @@ namespace compiler
 		public Block Flatten()
 		{
 			Block b = new Block();
-			var r8 = new RegVRef{reg=8};
 			
-			returns.CollapseConstants();
-			
-			if(returns.ints.Count > 0)
+			if(sreturn != null)
 			{
-				for (int i = 0; i < returns.ints.Count; i++) {
-					
-					b.Add(new SAssign{
-					      	append= i!=0,
-					      	source=returns.ints[i],
-					      	target=new FieldSRef{varref=r8, fieldname="signal-"+i}
-					      });
-				}
+				b.Add(new SAssign{
+					append=false,
+					source=sreturn.FlattenExpressions(),
+					target=FieldSRef.SReturn,
+					});
 			}
 			
-			if(returns.var != null)
+			if(vreturn != null)
 			{
 					b.Add(new VAssign{					      	
-					      	source=returns.var,
-					      	target=new RegVRef{reg=7},
+					      	source=vreturn.FlattenExpressions(),
+					      	target= RegVRef.rScratch2,
 					      });
 				
 			}
@@ -866,15 +871,5 @@ namespace compiler
 			ints = ints.Select(se => se.FlattenExpressions()).ToList();
 			if(var!=null) var = var.FlattenExpressions();
 		}
-	}
-	
-	public class RefList{
-		public List<SRef> ints = new List<SRef>();
-		public VRef var;
-		public override string ToString()
-		{
-			return string.Format("[RefList Ints={0} || Vars={1}]", string.Join(",",ints), var);
-		}
-	}
-	
+	}	
 }
