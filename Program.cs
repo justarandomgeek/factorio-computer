@@ -46,34 +46,30 @@ namespace compiler
 					CurrentProgram = new Parser();
 					CurrentProgram.Name = file.Split('\\', '/').Last().ToUpper();
 					CurrentProgram.ReadMachineDesc();
-
-
+					
 					CurrentProgram.ParseFile(file);
 
-					//TODO: command line options for various print styles/segments
-
-					Console.WriteLine();
-					Console.WriteLine("Functions:");
+					if (Options.Current.func) Console.WriteLine("Functions:");
 					foreach (var func in CurrentProgram.Functions.Values)
 					{
 						CurrentFunction = func;
-						Console.WriteLine("{0}:{1}", func.name, func.returntype);
+						if (Options.Current.func) Console.WriteLine("{0}:{1}", func.name, func.returntype);
 						func.AllocateLocals();
 
 						foreach (var field in func.localints)
 						{
-							Console.WriteLine("  {0}:{1}", field.Key, field.Value);
+							if (Options.Current.func) Console.WriteLine("  {0}:{1}", field.Key, field.Value);
 						}
 						foreach (var symbol in func.locals)
 						{
-							Console.WriteLine("  " + symbol);
+							if (Options.Current.func) Console.WriteLine("  " + symbol);
 						}
-						func.body.Print("| ");
+						if (Options.Current.funcbody) func.body.Print("| ");
 						var build = func.BuildFunction();
-						build.Print("  ");
+						if (Options.Current.funcbodyraw) build.Print("  ");
 
 						if (func.localints.Count > 0) CurrentProgram.Types.Add("__li" + func.name, func.localints);
-						//Console.WriteLine();
+						
 
 						CurrentProgram.Symbols.Add(new Symbol
 						{
@@ -83,46 +79,50 @@ namespace compiler
 							data = build.Select(stat => stat.Opcode()).ToList()
 						});
 
-						Console.WriteLine();
+						if (Options.Current.func) Console.WriteLine();
 					}
 					CurrentFunction = null;
 
 					CurrentProgram.AllocateTypes();
 
-					foreach (var typedata in CurrentProgram.Types)
+					if (Options.Current.typeinfo)
 					{
-						Console.WriteLine("Type: {0}", typedata.Key);
-						if (typedata.Value.hasString) Console.WriteLine("  _string_");
-						foreach (var field in typedata.Value)
+						foreach (var typedata in CurrentProgram.Types)
 						{
-							Console.WriteLine("  {0}:{1}", field.Key, field.Value);
+							Console.WriteLine("Type: {0}", typedata.Key);
+							if (typedata.Value.hasString) Console.WriteLine("  _string_");
+							foreach (var field in typedata.Value)
+							{
+								Console.WriteLine("  {0}:{1}", field.Key, field.Value);
+							}
 						}
 					}
 
-
 					CurrentProgram.AllocateSymbols();
 
-					Console.WriteLine();
-					Console.WriteLine("Symbols:");
-					foreach (var symbol in CurrentProgram.Symbols)
+					if (Options.Current.symtable)
 					{
-						Console.WriteLine(symbol);
+						Console.WriteLine();
+						Console.WriteLine("Symbols:");
+						foreach (var symbol in CurrentProgram.Symbols)
+						{
+							Console.WriteLine(symbol);
+						}
 					}
 
-
-					Console.WriteLine("Rom Data:");
-					foreach (var element in CurrentProgram.romdata)
+					if (Options.Current.dumprom)
 					{
-						Console.WriteLine(element.Evaluate());
+						Console.WriteLine("Rom Data:");
+						foreach (var element in CurrentProgram.romdata)
+						{
+							Console.WriteLine(element.Evaluate());
+						}
 					}
 
 					CurrentProgram.MakeROM();
-
 				}
-					
-				Console.ReadLine();
-					
-	            
+
+				Console.ReadLine();   
 			}
 		}
 	}
@@ -334,7 +334,8 @@ namespace compiler
         	{
         		if ( ExpectFieldType != "var" && Types[ExpectFieldType].ContainsKey(ident) )
         		{
-        			return Tokens.FIELD;	
+					ExpectFieldType = null;
+					return Tokens.FIELD;	
         		}
 
 				ExpectFieldType = null;
@@ -458,9 +459,7 @@ namespace compiler
         
         public void MakeROM()
         {
-        	
-			Console.WriteLine("Compiling ROM:");
-			lua["parser"]=this;
+        	lua["parser"]=this;
 			
 			lua.NewTable("romdata");
 			

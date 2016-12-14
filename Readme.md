@@ -142,6 +142,7 @@ This is a programmable computer constructed entirely of vanilla combinator logic
 
 #### 1-60: Basic ALU
   ![Basic ALU](screenshots/01-60_ALU.png)
+
   The ALU performs every possible operation in parallel, and returns the requested operation's result to Scalar Result or Vector Result.
 
   1.  R1.Every = R2.S2 ::> R1 => Rd
@@ -231,10 +232,12 @@ This is a programmable computer constructed entirely of vanilla combinator logic
 
 #### 70: Jump
   ![Jump](screenshots/70_jump.png)
+
   Jump to R1.s1 if `signal-green`=0 or PC+R1.s1 if `signal-green`=1. Return PC+1 to Rd.Sd. If `signal-cyan` is set, enable(1)/disable(-1) interrupts after this jump.
 
 #### 71: Branch
   ![Branch](screenshots/71_branch.png)
+
   Returns PC+1 to Rd.sd. Compares R1.s1 to R2.s2, and makes the following jumps:
 
   * `=` PC+rOp.1
@@ -243,6 +246,7 @@ This is a programmable computer constructed entirely of vanilla combinator logic
 
 #### 72: Exec
   ![Exec](screenshots/72_exec.png)
+
   Execute the contents of R1 as an instruction, at the current PC value.
 
 #### 80: Wire
@@ -264,6 +268,9 @@ This is a programmable computer constructed entirely of vanilla combinator logic
 
 #### 83-84: Stacks
   ![Stacks](screenshots/83-84_stacks.png)
+
+  This block implements the frame pointer value on Scalar `signal-I` for use by other instructions.
+
   * 83: Push
     * Store a frame to one of the stacks in rIndex, as selected by `signal-I`.
       * R2 -> [rIndex.stack-1]
