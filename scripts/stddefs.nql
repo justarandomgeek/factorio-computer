@@ -72,7 +72,7 @@ type symbol {
 -- Standard Definitions:
 var     @r0   rNull
 -- r1: global ints
--- r2: local ints - also used for restoring call site
+-- r2: local ints
 -- r3: local vars
 -- r4: local vars
 -- r5: local vars

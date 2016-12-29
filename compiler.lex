@@ -6,7 +6,7 @@
 alpha [a-zA-Z]
 digit [0-9]
 
-identifier [a-zA-Z]([a-zA-Z0-9_\-])*
+identifier [a-zA-Z](([a-zA-Z0-9_\-])*[a-zA-Z0-9])?
 
 whitespace [ \n\r\t]+
 
@@ -43,8 +43,8 @@ register r[0-9]+
 <PROGRAM> "==" {yylval.compVal = CompSpec.Equal;   return (int)Tokens.COMPARE;}
 <PROGRAM> ">"  {yylval.compVal = CompSpec.Greater; return (int)Tokens.COMPARE;}
 <PROGRAM> "<"  {yylval.compVal = CompSpec.Less;    return (int)Tokens.COMPARE;}
-<PROGRAM> ">="  {yylval.compVal = CompSpec.Greater|CompSpec.Equal; return (int)Tokens.COMPARE;}
-<PROGRAM> "<="  {yylval.compVal = CompSpec.Less|CompSpec.Equal;    return (int)Tokens.COMPARE;}
+<PROGRAM> ">="  {yylval.compVal = CompSpec.GreaterEqual; return (int)Tokens.COMPARE;}
+<PROGRAM> "<="  {yylval.compVal = CompSpec.LessEqual;    return (int)Tokens.COMPARE;}
 
 
 <PROGRAM> "+=" {return (int)Tokens.APPEND;}

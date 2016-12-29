@@ -16,6 +16,13 @@ namespace compiler
 	
 	public class IntVarSRef: SRef
 	{
+		public readonly string name;
+		
+		public IntVarSRef(string name)
+		{
+			this.name = name;
+		}
+		
 		public bool IsConstant()
 		{
 			return false;
@@ -24,7 +31,6 @@ namespace compiler
 		{
 			throw new InvalidOperationException(); 
 		}
-		public string name;
 		public override string ToString()
 		{
 			return string.Format("[IntVarSRef {0}]", name);
@@ -52,18 +58,31 @@ namespace compiler
 		{
 			throw new InvalidOperationException();
 		}
-		public VRef varref;
-		public string fieldname;
+		public readonly VRef varref;
+		public readonly string fieldname;
 
 		private FieldSRef() { }
-		public static FieldSRef CallSite { get { return new FieldSRef { varref = RegVRef.rScratch, fieldname = "signal-0" }; } }
-		public static FieldSRef ScratchInt { get { return new FieldSRef { varref = RegVRef.rScratch, fieldname = "signal-0" }; } }
-		public static FieldSRef SReturn { get { return new FieldSRef { varref = RegVRef.rScratch, fieldname = "signal-1" }; } }
-		public static FieldSRef GlobalInt(string intname) { return new FieldSRef { varref = RegVRef.rGlobalInts, fieldname = intname }; }
-		public static FieldSRef LocalInt(string funcname, string intname) { return new FieldSRef { varref = RegVRef.rLocalInts(funcname), fieldname = intname }; }
-		public static FieldSRef IntArg(string funcname, string intname) { return new FieldSRef { varref = RegVRef.rIntArgs(funcname), fieldname = intname }; }
+		public FieldSRef(VRef varref, string fieldname) { this.varref = varref; this.fieldname = fieldname; }
+		public static FieldSRef CallSite { get { return new FieldSRef(RegVRef.rScratch, "signal-0"); } }
+		public static FieldSRef ScratchInt { get { return new FieldSRef(RegVRef.rScratch, "signal-0"); } }
+		public static FieldSRef SReturn { get { return new FieldSRef(RegVRef.rScratch, "signal-1"); } }
+		public static FieldSRef GlobalInt(string intname) { return new FieldSRef(RegVRef.rGlobalInts,intname); }
+		public static FieldSRef LocalInt(string funcname, string intname) { return new FieldSRef(RegVRef.rLocalInts(funcname),intname); }
+		public static FieldSRef IntArg(string funcname, string intname) { return new FieldSRef(RegVRef.rIntArgs(funcname), intname); }
+		public static FieldSRef Imm1() { return new FieldSRef(RegVRef.rOpcode, "Imm1"); }
+		public static FieldSRef Imm2() { return new FieldSRef(RegVRef.rOpcode, "Imm2"); }
 
-		public static FieldSRef VarField(VRef varref, string fieldname) { return new FieldSRef { varref = varref, fieldname = fieldname }; }
+		public static FieldSRef VarField(VRef varref, string fieldname) { return new FieldSRef(varref, fieldname); }
+
+		public static FieldSRef Pointer(PointerIndex ptr)
+		{
+			string[] ptrnames = { "err", "callstack", "progbase", "progdata", "localdata" };
+			return new FieldSRef(RegVRef.rIndex, ptrnames[(int)ptr]);
+		}
+
+
+		public FieldSRef(RegVRef reg) { this.varref = reg; }
+		public static implicit operator FieldSRef(RegVRef reg) { return new FieldSRef(reg); }
 
 		public override string ToString()
 		{
@@ -71,8 +90,7 @@ namespace compiler
 		}
 		public SExpr FlattenExpressions()
 		{
-			varref = (VRef)varref.FlattenExpressions();
-			return this;			
+			return new FieldSRef((VRef)varref.FlattenExpressions(),this.fieldname);			
 		}
 
 	}

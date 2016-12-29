@@ -25,7 +25,7 @@
 
 %token <iVal> INTEGER
 %token <sVal> STRING SIGNAL
-%token <sVal> UNDEF TYPENAME FIELD VFUNCNAME SFUNCNAME VAR INTVAR ARRAY INTARRAY
+%token <sVal> UNDEF LIBNAME TYPENAME FIELD VFUNCNAME SFUNCNAME VAR INTVAR ARRAY INTARRAY
 %token <iVal> REGISTER
 %token <compVal> COMPARE
 %token <bVal> COND
@@ -81,13 +81,18 @@ paramdeflist: paramdeflist ',' paramdef {$$=$1; $$.AddParam($3);};
 paramdef: TYPENAME UNDEF {$$ = new FieldInfo{name=$2,basename=$1}; };
 paramdef: INT      UNDEF {$$ = new FieldInfo{name=$2,basename="int"}; };
 
-datadef: TYPENAME '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Data,datatype=$1,fixedAddr=$3}); };
+datadef: TYPENAME '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Data,frame=PointerIndex.ProgData,datatype=$1,fixedAddr=$3}); };
 datadef: TYPENAME '@' REGISTER UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Register,datatype=$1,fixedAddr=$3}); };
-datadef: TYPENAME              UNDEF { CreateSym(new Symbol{name=$2,type=InFunction!=null?SymbolType.Register:SymbolType.Data,datatype=$1}); };
+datadef: TYPENAME              UNDEF { CreateSym(new Symbol{
+                                        name=$2,
+                                        type=SymbolType.Data,
+                                        frame=InFunction!=null?PointerIndex.CallStack:PointerIndex.ProgData,
+                                        datatype=$1
+                                        }); };
 datadef: INT                   UNDEF { CreateInt($2); };
 
-datadef: TYPENAME '[' INTEGER ']' '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$7,type=SymbolType.Data,size=$3,datatype=$1,fixedAddr=$6}); };
-datadef: TYPENAME '[' INTEGER ']'              UNDEF { CreateSym(new Symbol{name=$5,type=SymbolType.Data,size=$3,datatype=$1}); };
+datadef: TYPENAME '[' INTEGER ']' '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$7,type=SymbolType.Data,frame=PointerIndex.ProgData,size=$3,datatype=$1,fixedAddr=$6}); };
+datadef: TYPENAME '[' INTEGER ']'              UNDEF { CreateSym(new Symbol{name=$5,type=SymbolType.Data,frame=InFunction!=null?PointerIndex.LocalData:PointerIndex.ProgData,size=$3,datatype=$1}); };
 
 typedef: TYPE UNDEF '{' fielddeflist '}'     { RegisterType($2,$4); };
 typedef: TYPE UNDEF '{' fielddeflist ',' '}' { RegisterType($2,$4); }; // allow trailing comma
@@ -104,6 +109,11 @@ block: statement { $$=new Block(); $$.Add($1); };
 block: block statement { $$=$1; $$.Add($2); };
 
 branch: sexpr COMPARE sexpr {$$=new Branch{ S1=$1, Op=$2, S2=$3};};
+branch: sexpr {$$=new Branch{ S1=$1, Op= CompSpec.NotEqual, S2=IntSExpr.Zero };};
+
+//vbranch: vexpr COMPARE vexpr {$$=new VBranch{ S1=$1, Op=$2, S2=$3};};
+//vbranch: vexpr {$$=new VBranch{ V1=$1, Op= CompSpec.NotEqual };};
+
 
 statement: IF branch THEN block elseblock END { $$ = new If{branch=$2,ifblock=$4,elseblock=$5}; };
 elseblock: ELSE block { $$ = $2; };
@@ -138,7 +148,7 @@ arith: '/' {$$ = ArithSpec.Divide;};
 
 sexpr: '(' sexpr ')' { $$=$2; };
 sexpr: sexpr arith sexpr {$$=new ArithSExpr{S1=$1,Op=$2,S2=$3};};
-sexpr: INTEGER {$$=new IntSExpr{value=$1};};
+sexpr: INTEGER {$$=new IntSExpr($1);};
 sexpr: sref {$$=$1;};
 sexpr: '&' VAR { $$ = new AddrSExpr{symbol = $2}; };
 sexpr: '&' SFUNCNAME { $$ = new AddrSExpr{symbol = $2}; };
@@ -150,16 +160,17 @@ vexpr: '(' vexpr ')' { $$=$2; };
 vexpr: vexpr arith vexpr {$$=new ArithVExpr{V1=$1,Op=$2,V2=$3};};
 vexpr: vexpr arith sexpr {$$=new ArithVSExpr{V1=$1,Op=$2,S2=$3};};
 vexpr: '{' littable '}'{$$=$2;};
-vexpr: STRING {$$= new StringVExpr{text=$1};};
+vexpr: STRING {$$= (StringVExpr)$1;};
 vexpr: vref{$$=$1;};
-vexpr: '*' sexpr {$$ = new MemVRef{ addr=$2 }; };
+vexpr: '*' sexpr {$$ = new MemVRef($2); };
 
-sref: VAR '.' {ExpectFieldType=GetSymbolDataType($1);} FIELD {$$ = FieldSRef.VarField(new VarVRef{name=$1},$4);};
-sref: INTVAR {$$ = new IntVarSRef{name=$1};};
+sref: vref '.' {ExpectFieldType=$1.datatype;} FIELD {$$ = FieldSRef.VarField($1,$4);};
+sref: INTVAR {$$ = new IntVarSRef($1);};
 //sref: VAR '[' sexpr ']' ;
 
 vref: VAR {$$=new VarVRef{name=$1};};
-vref: ARRAY '[' sexpr ']' {$$=new ArrayVRef{arrname=$1,offset=$3};};
+vref: ARRAY '[' sexpr ']' {$$=new ArrayVRef($1,$3);};
+vref: '@' sexpr {$$ = new MemVRef($2);};
 
 vassign: vref ASSIGN vexpr {$$=new VAssign{target=$1,append=false,source=$3};};
 vassign: vref APPEND vexpr {$$=new VAssign{target=$1,append=true,source=$3};};
@@ -173,5 +184,7 @@ littable: tableitem {$$= new Table();$$.Add($1);};
 littable: littable ',' tableitem {$$=$1;$$.Add($3);};
 
 tableitem: FIELD ASSIGN sexpr {$$=new TableItem($1,$3); };
+
+tableitem: FIELD {$$=new TableItem($1,IntSExpr.One); };
 
 // */

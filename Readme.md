@@ -230,6 +230,12 @@ This is a programmable computer constructed entirely of vanilla combinator logic
 #### 66: Scalar shift down (not yet implemented)
   R1 << R2.s2 -> Rd
 
+#### 67: Vector Replace
+  ![Vector Replace](screenshots/67_vector_replace.png)
+  R1 is passed through except:
+  * positive values in R2 replace the values in R1
+  * negative values in R2 clear the signal
+
 #### 70: Jump
   ![Jump](screenshots/70_jump.png)
 

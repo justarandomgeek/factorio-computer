@@ -56,7 +56,7 @@ namespace compiler
 		{
 			if(this.IsConstant())
 			{
-				return (IntSExpr)this.Evaluate();
+				return new IntSExpr(this.Evaluate());
 			} else {
 				S1 = S1.FlattenExpressions();
 				S2 = S2.FlattenExpressions();
@@ -67,6 +67,17 @@ namespace compiler
 	
 	public class IntSExpr: SExpr
 	{
+		public readonly int value;
+
+		public IntSExpr(int? i) : this(i ?? 0) { }
+		public IntSExpr(int i)
+		{
+			value = i;
+		}
+
+		public static IntSExpr Zero = new IntSExpr(0);
+		public static IntSExpr One  = new IntSExpr(0);
+
 		public bool IsConstant()
 		{
 			return true;
@@ -75,16 +86,8 @@ namespace compiler
 		{
 			return value;
 		}
-		public int value;
-		public static implicit operator IntSExpr(int i)
-		{
-			return new IntSExpr{value=i};
-		}
-        public static implicit operator IntSExpr(PointerIndex i)
-        {
-            return new IntSExpr { value = (int)i };
-        }
-        public override string ToString()
+		
+		public override string ToString()
 		{
 			return string.Format("{0}", value);
 		}
@@ -135,13 +138,20 @@ namespace compiler
 		}
 		public string symbol;
 		public int? offset;
-        public PointerIndex frame;
+		public PointerIndex frame
+		{
+			get
+			{
+				var s = Program.CurrentProgram.Symbols.Find(sym => sym.name == symbol);
+				return s.frame;
+			}
+		}
 		public override string ToString()
 		{
 			return string.Format("{2}{0}{1}", 
                 symbol,
-                offset.HasValue ? "+" + offset : "",
-                frame>0 ? "[" + frame + "]" : "");
+                offset.HasValue ? "+" + offset : ""
+                );
 			
 		}
 		public SExpr FlattenExpressions()

@@ -23,7 +23,11 @@ namespace compiler
 	{
 		Equal,
 		Greater,
-		Less
+		Less,
+		NotEqual = Greater | Less,
+		GreaterEqual = Greater | Equal,
+		LessEqual = Equal | Less,
+		
 	}
 
 	public enum ArithSpec
@@ -84,6 +88,7 @@ namespace compiler
 	
 	public class SymbolList:List<Symbol>
 	{
+
 		int paramcount=1;
 		public void AddParam(FieldInfo pi)
 		{
@@ -104,46 +109,145 @@ namespace compiler
 		public SymbolList locals = new SymbolList();
 		public TypeInfo localints = new TypeInfo();
 		public Block body;
+		public int framesize;
 				
 		public void AllocateLocals()
 		{
-			int nextReg = 6;
+			
 			foreach (var p in locals.Where(sym=>sym.type == SymbolType.Parameter && sym.datatype == "int")) {
 				localints.Add(p.name,"signal-" + p.fixedAddr);
 			}
-			
-			
+			locals.RemoveAll(sym => localints.Keys.Contains(sym.name));
 			var newlocals = new SymbolList();
-			newlocals.AddRange(locals.Select((symbol) =>
+
+			//TODO: fix this to actually confirm a register is available
+			if (locals.Count(sym => sym.frame == PointerIndex.CallStack) < 4)
+			{
+				int nextReg = 6;
+				newlocals.AddRange(locals.Select((symbol) =>
 				{
-					if (symbol.type == SymbolType.Register && !symbol.fixedAddr.HasValue) {
-						//TODO: fix this to actually confirm a register is available
-						//TODO: fix this to switch to stack frame allocation when nextReg hits r2
+					if (symbol.frame == PointerIndex.CallStack)
+					{
+						symbol.type = SymbolType.Register;
 						symbol.fixedAddr = nextReg--;
+						symbol.frame = 0;
+
 					}
-				    return symbol;
+					return symbol;
 				}));
+			}
+			else
+			{
+				newlocals.AddRange(locals.Select((symbol) =>
+				{
+					if (symbol.frame == PointerIndex.CallStack)
+					{
+						symbol.fixedAddr = framesize++;
+					}
+					return symbol;
+				}));
+
+			}
+
+			
 			locals = newlocals;
 		}
 
-        public Block BuildFunction()
-        {
-            var b = new Block();
-
-			// save call site (in r8.signal-0)
-			b.Add(new Push { reg = RegVRef.rScratch, stack = PointerIndex.CallStack });
+		public Block BuildInline()
+		{
+			var b = new Block();
 
 			if (localints.Count > 0)
 			{
 				// save parent localints
-				b.Add(new Push { reg = new RegVRef(2), stack = PointerIndex.CallStack });
+				b.Add(new Push(new RegVRef(2)));
+			}
+
+			// push regs as needed
+			foreach (var sym in locals.Where(s => s.type == SymbolType.Register))
+			{
+				if (sym.fixedAddr.HasValue) b.Add(new Push(new RegVRef(sym.fixedAddr.Value)));
+			}
+
+			// copy params if named
+			//int args or null in r8
+			var intparas = locals.Where(sym => sym.type == SymbolType.Parameter && sym.datatype == "int").ToList();
+			if (intparas.Count() > 0)
+			{
+				for (int i = 0; i < intparas.Count(); i++)
+				{
+
+					b.Add(new SAssign
+					{
+						append = i != 0,
+						source = new ArithSExpr
+						{
+							S1 = FieldSRef.IntArg(name, intparas[i].name),
+							Op = ArithSpec.Add,
+							S2 = IntSExpr.Zero
+						},
+						target = FieldSRef.LocalInt(name, intparas[i].name)
+
+					});
+				}
+			}
+
+			// body
+			b.AddRange(body.Flatten());
+
+			// convert rjmp __return => rjmp <integer> to here.
+			for (int i = 0; i < b.Count; i++)
+			{
+				var j = b[i] as Jump;
+				if (j != null && j.relative && j.target is AddrSExpr && ((AddrSExpr)j.target).symbol == "__return")
+				{
+					j.target = new IntSExpr(b.Count - i);
+				}
+			}
+
+			// restore registers
+			foreach (var sym in locals.Where(s => s.type == SymbolType.Register).Reverse())
+			{
+				if (sym.fixedAddr.HasValue) b.Add(new Pop(new RegVRef(sym.fixedAddr.Value)));
+			}
+
+			if (localints.Count > 0)
+			{
+				// restore parent localints
+				b.Add(new Pop(RegVRef.rLocalInts(name)));
+			}
+
+			return b;
+		}
+
+		public Block BuildFunction()
+        {
+            var b = new Block();
+
+			// save call site (in r8.signal-0)
+			b.Add(new Push(RegVRef.rScratch));
+
+			if (localints.Count > 0)
+			{
+				// save parent localints
+				b.Add(new Push(new RegVRef(2)));
 			}
 
             // push regs as needed
             foreach (var sym in locals.Where(s => s.type == SymbolType.Register))
             {
-                if (sym.fixedAddr.HasValue) b.Add(new Push { reg = new RegVRef(sym.fixedAddr.Value), stack = PointerIndex.CallStack });
+                if (sym.fixedAddr.HasValue) b.Add(new Push(new RegVRef(sym.fixedAddr.Value)));
             }
+
+			// wind stack down for locals if needed
+			if (framesize > 0)
+			{
+				b.Add(new SAssign {
+					append = true,
+					source = new IntSExpr(-framesize),
+					target = FieldSRef.Pointer(PointerIndex.CallStack) }
+				);
+			}
 
             // copy params if named
             //int args or null in r8
@@ -160,7 +264,7 @@ namespace compiler
 						{
 							S1 = FieldSRef.IntArg(name, intparas[i].name),
 							Op = ArithSpec.Add,
-							S2 = (IntSExpr)0
+							S2 = IntSExpr.Zero
 						},
 						target = FieldSRef.LocalInt(name, intparas[i].name)
 
@@ -176,24 +280,36 @@ namespace compiler
                 var j = b[i] as Jump;
                 if (j != null && j.relative && j.target is AddrSExpr && ((AddrSExpr)j.target).symbol == "__return")
                 {
-                    j.target = new IntSExpr { value = b.Count - i };
+                    j.target = new IntSExpr(b.Count - i);
                 }
             }
 
-            // restore registers
-            foreach (var sym in locals.Where(s => s.type == SymbolType.Register).Reverse())
+			// wind stack back up for locals if needed
+			if (framesize > 0)
+			{
+				b.Add(new SAssign
+				{
+					append = true,
+					source = new IntSExpr(framesize),
+					target = FieldSRef.Pointer(PointerIndex.CallStack)
+				}
+				);
+			}
+
+			// restore registers
+			foreach (var sym in locals.Where(s => s.type == SymbolType.Register).Reverse())
             {
-                if (sym.fixedAddr.HasValue) b.Add(new Pop { reg = new RegVRef(sym.fixedAddr.Value), stack = PointerIndex.CallStack });
+                if (sym.fixedAddr.HasValue) b.Add(new Pop(new RegVRef(sym.fixedAddr.Value)));
             }
 
 			if (localints.Count > 0)
 			{
 				// restore parent localints
-				b.Add(new Pop { reg = RegVRef.rLocalInts(name), stack = PointerIndex.CallStack });
+				b.Add(new Pop(RegVRef.rLocalInts(name)));
 			}
 
 			// get return site
-			b.Add(new Exchange { source = RegVRef.rScratch2, dest = RegVRef.rScratch2, frame = PointerIndex.CallStack, addr = (IntSExpr)0 });
+			b.Add(new Exchange(RegVRef.rScratch2));
 			b.Add(new SAssign
 			{
 				target = FieldSRef.CallSite,
@@ -205,7 +321,7 @@ namespace compiler
 					S2 = FieldSRef.CallSite,
 				}
 			});
-			b.Add(new Pop { reg = RegVRef.rScratch2, stack = PointerIndex.CallStack });
+			b.Add(new Pop(RegVRef.rScratch2));
 
 			// jump to return site
 			b.Add(new Jump{target = FieldSRef.CallSite });
@@ -230,7 +346,7 @@ namespace compiler
 		public SymbolType type;
 		public string datatype;
 		public int? fixedAddr;
-        //public PointerIndex frame; // one day...
+        public PointerIndex frame;
 		public int? size
 		{
 			get
@@ -261,7 +377,37 @@ namespace compiler
 		
 		public override string ToString()
 		{
-			return string.Format("{0}{1,5}:{4,-3} {2,10} {3}",type.ToString()[0],fixedAddr,datatype,name,size);
+			char frametype;
+			switch (frame)
+			{
+				case PointerIndex.None:
+					frametype = ' ';
+					break;
+				case PointerIndex.CallStack:
+					frametype = 'S';
+					break;
+				case PointerIndex.ProgConst:
+					frametype = 'C';
+					break;
+				case PointerIndex.ProgData:
+					frametype = 'D';
+					break;
+				case PointerIndex.LocalData:
+					frametype = 'L';
+					break;
+				default:
+					frametype = 'X';
+					break;
+			}
+
+			return string.Format("{5}{0}{1,5}:{4,-3} {2,10} {3}",
+				type.ToString()[0],
+				fixedAddr,
+				datatype,
+				name,
+				size,
+				frametype
+				);
 		}
 		
 		public Tokens ToToken()

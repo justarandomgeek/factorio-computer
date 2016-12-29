@@ -9,6 +9,156 @@ using NLua;
 namespace compiler
 {
 
+	public enum Opcode
+	{
+		Halt = 0,
+
+		EveryEqS2V,
+		EveryLtS2V,
+		EveryGtS2V,
+		EveryEqS2V1,
+		EveryGtS2V1,
+		EveryLtS2V1,
+
+		AnyEqS2V,
+		AnyLtS2V,
+		AnyGtS2V,
+		AnyEqS2V1,
+		AnyGtS2V1,
+		AnyLtS2V1,
+
+		S1EqS2V,
+		S1LtS2V,
+		S1GtS2V,
+		S1EqS2V1,
+		S1GtS2V1,
+		S1LtS2V1,
+
+		EachEqS2V,
+		EachLtS2V,
+		EachGtS2V,
+		EachEqS2V1,
+		EachGtS2V1,
+		EachLtS2V1,
+
+		EveryEqS2S,
+		EveryLtS2S,
+		EveryGtS2S,
+		EveryEqS2S1,
+		EveryGtS2S1,
+		EveryLtS2S1,
+
+		AnyEqS2S,
+		AnyLtS2S,
+		AnyGtS2S,
+		AnyEqS2S1,
+		AnyGtS2S1,
+		AnyLtS2S1,
+
+		S1EqS2S,
+		S1LtS2S,
+		S1GtS2S,
+		S1EqS2S1,
+		S1GtS2S1,
+		S1LtS2S1,
+
+		EachEqS2S,
+		EachLtS2S,
+		EachGtS2S,
+		EachEqS2S1,
+		EachGtS2S1,
+		EachLtS2S1,
+
+		EachSubV,
+		EachAddV,
+		EachDivV,
+		EachMulV,
+
+		EachSubS,
+		EachAddS,
+		EachDivS,
+		EachMulS,
+
+		Sub,
+		Add,
+		Div,
+		Mul,
+
+		VMul,
+		VDiv,
+
+		SArrPick,
+		SArrWrite,
+
+		SShiftUp,
+		SShiftDn,
+
+		VReplace,
+
+		Jump = 70,
+		Branch,
+		Exec,
+
+		Wire = 80,
+		MemWrite,
+		MemRead,
+		Push,
+		Pop,
+		Append,
+
+		PlayerInfo = 100,
+
+	}
+
+	public struct Instruction
+	{
+		public Opcode opcode;
+		public bool acc;
+		public bool relative;
+		public PointerIndex idx;
+		public FieldSRef op1;
+		public FieldSRef op2;
+		public FieldSRef dest;
+		public SExpr imm1;
+		public SExpr imm2;
+		public int? rjmpeq;
+		public int? rjmpgt;
+		public int? rjmplt;
+
+		
+		public static implicit operator Table(Instruction inst)
+		{
+			//TODO: generate a table of type opcode
+			return new Table();
+		}
+
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+			sb.AppendFormat("[{0}] ", opcode);
+			if(idx != PointerIndex.None)
+				sb.AppendFormat("[{0}] ", idx);
+
+			if (op1 != null) sb.Append(op1.fieldname != null ? op1.varref.ToString() : op1.ToString());
+
+			sb.Append(":");
+
+			if (op2 != null) sb.Append(op2.fieldname != null? op2.varref.ToString():op2.ToString());
+
+			sb.Append("=>");
+
+			if (dest != null) sb.Append(op2.fieldname != null ? dest.varref.ToString() : dest.ToString());
+
+			if (acc) sb.Append("+");
+
+			//TODO: imm1/2, rjmps
+
+			return sb.ToString();
+
+		}
+	}
+
+
 	public interface Statement
 	{
 		void Print(string prefix);
@@ -45,10 +195,11 @@ namespace compiler
 				Program.CurrentProgram.Symbols.Add(new Symbol{
 				                                   	type=SymbolType.Constant,
 				                                   	name=constname,
+													frame=PointerIndex.ProgConst,
 				                                   	datatype=((Table)source).datatype,
 				                                   	data=new List<Table>{(Table)source},
 				                                   });
-				source = new MemVRef{addr=new AddrSExpr{symbol=constname,frame= PointerIndex.ProgConst },datatype=((Table)source).datatype};
+				source = new MemVRef(new AddrSExpr{symbol=constname},((Table)source).datatype);
 			} else if (source is FunctionCall)
 			{
 				var func = source as FunctionCall;
@@ -63,53 +214,53 @@ namespace compiler
 		public Table Opcode()
 		{
 			var op = new Table{datatype="opcode"};
-			if(append) op.Add("acc",(IntSExpr)1);
+			if(append) op.Add("acc",IntSExpr.One);
 			
 			if(target is MemVRef)
 			{
 				if(source is RegVRef)
 				{
 					//mem write
-					op.Add("op",(IntSExpr)81);
-                    op.Add("R2", (IntSExpr)((RegVRef)source).reg);
+					op.Add("op", 81);
+                    op.Add("R2", ((RegVRef)source).reg);
                     var S1 = ((MemVRef)target).addr;
 					if( S1 is FieldSRef)
 					{
-						op.Add("R1",	(IntSExpr)((RegVRef)((FieldSRef)S1).varref).reg);
+						op.Add("R1",	((RegVRef)((FieldSRef)S1).varref).reg);
 						op.Add("S1",	new FieldIndexSExpr{field=((FieldSRef)S1).fieldname,type=((RegVRef)((FieldSRef)S1).varref).datatype});
 					} else if( S1 is IntSExpr || S1 is AddrSExpr)
 					{
-						op.Add("R1",	(IntSExpr)13);
+						op.Add("R1",	new IntSExpr(13));
 						op.Add("S1",	new FieldIndexSExpr{field="Imm1",type="opcode"});
 						op.Add("Imm1",	S1);
 					}
 				}
 			}else if(target is RegVRef)
 			{
-                op.Add("Rd", (IntSExpr)((RegVRef)target).reg);
+                op.Add("Rd", ((RegVRef)target).reg);
 
 				if (source is RegVRef)
 				{
 					// reg copy
-					op.Add("op", (IntSExpr)50); // V+s=>V
-					op.Add("R1", (IntSExpr)((RegVRef)source).reg);
+					op.Add("op", 50); // V+s=>V
+					op.Add("R1", ((RegVRef)source).reg);
 				}
 				else if (source is MemVRef)
 				{
 					//mem read
-					op.Add("op", (IntSExpr)82);
+					op.Add("op", 82);
 					var S1 = ((MemVRef)source).addr;
 					if (S1 is FieldSRef)
 					{
-						op.Add("R1", (IntSExpr)((RegVRef)((FieldSRef)S1).varref).reg);
+						op.Add("R1", ((RegVRef)((FieldSRef)S1).varref).reg);
 						op.Add("S1", new FieldIndexSExpr { field = ((FieldSRef)S1).fieldname, type = ((RegVRef)((FieldSRef)S1).varref).datatype });
 					}
 					else if (S1 is IntSExpr || S1 is AddrSExpr)
 					{
-						op.Add("R1", (IntSExpr)13);
+						op.Add("R1", 13);
 						op.Add("S1", new FieldIndexSExpr { field = "Imm1", type = "opcode" });
 						op.Add("Imm1", S1);
-						if (S1 is AddrSExpr) op.Add("index", (IntSExpr)((AddrSExpr)S1).frame);
+						if (S1 is AddrSExpr) op.Add("index", (int)((AddrSExpr)S1).frame);
 					}
 
 				}
@@ -136,16 +287,16 @@ namespace compiler
 
 							case ArithSpec.Multiply:
 								//VMUL instruction 61
-								op.Add("op", (IntSExpr)61);
-								op.Add("R1", (IntSExpr)((RegVRef)expr.V1).reg);
-								op.Add("R2", (IntSExpr)((RegVRef)expr.V2).reg);
+								op.Add("op", 61);
+								op.Add("R1", ((RegVRef)expr.V1).reg);
+								op.Add("R2", ((RegVRef)expr.V2).reg);
 								break;
 
 							case ArithSpec.Divide:
 								//VDIV instruction 62
-								op.Add("op", (IntSExpr)62);
-								op.Add("R1", (IntSExpr)((RegVRef)expr.V1).reg);
-								op.Add("R2", (IntSExpr)((RegVRef)expr.V2).reg);
+								op.Add("op", 62);
+								op.Add("R1", ((RegVRef)expr.V1).reg);
+								op.Add("R2", ((RegVRef)expr.V2).reg);
 								break;
 						}
 
@@ -163,30 +314,30 @@ namespace compiler
 						switch (expr.Op)
 						{
 							case ArithSpec.Subtract:
-								op.Add("op", (IntSExpr)49);
+								op.Add("op", 49);
 								break;
 
 							case ArithSpec.Add:
-								op.Add("op", (IntSExpr)50);
+								op.Add("op", 50);
 								break;
 
 							case ArithSpec.Divide:
-								op.Add("op", (IntSExpr)51);
+								op.Add("op", 51);
 								break;
 
 							case ArithSpec.Multiply:
-								op.Add("op", (IntSExpr)52);
+								op.Add("op", 52);
 								break;
 						}
 
 						if (expr.S2 is FieldSRef)
 						{
-							op.Add("R2", (IntSExpr)((RegVRef)((FieldSRef)expr.S2).varref).reg);
+							op.Add("R2", ((RegVRef)((FieldSRef)expr.S2).varref).reg);
 							op.Add("S2", new FieldIndexSExpr { field = ((FieldSRef)expr.S2).fieldname, type = ((RegVRef)((FieldSRef)expr.S2).varref).datatype });
 						}
 						else if (expr.S2 is IntSExpr || expr.S2 is AddrSExpr)
 						{
-							op.Add("R2", (IntSExpr)13);
+							op.Add("R2", 13);
 							op.Add("S2", new FieldIndexSExpr { field = "Imm2", type = "opcode" });
 							op.Add("Imm2", expr.S2);
 						}
@@ -229,7 +380,7 @@ namespace compiler
             if (source is IntSExpr || source is AddrSExpr || source is FieldIndexSExpr || source is FieldSRef )
             {
                 // convert to tgt+=src-tgt
-                var arop = new ArithSExpr { S1 = source, Op = ArithSpec.Subtract, S2 = append ? (SExpr)(IntSExpr)0 : target };
+                var arop = new ArithSExpr { S1 = source, Op = ArithSpec.Subtract, S2 = append ? (SExpr)IntSExpr.Zero : target };
                 source = arop;
                 append = true;
                 b.Add(this);
@@ -249,7 +400,7 @@ namespace compiler
                     {
                         S1 = FieldSRef.ScratchInt,
                         Op = ArithSpec.Subtract,
-                        S2 = append ? (SExpr)(IntSExpr)0 : target
+                        S2 = append ? (SExpr)IntSExpr.Zero : target
                     };
                     source = arop;
                     append = true;
@@ -269,14 +420,14 @@ namespace compiler
 		public Table Opcode()
 		{
 			var op = new Table{datatype="opcode"};
-			if(append) op.Add("acc",(IntSExpr)1);
+			if(append) op.Add("acc",IntSExpr.One);
 			
 			if(target is FieldSRef)
 			{
 				var sd = (FieldSRef)target;
 				var rd = (RegVRef)sd.varref;
 				op.Add("Sd",new FieldIndexSExpr{type=rd.datatype,field=sd.fieldname});
-				op.Add("Rd",(IntSExpr)rd.reg);
+				op.Add("Rd",rd.reg);
 				
 				if(source is FieldSRef || source is IntSExpr || source is AddrSExpr)
 				{
@@ -290,29 +441,29 @@ namespace compiler
 					// s arith s => s, 57-60 -+/*
 					switch (expr.Op) {
 						case ArithSpec.Subtract:
-							op.Add("op",(IntSExpr)57);
+							op.Add("op",57);
 							break;
 							
 						case ArithSpec.Add:
-							op.Add("op",(IntSExpr)58);
+							op.Add("op",58);
 							break;
 							
 						case ArithSpec.Divide:
-							op.Add("op",(IntSExpr)59);
+							op.Add("op",59);
 							break;
 							
 						case ArithSpec.Multiply:
-							op.Add("op",(IntSExpr)60);
+							op.Add("op",60);
 							break;
 					}
 					
 					if( expr.S1 is FieldSRef)
 					{
-						op.Add("R1",	(IntSExpr)((RegVRef)((FieldSRef)expr.S1).varref).reg);
+						op.Add("R1",	((RegVRef)((FieldSRef)expr.S1).varref).reg);
 						op.Add("S1",	new FieldIndexSExpr{field=((FieldSRef)expr.S1).fieldname,type=((RegVRef)((FieldSRef)expr.S1).varref).datatype});
 					} else if( expr.S1 is IntSExpr || expr.S1 is AddrSExpr)
 					{
-						op.Add("R1",	(IntSExpr)13);
+						op.Add("R1",	13);
 						op.Add("S1",	new FieldIndexSExpr{field="Imm1",type="opcode"});
 						op.Add("Imm1",	expr.S1);
                     }
@@ -324,11 +475,11 @@ namespace compiler
 
                     if ( expr.S2 is FieldSRef)
 					{
-						op.Add("R2",	(IntSExpr)((RegVRef)((FieldSRef)expr.S2).varref).reg);
+						op.Add("R2",	((RegVRef)((FieldSRef)expr.S2).varref).reg);
 						op.Add("S2",	new FieldIndexSExpr{field=((FieldSRef)expr.S2).fieldname,type=((RegVRef)((FieldSRef)expr.S2).varref).datatype});
 					} else if( expr.S2 is IntSExpr || expr.S2 is AddrSExpr)
 					{
-						op.Add("R2",	(IntSExpr)13);
+						op.Add("R2",	13);
 						op.Add("S2",	new FieldIndexSExpr{field="Imm2",type="opcode"});
 						op.Add("Imm2",	expr.S2);
                     }
@@ -392,34 +543,34 @@ namespace compiler
 		public Table Opcode()
 		{
 			var op = new Table{datatype="opcode"};
-			op.Add("op",	(IntSExpr)71		);
+			op.Add("op", 71);
 			
 			if( S1 is FieldSRef)
 			{
-				op.Add("R1",	(IntSExpr)((RegVRef)((FieldSRef)S1).varref).reg);
+				op.Add("R1",	((RegVRef)((FieldSRef)S1).varref).reg);
 				op.Add("S1",	new FieldIndexSExpr{field=((FieldSRef)S1).fieldname,type=((RegVRef)((FieldSRef)S1).varref).datatype});
 			} else if( S1 is IntSExpr || S1 is AddrSExpr)
 			{
-				op.Add("R1",	(IntSExpr)13);
+				op.Add("R1",	13);
 				op.Add("S1",	new FieldIndexSExpr{field="Imm1",type="opcode"});
 				op.Add("Imm1",	S1);
 			}
 			
 			if( S2 is FieldSRef)
 			{
-				op.Add("R2",	(IntSExpr)((RegVRef)((FieldSRef)S2).varref).reg);
+				op.Add("R2",	((RegVRef)((FieldSRef)S2).varref).reg);
 				op.Add("S2",	new FieldIndexSExpr{field=((FieldSRef)S2).fieldname,type=((RegVRef)((FieldSRef)S2).varref).datatype});
 			} else if( S2 is IntSExpr || S2 is AddrSExpr)
 			{
-				op.Add("R2",	(IntSExpr)13);
+				op.Add("R2",	13);
 				op.Add("S2",	new FieldIndexSExpr{field="Imm2",type="opcode"});
 				op.Add("Imm2",	S2);
 			}
-			
-			
-			op.Add("addr1",	(IntSExpr)this.rjmpeq);
-			op.Add("addr2",	(IntSExpr)this.rjmplt);
-			op.Add("addr3",	(IntSExpr)this.rjmpgt);
+
+
+			op.Add("addr1", this.rjmpeq ?? 0);
+			op.Add("addr2",	this.rjmplt ?? 0);
+			op.Add("addr3",	this.rjmpgt ?? 0);
 			
 			return op;
 		}
@@ -451,7 +602,7 @@ namespace compiler
 			Block flatif = ifblock.Flatten();
 			Block flatelse = elseblock.Flatten();
 
-			flatif.Add(new Jump { relative = true, target = (IntSExpr)flatelse.Count });
+			flatif.Add(new Jump { relative = true, target = new IntSExpr(flatelse.Count) });
 			b.Add(branch.Flatten(1, flatif.Count + 1));
 			b.AddRange(flatif);
 			b.AddRange(flatelse);
@@ -491,7 +642,7 @@ namespace compiler
 				Block flatbody = body.Flatten();
 				b.Add(branch.Flatten(1,flatbody.Count+2));
 				b.AddRange(flatbody);
-				b.Add(new Jump{target=(IntSExpr)(-(flatbody.Count+1)),relative=true});
+				b.Add(new Jump{target=new IntSExpr(-(flatbody.Count+1)),relative=true});
 				
 			}
 			
@@ -535,25 +686,25 @@ namespace compiler
 		public Table Opcode()
 		{
 			var op = new Table{datatype="opcode"};
-			op.Add("op",	(IntSExpr)70);
+			op.Add("op",	70);
 			
 			if(relative)
 			{
-				op.Add("signal-green",(IntSExpr)1);
+				op.Add("signal-green",IntSExpr.One);
 			}
 			
 			if(frame.HasValue)
 			{
-				op.Add("index",(IntSExpr)frame);
+				op.Add("index", (int)frame);
 			}
 			
 			if( target is FieldSRef)
 			{
-				op.Add("R1",	(IntSExpr)((RegVRef)((FieldSRef)target).varref).reg);
+				op.Add("R1",	((RegVRef)((FieldSRef)target).varref).reg);
 				op.Add("S1",	new FieldIndexSExpr{field=((FieldSRef)target).fieldname,type=((RegVRef)((FieldSRef)target).varref).datatype});
 			} else if( target is IntSExpr || target is AddrSExpr)
 			{
-				op.Add("R1",	(IntSExpr)13);
+				op.Add("R1",	13);
 				op.Add("S1",	new FieldIndexSExpr{field="Imm1",type="opcode"});
 				op.Add("Imm1",	target);
 			}
@@ -562,9 +713,9 @@ namespace compiler
 			{
 				if (callsite is FieldSRef)
 				{
-					op.Add("Rd",	(IntSExpr)((RegVRef)((FieldSRef)callsite).varref).reg);
+					op.Add("Rd",	((RegVRef)((FieldSRef)callsite).varref).reg);
 					op.Add("Sd",	new FieldIndexSExpr{field=((FieldSRef)callsite).fieldname,type=((RegVRef)((FieldSRef)callsite).varref).datatype});
-					op.Add("acc",(IntSExpr)1);
+					op.Add("acc",   1);
 				}
 			}
 			
@@ -590,6 +741,25 @@ namespace compiler
 		public RegVRef source;
 		public RegVRef dest;
 
+
+		public Exchange(RegVRef reg, PointerIndex frame = PointerIndex.CallStack): this(reg, frame, IntSExpr.Zero)
+		{
+			
+		}
+
+		public Exchange(RegVRef reg, PointerIndex frame, SExpr addr): this(reg,reg,frame,addr)
+		{
+			
+		}
+
+		public Exchange(RegVRef source, RegVRef dest, PointerIndex frame, SExpr addr)
+		{
+			this.source = source;
+			this.dest = dest;
+			this.frame = frame;
+			this.addr = addr;
+		}
+
 		public override string ToString()
 		{
 			return string.Format("[Exchange {0}+{1} {2} => {3}]", frame, addr, source, dest);
@@ -611,21 +781,21 @@ namespace compiler
 		{
 			var op = new Table { datatype = "opcode" };
 			//mem write
-			op.Add("op", (IntSExpr)81);
-			op.Add("index", (IntSExpr)frame);
-			op.Add("R2", (IntSExpr)source.reg);
-			op.Add("Rd", (IntSExpr)dest.reg);
+			op.Add("op", 81);
+			op.Add("index", (int)frame);
+			op.Add("R2", source.reg);
+			op.Add("Rd", dest.reg);
 
 			var S1 = addr;
 			if (S1 is FieldSRef)
 			{
-				op.Add("R1", (IntSExpr)((RegVRef)((FieldSRef)S1).varref).reg);
+				op.Add("R1", ((RegVRef)((FieldSRef)S1).varref).reg);
 				op.Add("S1", new FieldIndexSExpr { field = ((FieldSRef)S1).fieldname, type = ((RegVRef)((FieldSRef)S1).varref).datatype });
 				
 			}
 			else if (S1 is IntSExpr || S1 is AddrSExpr)
 			{
-				op.Add("R1", (IntSExpr)13);
+				op.Add("R1", 13);
 				op.Add("S1", new FieldIndexSExpr { field = "Imm1", type = "opcode" });
 				op.Add("Imm1", S1);
 			}
@@ -636,8 +806,14 @@ namespace compiler
 	}
 	public class Push:Statement
 	{
-		public PointerIndex stack;
-		public RegVRef reg;
+		public readonly PointerIndex stack;
+		public readonly RegVRef reg;
+
+		public Push(RegVRef reg, PointerIndex stack = PointerIndex.CallStack)
+		{
+			this.reg = reg;
+			this.stack = stack;
+		}
 		
 		public override string ToString()
 		{
@@ -659,17 +835,23 @@ namespace compiler
 		public Table Opcode()
 		{
 			var op = new Table{datatype="opcode"};
-			op.Add("op",	(IntSExpr)83		);
-			op.Add("index",	(IntSExpr)stack		);
-			op.Add("R2",	(IntSExpr)reg.reg	);
+			op.Add("op",	83		);
+			op.Add("index",	(int)stack		);
+			op.Add("R2",	reg.reg	);
 			return op;
 		}
 	}
 	public class Pop:Statement
 	{
-		public PointerIndex stack;
-		public RegVRef reg;
-		
+		public readonly PointerIndex stack;
+		public readonly RegVRef reg;
+
+		public Pop(RegVRef reg, PointerIndex stack = PointerIndex.CallStack)
+		{
+			this.reg = reg;
+			this.stack = stack;
+		}
+
 		public override string ToString()
 		{
 			return string.Format("[Pop {0} {1}]", stack, reg);
@@ -690,9 +872,9 @@ namespace compiler
 		public Table Opcode()
 		{
 			var op = new Table{datatype="opcode"};
-			op.Add("op",	(IntSExpr)84		);
-			op.Add("index",	(IntSExpr)stack		);
-			op.Add("Rd",	(IntSExpr)reg.reg	);
+			op.Add("op",	84);
+			op.Add("index", (int)stack);
+			op.Add("Rd",	reg.reg	);
 			return op;
 		}
 	}
@@ -736,7 +918,7 @@ namespace compiler
 					      	source= new ArithSExpr{
                                   S1 = args.ints[i],
                                   Op = ArithSpec.Add,
-                                  S2 = (IntSExpr)0
+                                  S2 = IntSExpr.Zero
                               },
 					      	target=FieldSRef.VarField(RegVRef.rScratch,"signal-" + (i + 1)),
 					      });
@@ -757,7 +939,7 @@ namespace compiler
 		
 			//jump to function, with return in r8.0
 			b.Add(new Jump{
-			      	target = new AddrSExpr{symbol=name,frame= PointerIndex.ProgConst },
+			      	target = new AddrSExpr{symbol=name},
 			      	callsite = FieldSRef.CallSite,
 			      	frame=PointerIndex.ProgConst,
 			      });
@@ -797,8 +979,8 @@ namespace compiler
 	
 	public class Return:Statement
 	{
-		public SExpr sreturn;
-		public VExpr vreturn;
+		public readonly SExpr sreturn;
+		public readonly VExpr vreturn;
 
 		public Return(){}
 		public Return(SExpr sret)

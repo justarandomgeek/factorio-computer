@@ -19,7 +19,8 @@ end
 function LSTPROGS()
   int i
   while i < 6 do --TODO for loop?
-    nixies[i] = programs[i] --TODO * stringmask ?
+    nixies[i] = programs[i] --TODO * stringmask
+    nixies[i].signal-grey += i
 
     i += 1
   end
@@ -29,6 +30,11 @@ end
 
 function MAIN()
   rNixie = "LOADER 0.1"
+  LSTPROGS()
+  -- R + grey=prognum to RUN
+  -- L + white=addr to LOAD
+
+
 
 end
 

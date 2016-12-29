@@ -35,8 +35,7 @@ namespace compiler
 				
 				output.Add(
 					field ?? element.Key,
-					(IntSExpr)element.Value.Evaluate()
-					//element.Value
+					element.Value.Evaluate()
 				);
 			}
 			
@@ -48,6 +47,11 @@ namespace compiler
 		public void Add(TableItem ti)
 		{
 			this.Add(ti.fieldname, ti.value);
+		}
+
+		public void Add(string fieldname, int value)
+		{
+			this.Add(fieldname, new IntSExpr(value));
 		}
 
 		public Table() : base()
@@ -66,7 +70,7 @@ namespace compiler
 			foreach (var c in chars) {
 				if (c.Key == ' ')
 					continue;
-				this.Add(new TableItem(c.Key, (IntSExpr)c.Value));
+				this.Add(new TableItem(c.Key, new IntSExpr(c.Value)));
 			}
 		}
 		

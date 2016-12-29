@@ -33,16 +33,17 @@ namespace compiler
 		[Option(HelpText="rcon player name to direct-insert blueprint")]
 		public string rconplayer { get; set; }
 
-		[Option(HelpText = "print symbol table")]
+		[Option("symtable", HelpText = "print symbol table")]
 		public bool symtable { get; set; }
 
-		[Option(HelpText = "print type info")]
+		[Option("typeinfo", HelpText = "print type info")]
 		public bool typeinfo { get; set; }
-		
-		[Option(HelpText = "print functions")]
-		public bool func { get; set; }
 
-		[Option(HelpText = "print parsed function bodies")]
+		bool _func;
+		[Option(HelpText = "print functions")]
+		public bool func { get { return _func || funcbody || funcbodyraw; } set { _func = value; } }
+
+		[Option("funcbody", HelpText = "print parsed function bodies")]
 		public bool funcbody { get; set; }
 
 		[Option(HelpText = "print compiled function bodies")]

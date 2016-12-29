@@ -75,6 +75,7 @@ namespace compiler
 						{
 							name = func.name,
 							type = SymbolType.Function,
+							frame = PointerIndex.ProgConst,
 							datatype = "opcode",
 							data = build.Select(stat => stat.Opcode()).ToList()
 						});
@@ -139,6 +140,7 @@ namespace compiler
         public Dictionary<string,FunctionInfo> Functions = new Dictionary<string, FunctionInfo>();
         public SymbolList Symbols = new SymbolList();
         
+		// Parser state used by lexer
         public string ExpectFieldType { get; private set; }
         public string InFunction { get; private set; }
         
@@ -185,14 +187,14 @@ namespace compiler
         }
         
         
-        public string GetSymbolDataType(string ident)
-        {
-        	if (InFunction != null && Functions[InFunction].locals.Exists((s)=>s.name==ident)) {
-        		return Functions[InFunction].locals.Find((s)=>s.name==ident).datatype;
-        	} else {
-        		return Symbols.Find((s)=>s.name==ident).datatype;
-        	}
-        }
+        //public string GetSymbolDataType(string ident)
+        //{
+        //	if (InFunction != null && Functions[InFunction].locals.Exists((s)=>s.name==ident)) {
+        //		return Functions[InFunction].locals.Find((s)=>s.name==ident).datatype;
+        //	} else {
+        //		return Symbols.Find((s)=>s.name==ident).datatype;
+        //	}
+        //}
         
         
         public void BeginFunction(string name, string returntype, SymbolList paramlist)
@@ -219,14 +221,14 @@ namespace compiler
 
         public void AllocateSymbols()
         {
-        	// 0 in both frames is reserved. Const space has progsym, data space reserved for future use by memory allocator or other system services.
+			// 0 in both frames is reserved. 
+			// 0Const has progsym
+			// 0Data  is reserved for future use by memory allocator or other system services.
 			int constaddr=1;
 			romdata = new List<Table>();
 
 			// leave space for symtable starting at 1
-			int symtsize = Symbols.Count(sym =>
-				sym.name.All(c=>"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c))
-			);
+			int symtsize = Symbols.Count(sym =>sym.name.All(c=>"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
 			constaddr += symtsize;
 
 
@@ -254,10 +256,10 @@ namespace compiler
 			Symbols= newsyms;
 
 			var progsym = new Table(Name);
-			progsym.Add("symtsize", (IntSExpr)symtsize);
-			progsym.Add("romsize",(IntSExpr)(romdata.Count+1));
-			progsym.Add("datasize", (IntSExpr)dataaddr);
-			progsym.Add("mainloc", new AddrSExpr{frame=PointerIndex.ProgConst,symbol="MAIN"});
+			progsym.Add("symtsize", symtsize);
+			progsym.Add("romsize", romdata.Count + 1);
+			progsym.Add("datasize", dataaddr);
+			progsym.Add("mainloc", new AddrSExpr { symbol = "MAIN" });
 			
 			progsym.datatype = "progsym";
 										
@@ -277,20 +279,20 @@ namespace compiler
 						switch (sym.type)
 						{
 							case SymbolType.Data:
-								symtable.Add("symtype", (IntSExpr)1);
+								symtable.Add("symtype", 1);
 								break;
 							case SymbolType.Function:
-								symtable.Add("symtype", (IntSExpr)2);
+								symtable.Add("symtype", 2);
 								break;
 							case SymbolType.Constant:
-								symtable.Add("symtype", (IntSExpr)3);
+								symtable.Add("symtype", 3);
 								break;
 							default:
 								throw new NotImplementedException();
 						}
-						
-						symtable.Add("addr", (IntSExpr)sym.fixedAddr);
-						symtable.Add("size", (IntSExpr)sym.size);
+
+						symtable.Add("addr", sym.fixedAddr ?? 0);
+						symtable.Add("size", sym.size ?? 0);
 						
 						return symtable;
 					})
@@ -305,14 +307,12 @@ namespace compiler
 			{ "memexchange", fcall => {
 				// prevdata = memexchange(newdata,addr,frame)
 				Block b = new Block();
-				b.Add(new Exchange
-				{
-					addr = fcall.args.ints[0],
-					source = fcall.args.var as RegVRef ?? RegVRef.rScratch2,
-					dest = fcall.vreturn as RegVRef ?? RegVRef.rScratch2,
-					frame = (PointerIndex)fcall.args.ints[1].Evaluate(),
-
-				});
+				b.Add(new Exchange(
+					fcall.args.var as RegVRef ?? RegVRef.rScratch2,
+					fcall.vreturn as RegVRef ?? RegVRef.rScratch2,
+					(PointerIndex)fcall.args.ints[1].Evaluate(),
+					fcall.args.ints[0]
+					));
 				return b;
 			}},
 
