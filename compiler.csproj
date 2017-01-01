@@ -60,6 +60,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <LangVersion>6</LangVersion>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -97,20 +98,62 @@
     <Reference Include="System.Data.DataSetExtensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="compiler_Lexer.cs" />
-    <Compile Include="compiler_Parser.cs" />
+    <Compile Include="Tokens\ArithSpec.cs" />
+    <Compile Include="Tokens\Block.cs" />
+    <Compile Include="Tokens\CompSpec.cs" />
+    <Compile Include="Tokens\FieldInfo.cs" />
+    <Compile Include="Tokens\FunctionInfo.cs" />
+    <Compile Include="Tokens\SExpr\AddrSExpr.cs" />
+    <Compile Include="Tokens\SExpr\ArithSExpr.cs" />
+    <Compile Include="compiler.lex.cs">
+      <DependentUpon>compiler.lex</DependentUpon>
+    </Compile>
+    <Compile Include="compiler.y.cs">
+      <DependentUpon>compiler.y</DependentUpon>
+    </Compile>
+    <Compile Include="Tokens\SExpr\FieldIndexSExpr.cs" />
+    <Compile Include="CodeGen\Instruction.cs" />
+    <Compile Include="Tokens\SExpr\IntSExpr.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SExpr.cs" />
-    <Compile Include="SRef.cs" />
-    <Compile Include="Statement.cs" />
-    <Compile Include="Table.cs" />
-    <Compile Include="TokenValues.cs" />
-    <Compile Include="VExpr.cs" />
-    <Compile Include="VRef.cs" />
+    <Compile Include="Tokens\SExpr\SExpr.cs" />
+    <Compile Include="Tokens\SExpr\SRef\FieldSRef.cs" />
+    <Compile Include="Tokens\SExpr\SRef\SRef.cs" />
+    <Compile Include="Statement\Branch.cs" />
+    <Compile Include="Statement\Exchange.cs" />
+    <Compile Include="Statement\ExprList.cs" />
+    <Compile Include="Statement\FunctionCall.cs" />
+    <Compile Include="Statement\If.cs" />
+    <Compile Include="Statement\Jump.cs" />
+    <Compile Include="Statement\PointerIndex.cs" />
+    <Compile Include="Statement\Pop.cs" />
+    <Compile Include="Statement\Push.cs" />
+    <Compile Include="Statement\Return.cs" />
+    <Compile Include="Statement\SAssign.cs" />
+    <Compile Include="Statement\Statement.cs" />
+    <Compile Include="Statement\VAssign.cs" />
+    <Compile Include="Statement\While.cs" />
+    <Compile Include="Tokens\Symbol.cs" />
+    <Compile Include="Tokens\SymbolList.cs" />
+    <Compile Include="Tokens\SymbolType.cs" />
+    <Compile Include="Tokens\TableItem.cs" />
+    <Compile Include="Tokens\TypeInfo.cs" />
+    <Compile Include="Tokens\VExpr\Table.cs" />
+    <Compile Include="Tokens\VExpr\ArithVExpr.cs" />
+    <Compile Include="Tokens\VExpr\ArithVSExpr.cs" />
+    <Compile Include="Tokens\VExpr\StringVExpr.cs" />
+    <Compile Include="Tokens\VExpr\VExpr.cs" />
+    <Compile Include="Tokens\VExpr\VRef\ArrayVRef.cs" />
+    <Compile Include="Tokens\VExpr\VRef\MemVRef.cs" />
+    <Compile Include="Tokens\VExpr\VRef\RegVRef.cs" />
+    <Compile Include="Tokens\VExpr\VRef\VarVRef.cs" />
+    <Compile Include="Tokens\VExpr\VRef\VRef.cs" />
   </ItemGroup>
   <ItemGroup>
     <gplex Include="compiler.lex" />
@@ -146,6 +189,7 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <LogicalName>serpent</LogicalName>
     </EmbeddedResource>
+    <Compile Include="Tokens\SExpr\SRef\IntVarSRef.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -156,14 +200,14 @@
       gplex;
     </BeforeBuildDependsOn>
   </PropertyGroup>
-  <Target Name="gppg" Inputs="@(gppg)" Outputs="@(gppg->'%(Filename)_Parser.cs')">
-    <Exec Command="$(ProjectDir)\gp\gppg.exe /report /verbose /gplex @(gppg) &gt; %(Filename)_Parser.cs" />
+  <Target Name="gppg" Inputs="@(gppg)" Outputs="@(gppg->'%(Filename).y.cs')">
+    <Exec Command="$(ProjectDir)\gp\gppg.exe /report /verbose /gplex @(gppg) &gt; %(Filename).y.cs" />
   </Target>
-  <Target Name="gplex" Inputs="@(gplex)" Outputs="@(gplex->'%(Filename)_Lexer.cs')">
-    <Exec Command="$(ProjectDir)\gp\gplex.exe /out:%(Filename)_Lexer.cs @(gplex)" />
+  <Target Name="gplex" Inputs="@(gplex)" Outputs="@(gplex->'%(Filename).lex.cs')">
+    <Exec Command="$(ProjectDir)\gp\gplex.exe /out:%(Filename).lex.cs @(gplex)" />
   </Target>
   <Target Name="BeforeClean">
-    <Delete Files="%(gplex.Filename)_Lexer.cs" />
-    <Delete Files="%(gppg.Filename)_Parser.cs" />
+    <Delete Files="%(gplex.Filename).lex.cs" />
+    <Delete Files="%(gppg.Filename).y.cs" />
   </Target>
 </Project>

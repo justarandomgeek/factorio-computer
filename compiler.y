@@ -147,18 +147,18 @@ arith: '*' {$$ = ArithSpec.Multiply;};
 arith: '/' {$$ = ArithSpec.Divide;};
 
 sexpr: '(' sexpr ')' { $$=$2; };
-sexpr: sexpr arith sexpr {$$=new ArithSExpr{S1=$1,Op=$2,S2=$3};};
+sexpr: sexpr arith sexpr {$$=new ArithSExpr($1,$2,$3);};
 sexpr: INTEGER {$$=new IntSExpr($1);};
 sexpr: sref {$$=$1;};
-sexpr: '&' VAR { $$ = new AddrSExpr{symbol = $2}; };
-sexpr: '&' SFUNCNAME { $$ = new AddrSExpr{symbol = $2}; };
-sexpr: '&' VFUNCNAME { $$ = new AddrSExpr{symbol = $2}; };
+sexpr: '&' VAR { $$ = new AddrSExpr($2); };
+sexpr: '&' SFUNCNAME { $$ = new AddrSExpr($2); };
+sexpr: '&' VFUNCNAME { $$ = new AddrSExpr($2); };
 //sexpr: '&' ARRAY { $$ = new AddrSExpr{symbol = $2}; };
 //sexpr: '&' ARRAY '[' sexpr ']' { $$ = new ArithSExpr{S1 = new AddrSExpr{symbol = $2}, Op=ArithSpec.Add, S2 = $4}; };
 
 vexpr: '(' vexpr ')' { $$=$2; };
-vexpr: vexpr arith vexpr {$$=new ArithVExpr{V1=$1,Op=$2,V2=$3};};
-vexpr: vexpr arith sexpr {$$=new ArithVSExpr{V1=$1,Op=$2,S2=$3};};
+vexpr: vexpr arith vexpr {$$=new ArithVExpr($1,$2,$3);};
+vexpr: vexpr arith sexpr {$$=new ArithVSExpr($1,$2,$3);};
 vexpr: '{' littable '}'{$$=$2;};
 vexpr: STRING {$$= (StringVExpr)$1;};
 vexpr: vref{$$=$1;};
@@ -168,15 +168,15 @@ sref: vref '.' {ExpectFieldType=$1.datatype;} FIELD {$$ = FieldSRef.VarField($1,
 sref: INTVAR {$$ = new IntVarSRef($1);};
 //sref: VAR '[' sexpr ']' ;
 
-vref: VAR {$$=new VarVRef{name=$1};};
+vref: VAR {$$=new VarVRef($1);};
 vref: ARRAY '[' sexpr ']' {$$=new ArrayVRef($1,$3);};
 vref: '@' sexpr {$$ = new MemVRef($2);};
 
-vassign: vref ASSIGN vexpr {$$=new VAssign{target=$1,append=false,source=$3};};
-vassign: vref APPEND vexpr {$$=new VAssign{target=$1,append=true,source=$3};};
+vassign: vref ASSIGN vexpr {$$=new VAssign{target=$1,source=$3};};
+//vassign: vref APPEND vexpr {$$=new VAssign{target=$1,append=true,source=$3};};
 
-sassign: sref ASSIGN sexpr {$$=new SAssign{target=$1,append=false,source=$3};};
-sassign: sref APPEND sexpr {$$=new SAssign{target=$1,append=true,source=$3};};
+sassign: sref ASSIGN sexpr {$$=new SAssign{target=$1,source=$3};};
+//sassign: sref APPEND sexpr {$$=new SAssign{target=$1,append=true,source=$3};};
 
 littable: {$$= new Table();};
 littable: STRING {$$= new Table($1);};

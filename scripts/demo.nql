@@ -49,7 +49,7 @@ function MATHDEMO(int i)
     factorial.signal-white = factorial.signal-white * num.signal-white
     nixies[2]=factorial
 
-    num.signal-white += 1
+    num.signal-white = num.signal-white + 1
   end
   return
 end

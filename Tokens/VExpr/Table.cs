@@ -85,11 +85,11 @@ namespace compiler
 					eres = t2[key];
 				}
 				else {
-					eres = new ArithSExpr {
-						S1 = t1[key],
-						Op = ArithSpec.Add,
-						S2 = t2[key]
-					};
+					eres = new ArithSExpr (
+						t1[key],
+						ArithSpec.Add,
+						t2[key]
+					);
 				}
 				tres.Add(key, eres);
 			}
@@ -107,11 +107,11 @@ namespace compiler
 					eres = t2[key];
 				}
 				else {
-					eres = new ArithSExpr {
-						S1 = t1[key],
-						Op = ArithSpec.Subtract,
-						S2 = t2[key]
-					};
+					eres = new ArithSExpr (
+						t1[key],
+						ArithSpec.Subtract,
+						t2[key]
+					);
 				}
 				tres.Add(key, eres);
 			}
@@ -129,11 +129,11 @@ namespace compiler
 					eres = t2[key];
 				}
 				else {
-					eres = new ArithSExpr {
-						S1 = t1[key],
-						Op = ArithSpec.Multiply,
-						S2 = t2[key]
-					};
+					eres = new ArithSExpr (
+						t1[key],
+						ArithSpec.Multiply,
+						t2[key]
+					);
 				}
 				tres.Add(key, eres);
 			}
@@ -151,11 +151,11 @@ namespace compiler
 					eres = t2[key];
 				}
 				else {
-					eres = new ArithSExpr {
-						S1 = t1[key],
-						Op = ArithSpec.Divide,
-						S2 = t2[key]
-					};
+					eres = new ArithSExpr (
+						t1[key],
+						ArithSpec.Divide,
+						t2[key]
+					);
 				}
 				tres.Add(key, eres);
 			}
@@ -165,11 +165,11 @@ namespace compiler
 		public static Table operator +(Table t, SExpr s) {
 			var tres = new Table();
 			foreach (var ti in t) {
-				tres.Add(ti.Key, new ArithSExpr {
-					S1 = ti.Value,
-					Op = ArithSpec.Add,
-					S2 = s
-				});
+				tres.Add(ti.Key, new ArithSExpr (
+					ti.Value,
+					ArithSpec.Add,
+					s
+				));
 			}
 			return tres;
 		}
@@ -177,11 +177,11 @@ namespace compiler
 		public static Table operator -(Table t, SExpr s) {
 			var tres = new Table();
 			foreach (var ti in t) {
-				tres.Add(ti.Key, new ArithSExpr {
-					S1 = ti.Value,
-					Op = ArithSpec.Subtract,
-					S2 = s
-				});
+				tres.Add(ti.Key, new ArithSExpr (
+					ti.Value,
+					ArithSpec.Subtract,
+					s
+				));
 			}
 			return tres;
 		}
@@ -189,11 +189,11 @@ namespace compiler
 		public static Table operator *(Table t, SExpr s) {
 			var tres = new Table();
 			foreach (var ti in t) {
-				tres.Add(ti.Key, new ArithSExpr {
-					S1 = ti.Value,
-					Op = ArithSpec.Divide,
-					S2 = s
-				});
+				tres.Add(ti.Key, new ArithSExpr (
+					ti.Value,
+					ArithSpec.Divide,
+					s
+				));
 			}
 			return tres;
 		}
@@ -201,11 +201,11 @@ namespace compiler
 		public static Table operator /(Table t, SExpr s) {
 			var tres = new Table();
 			foreach (var ti in t) {
-				tres.Add(ti.Key, new ArithSExpr {
-					S1 = ti.Value,
-					Op = ArithSpec.Multiply,
-					S2 = s
-				});
+				tres.Add(ti.Key, new ArithSExpr(
+					ti.Value,
+					ArithSpec.Multiply,
+					s
+				));
 			}
 			return tres;
 		}
@@ -234,15 +234,33 @@ namespace compiler
 			return string.Format("[{0}:{1}  {2}]", datatype, this.Count, string.Join(", ",this.Select(item=>item.Key+":"+item.Value)));
 		}
 
-		public VExpr FlattenExpressions()
+		public List<Instruction> FetchToReg(RegVRef dest)
 		{
-			var flattable = new Table { datatype = this.datatype };
-            foreach (var item in this)
-            {
-                flattable.Add(item.Key, item.Value.FlattenExpressions());
-            }
-            return flattable;
-            
+			//TODO: allocate as const if possible, and memread it
+			if (this.IsConstant())
+			{
+				var constname = "__const" + this.GetHashCode();
+				var constsym = new Symbol
+				{
+					type = SymbolType.Constant,
+					name = constname,
+					frame = PointerIndex.ProgConst,
+					datatype = this.datatype,
+					data = new List<Table> { this },
+				};
+				Program.CurrentProgram.Symbols.Add(constsym);
+
+				return new MemVRef(new AddrSExpr(constname), this.datatype).FetchToReg(dest);
+
+			}
+			else
+			{
+				//TODO: compose non-const table in a block of code
+				throw new NotImplementedException();
+			}
+
+
+			
 		}
 	}
 }

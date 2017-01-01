@@ -20,10 +20,10 @@ using CommandLine;
 
 //TODO: use conditional ALU ops
 
-
-
+	
 namespace compiler
 {
+	
 	class Program
 	{
 		//TODO: get rid of these somehow?
@@ -66,7 +66,13 @@ namespace compiler
 						}
 						if (Options.Current.funcbody) func.body.Print("| ");
 						var build = func.BuildFunction();
-						if (Options.Current.funcbodyraw) build.Print("  ");
+						if (Options.Current.funcbodyraw)
+						{
+							foreach (var item in build)
+							{
+								Console.WriteLine("  {0}", item);
+							}
+						}
 
 						if (func.localints.Count > 0) CurrentProgram.Types.Add("__li" + func.name, func.localints);
 						
@@ -77,7 +83,7 @@ namespace compiler
 							type = SymbolType.Function,
 							frame = PointerIndex.ProgConst,
 							datatype = "opcode",
-							data = build.Select(stat => stat.Opcode()).ToList()
+							//TODO: data = build.Cast<Table>().ToList()
 						});
 
 						if (Options.Current.func) Console.WriteLine();
@@ -99,6 +105,9 @@ namespace compiler
 						}
 					}
 
+
+					continue;
+					//TODO: fix this
 					CurrentProgram.AllocateSymbols();
 
 					if (Options.Current.symtable)
@@ -186,17 +195,6 @@ namespace compiler
         	}
         }
         
-        
-        //public string GetSymbolDataType(string ident)
-        //{
-        //	if (InFunction != null && Functions[InFunction].locals.Exists((s)=>s.name==ident)) {
-        //		return Functions[InFunction].locals.Find((s)=>s.name==ident).datatype;
-        //	} else {
-        //		return Symbols.Find((s)=>s.name==ident).datatype;
-        //	}
-        //}
-        
-        
         public void BeginFunction(string name, string returntype, SymbolList paramlist)
         {
         	Functions.Add(name,new FunctionInfo{name=name, returntype = returntype, locals=paramlist});
@@ -259,7 +257,7 @@ namespace compiler
 			progsym.Add("symtsize", symtsize);
 			progsym.Add("romsize", romdata.Count + 1);
 			progsym.Add("datasize", dataaddr);
-			progsym.Add("mainloc", new AddrSExpr { symbol = "MAIN" });
+			progsym.Add("mainloc", new AddrSExpr("MAIN"));
 			
 			progsym.datatype = "progsym";
 										
@@ -302,14 +300,39 @@ namespace compiler
 
 		}
 
-		public Dictionary<string, Func<FunctionCall, Block>> VBuiltins = new Dictionary<string, Func<FunctionCall, Block>>{
-			{ "playerinfo", fcall=> { throw new NotImplementedException(); } },
-			{ "memexchange", fcall => {
+		public Dictionary<string, Func<FunctionCall, RegVRef, List<Instruction>>> VBuiltins = new Dictionary<string, Func<FunctionCall, RegVRef, List<Instruction>>>{
+			{ "playerinfo", (fcall,dest) => {
+				// summary = playerinfo()
+				// player = playerinfo(,player_index)
+				var b = new List<Instruction>();
+
+				FieldSRef arg = fcall.args.ints[0] as FieldSRef;
+				if(arg == null)
+				{
+					if ( fcall.args.ints[0] is IntVarSRef)
+					{
+						arg = ((IntVarSRef)fcall.args.ints[0]).BaseField();
+					}
+					else
+					{
+						arg = FieldSRef.ScratchInt();
+						b.AddRange(fcall.args.ints[0].FetchToField(arg));
+					}
+				}
+
+				b.Add(new Instruction {
+					opcode = Opcode.PlayerInfo,
+					
+				});
+				return b;
+
+			} },
+			{ "memexchange", (fcall,dest) => {
 				// prevdata = memexchange(newdata,addr,frame)
-				Block b = new Block();
+				var b = new List<Instruction>();
 				b.Add(new Exchange(
 					fcall.args.var as RegVRef ?? RegVRef.rScratch2,
-					fcall.vreturn as RegVRef ?? RegVRef.rScratch2,
+					dest,
 					(PointerIndex)fcall.args.ints[1].Evaluate(),
 					fcall.args.ints[0]
 					));
