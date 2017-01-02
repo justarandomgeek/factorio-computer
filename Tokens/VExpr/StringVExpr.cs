@@ -53,6 +53,11 @@ namespace compiler
 		{
 			return new Table(this.text).FetchToReg(dest);
 		}
+
+		public RegVRef AsReg()
+		{
+			return null;
+		}
 	}
 
 }

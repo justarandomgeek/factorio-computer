@@ -37,9 +37,7 @@ namespace compiler
 			{
 				if (statement != null)
 				{
-					//TODO: maybe don't reset until needed?
-					FieldSRef.ResetScratchInts();
-					code.AddRange(new VAssign {source = RegVRef.rNull, target = RegVRef.rScratch }.CodeGen());
+					//TODO: maybe reset ints if needed?
 					code.AddRange(statement.CodeGen());
 				}
 			}

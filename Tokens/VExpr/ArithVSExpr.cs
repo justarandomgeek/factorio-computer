@@ -74,6 +74,11 @@ namespace compiler
 		{
 			throw new NotImplementedException();
 		}
+
+		public RegVRef AsReg()
+		{
+			throw new NotImplementedException();
+		}
 	}
 
 }

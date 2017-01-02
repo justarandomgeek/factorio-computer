@@ -68,12 +68,12 @@ namespace compiler
 			return this;
 		}
 
-		public static bool operator ==(VarVRef a1, VarVRef a2) { return a1.Equals(a2); }
-		public static bool operator ==(VarVRef a1, MemVRef a2) { return a1.Equals(a2); }
-		public static bool operator ==(VarVRef a1, RegVRef a2) { return a1.Equals(a2); }
-		public static bool operator !=(VarVRef a1, VarVRef a2) { return !a1.Equals(a2); }
-		public static bool operator !=(VarVRef a1, MemVRef a2) { return !a1.Equals(a2); }
-		public static bool operator !=(VarVRef a1, RegVRef a2) { return !a1.Equals(a2); }
+		public static bool operator ==(VarVRef a1, VarVRef a2) { return (a1?.Equals(a2)) ?? false; }
+		public static bool operator ==(VarVRef a1, MemVRef a2) { return (a1?.Equals(a2)) ?? false; }
+		public static bool operator ==(VarVRef a1, RegVRef a2) { return (a1?.Equals(a2)) ?? false; }
+		public static bool operator !=(VarVRef a1, VarVRef a2) { return (!a1?.Equals(a2)) ?? false; }
+		public static bool operator !=(VarVRef a1, MemVRef a2) { return (!a1?.Equals(a2)) ?? false; }
+		public static bool operator !=(VarVRef a1, RegVRef a2) { return (!a1?.Equals(a2)) ?? false; }
 		public override int GetHashCode()
 		{
 			return name.GetHashCode();
@@ -116,7 +116,7 @@ namespace compiler
 
 		public static explicit operator RegVRef(VarVRef v)
 		{
-			return v.BaseVRef() as RegVRef;
+			return v==(VarVRef)null?null:v.BaseVRef() as RegVRef;
 		}
 
 		public static explicit operator MemVRef(VarVRef v)
@@ -132,6 +132,11 @@ namespace compiler
 		public List<Instruction> PutFromReg(RegVRef src)
 		{
 			return BaseVRef().PutFromReg(src);
+		}
+
+		public RegVRef AsReg()
+		{
+			return BaseVRef() as RegVRef;
 		}
 	}
 

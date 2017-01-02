@@ -27,30 +27,15 @@ namespace compiler
 			this.offset = offset;
 		}
 
-		public PointerIndex frame
-		{
-			get
-			{
-				var s = Program.CurrentProgram.Symbols.Find(sym => sym.name == symbol);
-				return s.frame;
-			}
-		}
 		public override string ToString()
 		{
 			return string.Format("{2}{0}{1}",
 				symbol,
 				offset.HasValue ? "+" + offset : "",
-				frame != PointerIndex.None ? "[" + frame + "]" : ""
+				frame() != PointerIndex.None ? "[" + frame() + "]" : ""
 				);
 			
 		}
-		public SExpr FlattenExpressions()
-		{
-			return this;
-		}
-
-		
-
 
 		public static bool operator ==(AddrSExpr a1, AddrSExpr a2) { return a1.Equals(a2); }
 		public static bool operator !=(AddrSExpr a1, AddrSExpr a2) { return !a1.Equals(a2); }
@@ -75,6 +60,17 @@ namespace compiler
 		public List<Instruction> FetchToField(FieldSRef dest)
 		{
 			throw new NotImplementedException();
+		}
+
+		public PointerIndex frame()
+		{
+			var s = Program.CurrentProgram.Symbols.Find(sym => sym.name == symbol);
+			return s.frame;
+		}
+
+		public FieldSRef AsDirectField()
+		{
+			return null;
 		}
 	}
 

@@ -72,8 +72,6 @@ namespace compiler
 
 			if (offset.IsConstant())
 			{
-				PointerIndex f = varsym.frame;
-
 				return new MemVRef(new AddrSExpr(arrname, offset.Evaluate()), varsym.datatype).FetchToReg(dest);
 			}
 			else
@@ -90,14 +88,17 @@ namespace compiler
 
 			if (offset.IsConstant())
 			{
-				PointerIndex f = varsym.frame;
-
 				return new MemVRef(new AddrSExpr(arrname, offset.Evaluate()), varsym.datatype).PutFromReg(src);
 			}
 			else
 			{
 				return new MemVRef(new ArithSExpr(new AddrSExpr(arrname), ArithSpec.Add, offset), varsym.datatype).PutFromReg(src);
 			}
+		}
+
+		public RegVRef AsReg()
+		{
+			return null;
 		}
 	}
 

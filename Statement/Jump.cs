@@ -33,7 +33,7 @@ namespace compiler
 				relative = j.relative,
 				idx = j.frame ?? PointerIndex.None,
 				op1 = j.target as FieldSRef ?? FieldSRef.Imm1(),
-				imm1 = j.target.IsConstant() ? new IntSExpr(j.target.Evaluate()) : null,
+				imm1 = j.target.IsConstant() ? j.target : null,
 				dest = j.callsite as FieldSRef,
 				acc = j.callsite is FieldSRef
 			};

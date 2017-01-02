@@ -27,22 +27,8 @@ namespace compiler
 		public List<Instruction> CodeGen()
 		{
 			var code = new List<Instruction>();
-			var scratch = target as RegVRef;
-			if(scratch != null)
-			{
-				if(target is VarVRef)
-				{
-					scratch = (RegVRef)target;
-				}
-				else
-				{
-					scratch = RegVRef.rScratch2;
-				}
-
-			}	
-			
-			code.AddRange(source.FetchToReg(scratch));
-			if(target != scratch) code.AddRange(target.PutFromReg(scratch));
+			if (source.AsReg() == null) code.AddRange(source.FetchToReg(RegVRef.rScratch2));
+			code.AddRange(target.PutFromReg(source.AsReg() ?? RegVRef.rScratch2));
 			return code;
 		}
 	}

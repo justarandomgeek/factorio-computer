@@ -33,8 +33,8 @@ namespace compiler
 				op2 = S2 as FieldSRef ?? FieldSRef.Imm2(),
 				imm2 = S2.IsConstant() ? new IntSExpr(S2.Evaluate()) : null,
 				rjmpeq = this.Op.HasFlag(CompSpec.Equal) ? truejump : falsejump,
-				rjmpgt = this.Op.HasFlag(CompSpec.Greater) ? truejump : falsejump,
 				rjmplt = this.Op.HasFlag(CompSpec.Less) ? truejump : falsejump,
+				rjmpgt = this.Op.HasFlag(CompSpec.Greater) ? truejump : falsejump,
 			});
 			
 			return b;	

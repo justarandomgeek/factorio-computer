@@ -10,11 +10,12 @@ namespace compiler
 	public class SAssign:Statement
 	{
 		public SRef target;
+		[Obsolete]
 		public bool append;
 		public SExpr source;
 		public override string ToString()
 		{
-			return string.Format("[SAssign {0} {1} {2}]", target, append?"+=":"=", source);
+			return string.Format("[SAssign {0} {1} {2}]", target, "=", source);
 		}
 		
 		public void Print(string prefix)
@@ -32,28 +33,29 @@ namespace compiler
 			}
 			else
 			{
-				bool usedscratch=false;
-				var tgt = target as FieldSRef;
-				if (tgt == null)
+				var src = source.AsDirectField();
+				
+				if(src == null)
 				{
-					if (target is IntVarSRef)
+					var tgt = target.AsDirectField();
+					if (tgt == null)
 					{
-						tgt = ((IntVarSRef)target).BaseField();
+						var scratch = FieldSRef.ScratchInt();
+						code.AddRange(source.FetchToField(scratch));
+						code.AddRange(target.PutFromField(scratch));
 					}
 					else
 					{
-						tgt = FieldSRef.ScratchInt();
-						usedscratch = true;
+						code.AddRange(source.FetchToField(tgt));
 					}
+					
+				}
+				else
+				{
+					code.AddRange(target.PutFromField(src));
 				}
 
 				
-				code.AddRange(source.FetchToField(tgt));
-
-				if (usedscratch)
-				{
-					code.AddRange(target.PutFromField(tgt));
-				}
 			}			
 			
 			return code;

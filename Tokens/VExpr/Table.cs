@@ -73,7 +73,7 @@ namespace compiler
 				this.Add(new TableItem(c.Key, new IntSExpr(c.Value)));
 			}
 		}
-		
+
 		public static Table operator +(Table t1, Table t2) {
 			var tres = new Table();
 			foreach (var key in t1.Keys.Union(t2.Keys)) {
@@ -210,6 +210,7 @@ namespace compiler
 			return tres;
 		}
 
+
 		public override string ToString()
 		{
 			if(datatype == "opcode")
@@ -261,6 +262,11 @@ namespace compiler
 
 
 			
+		}
+
+		public RegVRef AsReg()
+		{
+			return null;
 		}
 	}
 }

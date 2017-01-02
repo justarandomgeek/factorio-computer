@@ -54,5 +54,15 @@ namespace compiler
 		{
 			return this.BaseField().FetchToField(dest);
 		}
+
+		public PointerIndex frame()
+		{
+			return PointerIndex.None;
+		}
+
+		public FieldSRef AsDirectField()
+		{
+			return this.BaseField().AsDirectField();
+		}
 	}
 }

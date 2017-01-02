@@ -54,39 +54,31 @@ namespace compiler
 		{
 			var code = new List<Instruction>();
 
-			var scratch1 = S1 as FieldSRef;
-			if (scratch1 == null)
+			var f1 = S1.AsDirectField();
+			if (f1 == null)
 			{
 				if (S1.IsConstant())
 				{
-					scratch1 = FieldSRef.Imm1();
-				}
-				else if (S1 is IntVarSRef)
-				{
-					scratch1 = ((IntVarSRef)S1).BaseField();
+					f1 = FieldSRef.Imm1();
 				}
 				else
 				{
-					scratch1 = FieldSRef.ScratchInt();
-					code.AddRange(S1.FetchToField(scratch1));
+					f1 = FieldSRef.ScratchInt();
+					code.AddRange(S1.FetchToField(f1));
 				}
 			}
 
-			var scratch2 = S2 as FieldSRef;
-			if (scratch2 == null)
+			var f2 = S2.AsDirectField();
+			if (f2 == null)
 			{
 				if (S2.IsConstant())
 				{
-					scratch2 = FieldSRef.Imm2();
-				}
-				else if (S2 is IntVarSRef)
-				{
-					scratch2 = ((IntVarSRef)S2).BaseField();
+					f2 = FieldSRef.Imm2();
 				}
 				else
 				{
-					scratch2 = FieldSRef.ScratchInt();
-					code.AddRange(S2.FetchToField(scratch2));
+					f2 = FieldSRef.ScratchInt();
+					code.AddRange(S2.FetchToField(f2));
 				}
 			}
 
@@ -112,15 +104,43 @@ namespace compiler
 			code.Add(new Instruction
 			{
 				opcode = op,
-				op1 = scratch1,
+				op1 = f1,
 				imm1 = S1.IsConstant() ? S1 : null,
-				op2 = scratch2,
+				op2 = f2,
 				imm2 = S2.IsConstant() ? S2 : null,
 				dest = dest,
 				acc = true
 			});
 
 			return code;
+		}
+
+		public PointerIndex frame()
+		{
+			var f1 = S1.frame();
+			var f2 = S2.frame();
+
+			if(f1 == PointerIndex.None)
+			{
+				return f2;
+			}
+			else
+			{
+				if(f2 == PointerIndex.None)
+				{
+					return f1;
+				}
+				else
+				{
+					//TODO: how to combine frames?
+					throw new NotImplementedException();
+				}
+			}		
+		}
+
+		public FieldSRef AsDirectField()
+		{
+			return null;
 		}
 	}
 

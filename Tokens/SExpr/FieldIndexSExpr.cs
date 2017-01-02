@@ -65,6 +65,16 @@ namespace compiler
 		{
 			throw new NotImplementedException();
 		}
+
+		public PointerIndex frame()
+		{
+			return PointerIndex.None;
+		}
+
+		public FieldSRef AsDirectField()
+		{
+			return null;
+		}
 	}
 
 }

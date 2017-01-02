@@ -59,12 +59,38 @@ namespace compiler
 
 		public override string ToString()
 		{
-			return string.Format("[FieldSRef {0}.{1}]", varref, fieldname);
+			return string.Format("[{0}.{1}]", varref, fieldname);
 		}
 		
 		public List<Instruction> PutFromField(FieldSRef src)
 		{
-			throw new NotImplementedException();
+			var code = new List<Instruction>();
+			if (varref.AsReg() == null)
+			{
+				code.AddRange(varref.FetchToReg(RegVRef.rScratch2));
+				code.Add(new Instruction
+				{
+					opcode = Opcode.Sub,
+					op1 = src,
+					op2 = this.InRegister(RegVRef.rScratch2),
+					dest = this.InRegister(RegVRef.rScratch2),
+					acc = true,
+				});
+				code.AddRange(varref.PutFromReg(RegVRef.rScratch2));
+			}
+			else
+			{
+				code.Add(new Instruction
+				{
+					opcode = Opcode.Sub,
+					op1 = src,
+					op2 = this,
+					dest = this,
+					acc = true,
+				});
+			}
+
+			return code;
 		}
 
 		public List<Instruction> PutFromInt(int value)
@@ -94,16 +120,55 @@ namespace compiler
 		public List<Instruction> FetchToField(FieldSRef dest)
 		{
 			var code = new List<Instruction>();
-			code.Add(new Instruction
+			if(varref.AsReg() == null)
 			{
-				opcode = Opcode.Sub,
-				op1 = this,
-				op2 = dest,
-				dest = dest,
-				acc = true,
-			});
+				code.AddRange(varref.FetchToReg(RegVRef.rScratch2));
+				code.Add(new Instruction
+				{
+					opcode = Opcode.Sub,
+					op1 = this.InRegister(RegVRef.rScratch2),
+					op2 = dest,
+					dest = dest,
+					acc = true,
+				});
+			}
+			else
+			{
+				code.Add(new Instruction
+				{
+					opcode = Opcode.Sub,
+					op1 = this,
+					op2 = dest,
+					dest = dest,
+					acc = true,
+				});
+			}
 
 			return code;
+		}
+
+		public PointerIndex frame()
+		{
+			//TODO: return varref's frame?
+			throw new NotImplementedException();
+		}
+
+		public FieldSRef InRegister(RegVRef reg)
+		{
+			return new FieldSRef(reg.AsType(varref.datatype), fieldname);
+		}
+
+		public FieldSRef AsDirectField()
+		{
+			var reg = varref.AsReg();
+			if(reg == null)
+			{
+				return null;
+			}
+			else
+			{
+				return new FieldSRef(reg, fieldname);
+			}
 		}
 	}
 

@@ -13,7 +13,9 @@ namespace compiler
 	{
 		bool IsConstant();
 		int Evaluate();
-		
+
+		PointerIndex frame();
+		FieldSRef AsDirectField();
 		List<Instruction> FetchToField(FieldSRef dest);
 	}
 	

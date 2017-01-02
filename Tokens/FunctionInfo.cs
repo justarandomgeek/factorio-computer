@@ -106,8 +106,12 @@ namespace compiler
                 }
             }
 
-            // body
-            b.AddRange(body.CodeGen());
+			FieldSRef.ResetScratchInts();
+			b.AddRange(new VAssign { source = RegVRef.rNull, target = RegVRef.rScratch }.CodeGen());
+
+
+			// body
+			b.AddRange(body.CodeGen());
 
             // convert rjmp __return => rjmp <integer> to here.
             for (int i = 0; i < b.Count; i++) {

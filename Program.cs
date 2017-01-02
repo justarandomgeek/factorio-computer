@@ -75,7 +75,6 @@ namespace compiler
 						}
 
 						if (func.localints.Count > 0) CurrentProgram.Types.Add("__li" + func.name, func.localints);
-						
 
 						CurrentProgram.Symbols.Add(new Symbol
 						{
@@ -83,7 +82,7 @@ namespace compiler
 							type = SymbolType.Function,
 							frame = PointerIndex.ProgConst,
 							datatype = "opcode",
-							//TODO: data = build.Cast<Table>().ToList()
+							data = build.ConvertAll(inst => (Table)inst)
 						});
 
 						if (Options.Current.func) Console.WriteLine();

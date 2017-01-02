@@ -14,7 +14,8 @@ namespace compiler
 	{
 		bool IsConstant();
 		Table Evaluate();
-		
+
+		RegVRef AsReg();
 		List<Instruction> FetchToReg(RegVRef dest);
 	}
 	

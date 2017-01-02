@@ -66,17 +66,13 @@ namespace compiler
 		{
 			var code = new List<Instruction>();
 
-			FieldSRef addr = this.addr as FieldSRef;
+			FieldSRef addr = this.addr.AsDirectField();
 			
 			if (addr == null)
 			{
 				if (this.addr.IsConstant())
 				{
 					addr = FieldSRef.Imm1();
-				}
-				else if(this.addr is IntVarSRef)
-				{
-					addr = ((IntVarSRef)this.addr).BaseField();
 				}
 				else
 				{
@@ -90,7 +86,8 @@ namespace compiler
 				opcode = Opcode.MemRead,
 				op1 = addr,
 				dest = dest,
-				imm1 = this.addr.IsConstant() ? new IntSExpr(this.addr.Evaluate()) : null,
+				imm1 = this.addr.IsConstant() ? this.addr : null,
+				idx = this.addr.frame(),
 			});
 			return code;
 		}
@@ -109,7 +106,7 @@ namespace compiler
 				}
 				else
 				{
-					//TODO: allocate an intermediate here
+					addr = FieldSRef.ScratchInt();
 					code.AddRange(this.addr.FetchToField(addr));
 				}
 			}
@@ -119,11 +116,15 @@ namespace compiler
 				opcode = Opcode.MemWrite,
 				op1 = addr,
 				op2 = src,
-				imm1 = this.addr.IsConstant() ? new IntSExpr(this.addr.Evaluate()) : null,
+				imm1 = this.addr.IsConstant() ? this.addr : null,
 			});
 			return code;
 		}
 
+		public RegVRef AsReg()
+		{
+			return null;
+		}
 	}
 
 }

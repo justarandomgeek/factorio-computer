@@ -87,6 +87,21 @@ namespace compiler
 
 			return b;
 		}
+
+		public RegVRef AsReg()
+		{
+			return null;
+		}
+
+		public PointerIndex frame()
+		{
+			return PointerIndex.None;
+		}
+
+		public FieldSRef AsDirectField()
+		{
+			return null;
+		}
 	}
 
 }

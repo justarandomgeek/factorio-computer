@@ -28,6 +28,11 @@ namespace compiler
 		public static RegVRef rIndex { get { return new RegVRef(9, "ireg"); } }
 		public static RegVRef rOpcode { get { return new RegVRef(13, "opcode"); } }
 
+		public RegVRef AsType(string datatype)
+		{
+			return new RegVRef(reg, datatype);
+		}
+
 		public bool IsConstant()
 		{
 			return false;
@@ -39,7 +44,7 @@ namespace compiler
 
 		public override string ToString()
 		{
-			return string.Format("[RegVRef {0}:{1}]", reg, datatype);
+			return string.Format("[R{0}:{1}]", reg, datatype);
 		}
 		
 		public VExpr FlattenExpressions()
@@ -47,8 +52,8 @@ namespace compiler
 			return this;			
 		}
 
-		public static bool operator ==(RegVRef a1, RegVRef a2) { return (a1?.Equals(a2))??false; }
-		public static bool operator !=(RegVRef a1, RegVRef a2) { return (!a1?.Equals(a2))??false; }
+		public static bool operator ==(RegVRef a1, RegVRef a2) { return (a1?.Equals(a2)) ?? ((Object)a2) == null; }
+		public static bool operator !=(RegVRef a1, RegVRef a2) { return !(a1?.Equals(a2) ?? ((Object)a2) == null); }
 		public override int GetHashCode()
 		{
 			return reg.GetHashCode();// ^ datatype.GetHashCode(); //ignore datatype?
@@ -92,6 +97,11 @@ namespace compiler
 					dest = this
 				}
 			};
+		}
+
+		public RegVRef AsReg()
+		{
+			return this;
 		}
 	}
 
