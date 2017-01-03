@@ -49,7 +49,6 @@ namespace compiler
 				{
 					b.AddRange(new SAssign
 					{
-						append = i != 0,
 						source = new ArithSExpr(args.ints[i], ArithSpec.Add, IntSExpr.Zero),
 						target = FieldSRef.VarField(RegVRef.rScratch, "signal-" + (i + 1)),
 					}.CodeGen());

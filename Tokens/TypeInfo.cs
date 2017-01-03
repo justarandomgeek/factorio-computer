@@ -7,7 +7,7 @@ using NLua;
 namespace compiler
 {
 
-	public class TypeInfo:Dictionary<string,string>
+public class TypeInfo:Dictionary<string,string>
 	{
 		public bool hasString;
 		

@@ -104,9 +104,6 @@ namespace compiler
 						}
 					}
 
-
-					continue;
-					//TODO: fix this
 					CurrentProgram.AllocateSymbols();
 
 					if (Options.Current.symtable)
