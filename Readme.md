@@ -10,19 +10,19 @@ This is a programmable computer constructed entirely of vanilla combinator logic
   The bus is constructed from the [Bus H](blueprints/Bus H.txt) and [Bus V](blueprints/Bus V.txt) blueprints. The fire hazard concrete should be bottom-right.
 
 
-  | Pole Color | Green Wire | Red Wire |
-  |------------|------------|----------|
-  | Red        |                               | rKeyboard            |
-  | Orange     | Op Pulse                      | rStatus              |
-  | Yellow     | Op                            | To PC                |
-  | Green      | R1                            | Scalars              |
-  | Cyan       | R2                            | Vector Result        |
-  | Blue       | Scalar Result (`signal-grey`) | rIndex               |
-  | Purple     | Memory Read Request           | Memory Read Response |
-  | Magenta    |                               | Memory Write         |
-  | White      | NixieTerm                     | NixieTerm            |
-  | Hazard     | IO Wire                       | IO Wire              |
-  | FireHazard | IO Wire Register              | IO Wire Register     |
+| Pole Color | Green Wire | Red Wire |
+|------------|------------|----------|
+| Red        |                               | rKeyboard            |
+| Orange     | Op Pulse                      | rStatus              |
+| Yellow     | Op                            | To PC                |
+| Green      | R1                            | Scalars              |
+| Cyan       | R2                            | Vector Result        |
+| Blue       | Scalar Result (`signal-grey`) | rIndex               |
+| Purple     | Memory Read Request           | Memory Read Response |
+| Magenta    |                               | Memory Write         |
+| White      | NixieTerm                     | NixieTerm            |
+| Hazard     | IO Wire                       | IO Wire              |
+| FireHazard | IO Wire Register              | IO Wire Register     |
 
   * Scalars
     * signal-grey: R1.s1
@@ -53,19 +53,19 @@ This is a programmable computer constructed entirely of vanilla combinator logic
   Registers store an entire circuit network frame, except `signal-black`. `signal-black` is used internally for various scalar and flag values throughout the machine, and cannot be stored in registers/memory, or expressed correctly in most mechanisms.
 
 
-  | ID    | Name        | Purpose |
-  |-------|-------------|---------|
-  | 0     | `rNull`     | No Register selected. Returns 0 on every signal.|
-  | 1-8   | `r1`-`r8`   | General Purpose data registers. |
-  | 9     | `rIndex`    | Indexing regiser. Supports auto-indexing memory operations. |
-  | 10    | `rRed`      | IO Wire Red data since list transmitted |
-  | 11    | `rGreen`    | IO Wire Green data since last transmitted |
-  | 12    | `rStat`     | CPU Status register |
-  | 13    | `rOp`       | Current Op data |
-  | 14    | `rNixie`    | NixieTerm |
-  | 15,16 | `rFlanRX`,`rFlanTX`| Wireless masts
-  | 17    | `rKeyboard` | Keyboard interface. Reads a single buffered key. Clear buffer with `signal-grey`. |
-  | 18+   |  `rn`-...  | IO Expansion ports<br>Aditional devices may be connected to these registers |
+| ID    | Name        | Purpose |
+|-------|-------------|---------|
+| 0     | `rNull`     | No Register selected. Returns 0 on every signal.|
+| 1-8   | `r1`-`r8`   | General Purpose data registers. |
+| 9     | `rIndex`    | Indexing regiser. Supports auto-indexing memory operations. |
+| 10    | `rRed`      | IO Wire Red data since list transmitted |
+| 11    | `rGreen`    | IO Wire Green data since last transmitted |
+| 12    | `rStat`     | CPU Status register |
+| 13    | `rOp`       | Current Op data |
+| 14    | `rNixie`    | NixieTerm |
+| 15,16 | `rFlanRX`,`rFlanTX`| Wireless masts
+| 17    | `rKeyboard` | Keyboard interface. Reads a single buffered key. Clear buffer with `signal-grey`. |
+| 18+   |  `rn`-...  | IO Expansion ports<br>Aditional devices may be connected to these registers |
 
 ### Memory
   ![RAM](screenshots/RAM 300 Cells.png)
@@ -110,30 +110,30 @@ This is a programmable computer constructed entirely of vanilla combinator logic
 ### Operations
   The following signals are used to select registers and signals:
 
-  | Signal  |Purpose|
-  |--------|-------|
-  |signal-0|Op|
-  |signal-A| Accumulate |
-  |signal-I| Index/Stack Select |
-  |signal-R|R1|
-  |signal-S|S1|
-  |signal-T|R2|
-  |signal-U|S2|
-  |signal-V|Rd|
-  |signal-W|Sd|
-  |signal-grey|Imm1|
-  |signal-white|Imm2|
+| Signal  |Purpose|
+|--------|-------|
+|signal-0|Op|
+|signal-A| Accumulate |
+|signal-I| Index/Stack Select |
+|signal-R|R1|
+|signal-S|S1|
+|signal-T|R2|
+|signal-U|S2|
+|signal-V|Rd|
+|signal-W|Sd|
+|signal-grey|Imm1|
+|signal-white|Imm2|
 
   If Rd is set, the selected register will be cleared as Op Pulse is triggered unless Accumulate is also set (>0), even if the current operation does not actually assign to it. The whole register will be cleared, even in scalar operations.
 
   For operations which support memory indexing, the base pointers are selected as follows:
 
-  |  I  |Signal         | Usage      |
-  |-----|---------------|------------|
-  |  1  |`signal-red`   | Call Stack |
-  |  2  |`signal-green` | Current Program Constant/Code Frame |
-  |  3  |`signal-blue`  | Current Progarm Data Frame |
-  |  4  |`signal-yellow`| local usage |
+|  I  |Signal         | Usage      |
+|-----|---------------|------------|
+|  1  |`signal-red`   | Call Stack |
+|  2  |`signal-green` | Current Program Constant/Code Frame |
+|  3  |`signal-blue`  | Current Progarm Data Frame |
+|  4  |`signal-yellow`| local usage |
 
   Individual instructions may also define additional signals. Any unused signals should be left unset.
 
