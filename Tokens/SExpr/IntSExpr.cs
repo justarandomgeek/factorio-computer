@@ -15,7 +15,7 @@ namespace compiler
 		public IntSExpr(int i) { value = i; }
 
 		public static IntSExpr Zero = new IntSExpr(0);
-		public static IntSExpr One  = new IntSExpr(0);
+		public static IntSExpr One  = new IntSExpr(1);
 
 		public bool IsConstant() { return true; }
 		public int Evaluate() { return value; }
