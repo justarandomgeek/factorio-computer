@@ -119,11 +119,12 @@ namespace compiler
 				if ((inst.imm1 as AddrSExpr)?.symbol  == "__return")
                 {
 					inst.imm1 = new IntSExpr(b.Count - i);
-                }
+				}
 				if ((inst.imm2 as AddrSExpr)?.symbol == "__return")
 				{
 					inst.imm2 = new IntSExpr(b.Count - i);
 				}
+				b[i] = inst;
 			}
 
 			// wind stack back up for locals if needed
