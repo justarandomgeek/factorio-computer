@@ -67,7 +67,7 @@ namespace compiler
 			if (localints.Count > 0)
 			{
 				// save parent localints
-				b.Add(new Push(new RegVRef(2)));
+				b.Add(new Push(RegVRef.rLocalInts("parent")));
 			}
 
             // push regs as needed
@@ -149,7 +149,7 @@ namespace compiler
 			if (localints.Count > 0)
 			{
 				// restore parent localints
-				b.Add(new Pop(RegVRef.rLocalInts(name)));
+				b.Add(new Pop(RegVRef.rLocalInts("parent")));
 			}
 
 			// get return site
