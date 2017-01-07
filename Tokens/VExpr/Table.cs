@@ -14,6 +14,7 @@ using System.Text;
 using NLua;
 namespace compiler
 {
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
 	public class Table : Dictionary<string, SExpr>, VExpr
 	{
 		public bool IsConstant()

@@ -7,7 +7,8 @@ using NLua;
 namespace compiler
 {
 
-public class TypeInfo:Dictionary<string,string>
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
+	public class TypeInfo:Dictionary<string,string>
 	{
 		public bool hasString;
 		

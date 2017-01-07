@@ -103,6 +103,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Statement\Clear.cs" />
     <Compile Include="Tokens\ArithSpec.cs" />
     <Compile Include="Tokens\Block.cs" />
