@@ -13,10 +13,6 @@ namespace compiler
 		{
 			return false;
 		}
-		public Table Evaluate()
-		{
-			throw new InvalidOperationException(); 
-		}
 
 		public readonly SExpr addr;
 		public string datatype { get; private set; }
@@ -32,12 +28,7 @@ namespace compiler
 		{
 			return string.Format("[MemVRef {0}:{1}]", addr, datatype);
 		}
-		
-		public VExpr FlattenExpressions()
-		{
-			return this;			
-		}
-		
+				
 		#region Equality
 		public static bool operator ==(MemVRef a1, MemVRef a2) { return a1.Equals(a2); }
 		public static bool operator !=(MemVRef a1, MemVRef a2) { return !a1.Equals(a2); }

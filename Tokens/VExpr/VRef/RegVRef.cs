@@ -21,8 +21,8 @@ namespace compiler
 		public static RegVRef rGlobalInts { get { return new RegVRef(1, "__globalints"); } }
 		public static RegVRef rLocalInts(string funcname) { return new RegVRef(2, "__li" + funcname); }
 		public static RegVRef rIntArgs(string funcname) { return new RegVRef(8, "__li" + funcname); }
-		public static RegVRef rScratch { get { return new RegVRef(8, "var"); } }
-		public static RegVRef rScratch2 { get { return new RegVRef(7, "var"); } }
+		public static RegVRef rScratchInts { get { return new RegVRef(8, "var"); } }
+		public static RegVRef rScratchTab { get { return new RegVRef(7, "var"); } }
 		public static RegVRef rVarArgs { get { return new RegVRef(7, "var"); } }
 
 		public static RegVRef rIndex { get { return new RegVRef(9, "ireg"); } }
@@ -37,21 +37,12 @@ namespace compiler
 		{
 			return false;
 		}
-		public Table Evaluate()
-		{
-			throw new InvalidOperationException(); 
-		}
-
+		
 		public override string ToString()
 		{
 			return string.Format("[R{0}:{1}]", reg, datatype);
 		}
 		
-		public VExpr FlattenExpressions()
-		{
-			return this;			
-		}
-
 		public static bool operator ==(RegVRef a1, RegVRef a2) { return (a1?.Equals(a2)) ?? ((Object)a2) == null; }
 		public static bool operator !=(RegVRef a1, RegVRef a2) { return !(a1?.Equals(a2) ?? ((Object)a2) == null); }
 		public override int GetHashCode()

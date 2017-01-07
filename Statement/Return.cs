@@ -43,7 +43,7 @@ namespace compiler
 
 			if (vreturn != null)
 			{
-				b.AddRange(vreturn.FetchToReg(RegVRef.rScratch2));
+				b.AddRange(vreturn.FetchToReg(RegVRef.rScratchTab));
 			}
 
 			b.Add(new Jump

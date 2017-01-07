@@ -35,12 +35,7 @@ namespace compiler
 			if(type == "var" || type == null) return field;
 			return string.Format("{1}::{0}", field, type);
 		}
-
-		public SExpr FlattenExpressions()
-		{
-			return this;
-		}
-
+		
 		public static bool operator ==(FieldIndexSExpr a1, FieldIndexSExpr a2) { return a1.Equals(a2); }
 		public static bool operator !=(FieldIndexSExpr a1, FieldIndexSExpr a2) { return !a1.Equals(a2); }
 		public override int GetHashCode()

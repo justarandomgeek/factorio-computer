@@ -14,26 +14,6 @@ namespace compiler
 			return V1.IsConstant() && V2.IsConstant();
 		}
 		
-		public Table Evaluate()
-		{
-			if(!IsConstant())
-			{
-				throw new InvalidOperationException();
-			}
-			switch (Op) {
-				case ArithSpec.Add:
-					return V1.Evaluate() + V2.Evaluate();
-				case ArithSpec.Subtract:
-					return V1.Evaluate() - V2.Evaluate();
-				case ArithSpec.Multiply:
-					return V1.Evaluate() * V2.Evaluate();
-				case ArithSpec.Divide:
-					return V1.Evaluate() / V2.Evaluate();
-				default:
-					throw new InvalidOperationException();
-			} 
-		}
-		
 		public readonly VExpr V1;
 		public readonly ArithSpec Op;
 		public readonly VExpr V2;	

@@ -23,8 +23,8 @@ namespace compiler
 		
 		private FieldSRef() { }
 		public FieldSRef(VRef varref, string fieldname) { this.varref = varref; this.fieldname = fieldname; }
-		public static FieldSRef CallSite { get { return new FieldSRef(RegVRef.rScratch, "signal-0"); } }
-		public static FieldSRef SReturn { get { return new FieldSRef(RegVRef.rScratch, "signal-1"); } }
+		public static FieldSRef CallSite { get { return new FieldSRef(RegVRef.rScratchInts, "signal-0"); } }
+		public static FieldSRef SReturn { get { return new FieldSRef(RegVRef.rScratchInts, "signal-1"); } }
 		public static FieldSRef GlobalInt(string intname) { return new FieldSRef(RegVRef.rGlobalInts,intname); }
 		public static FieldSRef LocalInt(string funcname, string intname) { return new FieldSRef(RegVRef.rLocalInts(funcname),intname); }
 		public static FieldSRef IntArg(string funcname, string intname) { return new FieldSRef(RegVRef.rIntArgs(funcname), intname); }
@@ -40,7 +40,7 @@ namespace compiler
 		}
 
 		private static int nextScratch=Program.CurrentProgram.NativeFields.IndexOf("signal-0");
-		public static FieldSRef ScratchInt() { return new FieldSRef(RegVRef.rScratch, Program.CurrentProgram.NativeFields[nextScratch++]); }
+		public static FieldSRef ScratchInt() { return new FieldSRef(RegVRef.rScratchInts, Program.CurrentProgram.NativeFields[nextScratch++]); }
 		public static void ResetScratchInts()
 		{
 			nextScratch = Program.CurrentProgram.NativeFields.IndexOf("signal-0");
@@ -67,16 +67,16 @@ namespace compiler
 			var code = new List<Instruction>();
 			if (varref.AsReg() == null)
 			{
-				code.AddRange(varref.FetchToReg(RegVRef.rScratch2));
+				code.AddRange(varref.FetchToReg(RegVRef.rScratchTab));
 				code.Add(new Instruction
 				{
 					opcode = Opcode.Sub,
 					op1 = src,
-					op2 = this.InRegister(RegVRef.rScratch2),
-					dest = this.InRegister(RegVRef.rScratch2),
+					op2 = this.InRegister(RegVRef.rScratchTab),
+					dest = this.InRegister(RegVRef.rScratchTab),
 					acc = true,
 				});
-				code.AddRange(varref.PutFromReg(RegVRef.rScratch2));
+				code.AddRange(varref.PutFromReg(RegVRef.rScratchTab));
 			}
 			else
 			{
@@ -122,11 +122,11 @@ namespace compiler
 			var code = new List<Instruction>();
 			if(varref.AsReg() == null)
 			{
-				code.AddRange(varref.FetchToReg(RegVRef.rScratch2));
+				code.AddRange(varref.FetchToReg(RegVRef.rScratchTab));
 				code.Add(new Instruction
 				{
 					opcode = Opcode.Sub,
-					op1 = this.InRegister(RegVRef.rScratch2),
+					op1 = this.InRegister(RegVRef.rScratchTab),
 					op2 = dest,
 					dest = dest,
 					acc = true,

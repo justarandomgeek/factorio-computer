@@ -13,10 +13,6 @@ namespace compiler
 		{
 			return false;
 		}
-		public Table Evaluate()
-		{
-			throw new InvalidOperationException(); 
-		}
 		public readonly string arrname;
 		public readonly SExpr offset;
 

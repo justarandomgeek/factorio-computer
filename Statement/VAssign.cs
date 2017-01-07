@@ -27,8 +27,8 @@ namespace compiler
 		public List<Instruction> CodeGen()
 		{
 			var code = new List<Instruction>();
-			if (source.AsReg() == null) code.AddRange(source.FetchToReg(RegVRef.rScratch2));
-			code.AddRange(target.PutFromReg(source.AsReg() ?? RegVRef.rScratch2));
+			if (source.AsReg() == null) code.AddRange(source.FetchToReg(RegVRef.rScratchTab));
+			code.AddRange(target.PutFromReg(source.AsReg() ?? RegVRef.rScratchTab));
 			return code;
 		}
 	}

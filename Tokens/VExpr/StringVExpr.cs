@@ -13,20 +13,12 @@ namespace compiler
 		{
 			return true;
 		}
-		public Table Evaluate()
-		{
-			return new Table(text);
-		}
 		public readonly string text;
 		public StringVExpr(string s) { text = s; }
 		public static implicit operator StringVExpr(string s) { return new StringVExpr(s); }
 		public override string ToString()
 		{
 			return string.Format("\"{0}\"", text);
-		}
-		public VExpr FlattenExpressions()
-		{
-			return this.Evaluate();
 		}
 
 		public static bool operator ==(StringVExpr a1, StringVExpr a2) { return a1.Equals(a2); }

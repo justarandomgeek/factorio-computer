@@ -108,8 +108,8 @@ fielddef:           UNDEF { $$ = new FieldInfo{name=$1}; };
 block: statement { $$=new Block(); $$.Add($1); };
 block: block statement { $$=$1; $$.Add($2); };
 
-branch: sexpr COMPARE sexpr {$$=new Branch{ S1=$1, Op=$2, S2=$3};};
-branch: sexpr {$$=new Branch{ S1=$1, Op= CompSpec.NotEqual, S2=IntSExpr.Zero };};
+branch: sexpr COMPARE sexpr {$$=new SBranch{ S1=$1, Op=$2, S2=$3};};
+branch: sexpr {$$=new SBranch{ S1=$1, Op= CompSpec.NotEqual, S2=IntSExpr.Zero };};
 
 //vbranch: vexpr COMPARE vexpr {$$=new VBranch{ S1=$1, Op=$2, S2=$3};};
 //vbranch: vexpr {$$=new VBranch{ V1=$1, Op= CompSpec.NotEqual };};

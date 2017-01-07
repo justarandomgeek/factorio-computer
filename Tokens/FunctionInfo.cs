@@ -62,7 +62,7 @@ namespace compiler
             var b = new List<Instruction>();
 
 			// save call site (in r8.signal-0)
-			b.Add(new Push(RegVRef.rScratch));
+			b.Add(new Push(RegVRef.rScratchInts));
 
 			if (localints.Count > 0)
 			{
@@ -107,7 +107,7 @@ namespace compiler
             }
 
 			FieldSRef.ResetScratchInts();
-			b.AddRange(new VAssign { source = RegVRef.rNull, target = RegVRef.rScratch }.CodeGen());
+			b.AddRange(new VAssign { source = RegVRef.rNull, target = RegVRef.rScratchInts }.CodeGen());
 
 
 			// body
@@ -154,17 +154,17 @@ namespace compiler
 			}
 
 			// get return site
-			b.Add(new Exchange(RegVRef.rScratch2));
+			b.Add(new Exchange(RegVRef.rScratchTab));
 			b.Add(new Instruction
 			{
 				opcode = Opcode.Sub,
-				op1 = FieldSRef.VarField(RegVRef.rScratch2, "signal-0"),
+				op1 = FieldSRef.VarField(RegVRef.rScratchTab, "signal-0"),
 				op2 = FieldSRef.CallSite,
 				dest = FieldSRef.CallSite,
 				acc = true
 			});
 
-			b.Add(new Pop(RegVRef.rScratch2));
+			b.Add(new Pop(RegVRef.rScratchTab));
 
 			// jump to return site
 			b.Add(new Jump{target = FieldSRef.CallSite});

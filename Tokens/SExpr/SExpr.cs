@@ -12,6 +12,7 @@ namespace compiler
 	public interface SExpr
 	{
 		bool IsConstant();
+
 		int Evaluate();
 
 		PointerIndex frame();

@@ -13,6 +13,7 @@ namespace compiler
 		{
 			return true;
 		}
+		
 		public int Evaluate()
 		{
 			var s = Program.CurrentProgram.Symbols.Find(sym=>sym.name == symbol);

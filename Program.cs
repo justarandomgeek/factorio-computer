@@ -327,7 +327,7 @@ namespace compiler
 				// prevdata = memexchange(newdata,addr,frame)
 				var b = new List<Instruction>();
 				b.Add(new Exchange(
-					fcall.args.var as RegVRef ?? RegVRef.rScratch2,
+					fcall.args.var as RegVRef ?? RegVRef.rScratchTab,
 					dest,
 					(PointerIndex)fcall.args.ints[1].Evaluate(),
 					fcall.args.ints[0]

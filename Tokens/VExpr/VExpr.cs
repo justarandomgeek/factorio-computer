@@ -13,7 +13,6 @@ namespace compiler
 	public interface VExpr
 	{
 		bool IsConstant();
-		Table Evaluate();
 
 		RegVRef AsReg();
 		List<Instruction> FetchToReg(RegVRef dest);

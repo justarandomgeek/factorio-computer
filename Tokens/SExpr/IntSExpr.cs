@@ -24,11 +24,7 @@ namespace compiler
 		{
 			return string.Format("{0}", value);
 		}
-		public SExpr FlattenExpressions()
-		{
-			return this;			
-		}
-
+		
 		public static bool operator ==(IntSExpr a1, IntSExpr a2) { return a1.Equals(a2); }
 		public static bool operator !=(IntSExpr a1, IntSExpr a2) { return !a1.Equals(a2); }
 		public override int GetHashCode()

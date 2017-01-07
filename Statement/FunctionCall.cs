@@ -21,7 +21,6 @@ namespace compiler
 		}
 				
 		public bool IsConstant() { return false; }
-		Table VExpr.Evaluate() { throw new InvalidOperationException(); }
 		int SExpr.Evaluate() { throw new InvalidOperationException(); }
 
 		public List<Instruction> FetchToField(FieldSRef dest)
@@ -50,7 +49,7 @@ namespace compiler
 					b.AddRange(new SAssign
 					{
 						source = new ArithSExpr(args.ints[i], ArithSpec.Add, IntSExpr.Zero),
-						target = FieldSRef.VarField(RegVRef.rScratch, "signal-" + (i + 1)),
+						target = FieldSRef.VarField(RegVRef.rScratchInts, "signal-" + (i + 1)),
 					}.CodeGen());
 				}
 			}
@@ -59,7 +58,7 @@ namespace compiler
 				b.AddRange(new VAssign
 				{
 					source = RegVRef.rNull,
-					target = RegVRef.rScratch,
+					target = RegVRef.rScratchInts,
 				}.CodeGen());
 			}
 
