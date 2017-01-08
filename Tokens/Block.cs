@@ -42,16 +42,6 @@ namespace compiler
 				}
 			}
 			return code;
-		}
-
-		[Obsolete]
-		public Block Flatten()
-		{
-			return new Block();
-		}
-		
-		
-		
+		}		
 	}
-
 }

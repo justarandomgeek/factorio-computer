@@ -10,8 +10,6 @@ namespace compiler
 	public class SAssign:Statement
 	{
 		public SRef target;
-		[Obsolete]
-		public bool append;
 		public SExpr source;
 		public override string ToString()
 		{

@@ -10,8 +10,6 @@ namespace compiler
 	public class VAssign:Statement
 	{
 		public VRef target;
-		[Obsolete]
-		public bool append;
 		public VExpr source;
 		
 		public override string ToString()
