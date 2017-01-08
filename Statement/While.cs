@@ -20,13 +20,7 @@ namespace compiler
 			Console.WriteLine("{1}{0}", this, prefix);
 			body.Print(prefix +"  ");
 		}
-
 		
-		public Table Opcode()
-		{
-			throw new InvalidOperationException();
-		}
-
 		public List<Instruction> CodeGen()
 		{
 			var b = new List<Instruction>();

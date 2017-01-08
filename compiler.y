@@ -111,6 +111,8 @@ block: block statement { $$=$1; $$.Add($2); };
 branch: sexpr COMPARE sexpr {$$=new SBranch{ S1=$1, Op=$2, S2=$3};};
 branch: sexpr {$$=new SBranch{ S1=$1, Op= CompSpec.NotEqual, S2=IntSExpr.Zero };};
 
+branch: vexpr COMPARE vexpr {$$=new VBranch{ V1=$1, Op=$2, V2=$3};};
+
 //vbranch: vexpr COMPARE vexpr {$$=new VBranch{ S1=$1, Op=$2, S2=$3};};
 //vbranch: vexpr {$$=new VBranch{ V1=$1, Op= CompSpec.NotEqual };};
 
@@ -162,9 +164,12 @@ vexpr: vexpr arith sexpr {$$=new ArithVSExpr($1,$2,$3);};
 vexpr: '{' littable '}'{$$=$2;};
 vexpr: STRING {$$= (StringVExpr)$1;};
 vexpr: vref{$$=$1;};
-vexpr: '*' sexpr {$$ = new MemVRef($2); };
 
-sref: vref '.' {ExpectFieldType=$1.datatype;} FIELD {$$ = FieldSRef.VarField($1,$4);};
+sref: vref '.' {
+	ExpectFieldType=$1.datatype;
+	} FIELD {
+	$$ = FieldSRef.VarField($1,$4);
+	};
 sref: INTVAR {$$ = new IntVarSRef($1);};
 //sref: VAR '[' sexpr ']' ;
 

@@ -110,7 +110,19 @@ namespace compiler
 			}
 			else
 			{
-				throw new NotImplementedException();
+				code.AddRange(this.varref.FetchToReg(RegVRef.rScratchTab));
+
+				var t = this.InRegister(RegVRef.rScratchTab);
+				code.Add(new Instruction
+				{
+					opcode = Opcode.Sub,
+					op1 = FieldSRef.Imm1(),
+					op2 = t,
+					dest = t,
+					acc = true,
+				});
+
+				code.AddRange(this.varref.PutFromReg(RegVRef.rScratchTab));
 			}
 
 			return code;
@@ -149,8 +161,8 @@ namespace compiler
 
 		public PointerIndex frame()
 		{
-			//TODO: return varref's frame?
-			throw new NotImplementedException();
+			//TODO: maybe frame of varref if mem?
+			return PointerIndex.None;
 		}
 
 		public FieldSRef InRegister(RegVRef reg)

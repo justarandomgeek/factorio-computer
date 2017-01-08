@@ -9,8 +9,8 @@ namespace compiler
 
 	public class TableItem
 	{
-		public string fieldname;
-		public SExpr value;
+		public readonly string fieldname;
+		public readonly SExpr value;
 		public override string ToString()
 		{
 			return string.Format("[{0}={1}]", fieldname, value);

@@ -38,7 +38,7 @@ namespace compiler
 		{
 			return new compiler.Instruction
 			{
-				opcode = compiler.Opcode.MemWrite,
+				opcode = Opcode.MemWrite,
 				idx = p.frame,
 				op1 = p.addr as FieldSRef ?? FieldSRef.Imm1(),
 				op2 = p.source,
@@ -58,33 +58,6 @@ namespace compiler
 			Block b = new Block();
 			b.Add(this);
 			return b;
-		}
-
-		public Table Opcode()
-		{
-			var op = new Table { datatype = "opcode" };
-			//mem write
-			op.Add("op", 81);
-			op.Add("index", (int)frame);
-			op.Add("R2", source.reg);
-			op.Add("Rd", dest.reg);
-
-			var S1 = addr;
-			if (S1 is FieldSRef)
-			{
-				op.Add("R1", ((RegVRef)((FieldSRef)S1).varref).reg);
-				op.Add("S1", new FieldIndexSExpr(((FieldSRef)S1).fieldname, ((RegVRef)((FieldSRef)S1).varref).datatype));
-				
-			}
-			else if (S1 is IntSExpr || S1 is AddrSExpr)
-			{
-				op.Add("R1", 13);
-				op.Add("S1", new FieldIndexSExpr("Imm1","opcode"));
-				op.Add("Imm1", S1);
-			}
-			
-			
-			return op;
 		}
 	}
 

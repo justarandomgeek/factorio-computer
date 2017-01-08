@@ -47,8 +47,8 @@ register r[0-9]+
 <PROGRAM> "<="  {yylval.compVal = CompSpec.LessEqual;    return (int)Tokens.COMPARE;}
 
 
-<PROGRAM> "+=" {return (int)Tokens.APPEND;}
-<PROGRAM> ":=" {return (int)Tokens.FUNCASSIGN;}
+//<PROGRAM> "+=" {return (int)Tokens.APPEND;}
+//<PROGRAM> ":=" {return (int)Tokens.FUNCASSIGN;}
 <PROGRAM> "="  {return (int)Tokens.ASSIGN;}
 
 <PROGRAM> "+"  {return (int)'+';}

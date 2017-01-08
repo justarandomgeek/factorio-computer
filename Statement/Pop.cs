@@ -30,9 +30,9 @@ namespace compiler
 
 		public static implicit operator Instruction(Pop p)
 		{
-			return new compiler.Instruction
+			return new Instruction
 			{
-				opcode = compiler.Opcode.Pop,
+				opcode = Opcode.Pop,
 				idx = p.stack,
 				dest = p.reg
 			};
@@ -50,14 +50,5 @@ namespace compiler
 			b.Add(this);			
 			return b;
 		}
-		public Table Opcode()
-		{
-			var op = new Table{datatype="opcode"};
-			op.Add("op",	84);
-			op.Add("index", (int)stack);
-			op.Add("Rd",	reg.reg	);
-			return op;
-		}
 	}
-
 }

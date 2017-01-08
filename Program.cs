@@ -24,7 +24,7 @@ using CommandLine;
 namespace compiler
 {
 	
-	class Program
+	public class Program
 	{
 		//TODO: get rid of these somehow?
 		public static FunctionInfo CurrentFunction;
@@ -535,7 +535,7 @@ namespace compiler
 
 		public void Require(string file)
 		{
-			//TODO: be smarter about finding the file
+			//TODO: be smarter about finding the file - relative to program, then maybe standard include list?
 			string prog = "";
 			using (var reader = new StreamReader(file))
 			{

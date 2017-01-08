@@ -3,6 +3,103 @@ require("stddefs.nql")
 --dynamically manage this? or just reserve excessively large number?
 progsym[6] programs
 
+-- the same header is used for the freelist and for allocated blocks
+-- in freelist, next/prev are pointers to the corresponding blocks
+-- in allocated blocks, next/prev should be 0
+type memhead{
+  magic,
+  size,
+  pnext,
+  pprev,
+}
+
+type mallocstate{
+  magic,
+  pfreelist,
+
+}
+mallocstate mstate
+
+function MALLOC(int size)
+  rNull = rNull
+end
+
+-- This reterns the address of the last free block before the requested address
+-- If the address is before the entire freelist, returns the last free block
+int function findNearestInFreelist(int address)
+  int pcurr
+  memhead current
+  pcurr = mstate.pfreelist
+  current = @pcurr
+  while 0==0 do
+    --TODO: loop until pcurr < address < current.next or current.next < pcurr and address outside
+    if address > pcurr then if address < current.pnext then return pcurr end end
+    if pcurr > current.pnext then
+      if address > pcurr then return pcurr end
+      if address < current.pnext then return pcurr end
+    end
+
+    pcurr = current.pnext
+    current = @pcurr
+  end
+end
+
+function FREE(int address)
+  if mstate == rNull then
+    -- this is the first free, set up the freelist
+    mstate.magic = 1
+    mstate.pfreelist = address
+  else
+    -- insert this item into the freelist.
+    int pcurr
+    int pthis
+    memhead current
+    memhead next
+    memhead this
+
+    --TODO: check if continguous and merge chunks instead of relinking
+    pcurr = findNearestInFreelist(address)
+    current = @pcurr
+
+    pthis = address - 1
+    if pthis == pcurr + current.size  then
+      --merge blocks
+      current.size = current.size + this.size
+      @pcurr = current
+    else
+      if pcurr == current.pnext then
+        -- list is currently only one block
+        this = @pthis
+        this.pnext = pcurr
+        this.pprev = pcurr
+        @pthis = this
+        current.pnext= pthis
+        current.pprev= pthis
+        @pcurr = current
+      else
+        -- link this block between existing list
+        this = @pthis
+        next = @current.pnext
+
+        this.pnext=current.pnext
+        current.pnext= pthis
+
+        this.pprev=next.pprev
+        next.pprev= pthis
+
+        @this.pprev = current
+        @pthis = this
+        @this.pnext = next
+      end
+    end
+  end
+end
+
+function initMALLOC()
+  rNull = rNull
+  --TODO: prompt for memory chunk to
+end
+
 function LDPROG(int address)
   -- get the program symbol for the new program
   progsym ldsym
@@ -15,12 +112,11 @@ function LDPROG(int address)
 
 end
 
-
 function LSTPROGS()
   int i
   while i < 6 do --TODO for loop?
     nixies[i] = programs[i] --TODO * stringmask
-    nixies[i].signal-grey = nixies[i].signal-grey + i
+    nixies[i].signal-grey = i
 
     i = i + 1
   end
@@ -31,6 +127,7 @@ end
 function MAIN()
   rNixie = "LOADER 0.1"
   LSTPROGS()
+  -- readline loop for any=1
   -- R + grey=prognum to RUN
   -- L + white=addr to LOAD
 

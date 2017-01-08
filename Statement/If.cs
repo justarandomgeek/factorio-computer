@@ -28,11 +28,6 @@ namespace compiler
 			}
 		}
 		
-		public Table Opcode()
-		{
-			throw new InvalidOperationException();
-		}
-
 		public List<Instruction> CodeGen()
 		{
 			var b = new List<Instruction>();

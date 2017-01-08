@@ -24,23 +24,14 @@ namespace compiler
 		{
 			get
 			{
-				Symbol varsym = new Symbol();
-				if (Program.CurrentFunction != null) varsym = Program.CurrentFunction.locals.FirstOrDefault(sym => sym.name == this.name);
-				if (varsym.name == null) varsym = Program.CurrentProgram.Symbols.FirstOrDefault(sym => sym.name == this.name);
-
-				return varsym.datatype;
+				return VarSym().datatype;
 			}
 		}
 		public bool IsLoaded
 		{
 			get
 			{
-				Symbol varsym = new Symbol();
-				if (Program.CurrentFunction != null) varsym = Program.CurrentFunction.locals.FirstOrDefault(sym => sym.name == this.name);
-				if (varsym.name == null) varsym = Program.CurrentProgram.Symbols.FirstOrDefault(sym => sym.name == this.name);
-
-				return varsym.type == SymbolType.Register; //TODO: dynamic loading/unloading?
-
+				return VarSym().type == SymbolType.Register; //TODO: dynamic loading/unloading?
 			}
 		}
 
@@ -77,12 +68,20 @@ namespace compiler
 
 		}
 
+		public Symbol VarSym()
+		{
+			Symbol varsym = new Symbol();
+			var func = Program.CurrentProgram.InFunction != null ? Program.CurrentProgram.Functions[Program.CurrentProgram.InFunction] : Program.CurrentFunction;
+			if (func != null) varsym = func.locals.Find(sym => sym.name == this.name);
+			if (varsym.name == null) varsym = Program.CurrentProgram.Symbols.Find(sym => sym.name == this.name);
+
+			return varsym;
+		}
+
 		public VRef BaseVRef()
 		{
 			//if register, return a RegVRef, else MemVRef
-			Symbol varsym = new Symbol();
-			if (Program.CurrentFunction != null) varsym = Program.CurrentFunction.locals.FirstOrDefault(sym => sym.name == this.name);
-			if (varsym.name == null) varsym = Program.CurrentProgram.Symbols.FirstOrDefault(sym => sym.name == this.name);
+			var varsym = VarSym();
 			switch (varsym.type)
 			{
 				case SymbolType.Register:

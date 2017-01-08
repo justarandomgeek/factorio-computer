@@ -126,7 +126,6 @@ namespace compiler
 
 		public static implicit operator Table(Instruction inst)
 		{
-			//TODO: generate a table of type opcode
 			var op = new Table();
 			op.datatype = "opcode";
 			op.Add("op", (int)inst.opcode);
@@ -141,8 +140,7 @@ namespace compiler
 					if (f.fieldname != null) t.Add(sig, new FieldIndexSExpr(f.fieldname, f.varref.datatype));
 				}
 			};
-
-
+			
 			sigfromfield(op, inst.op1, "R1", "S1");
 			sigfromfield(op, inst.op2, "R2", "S2");
 			sigfromfield(op, inst.dest, "Rd", "Sd");

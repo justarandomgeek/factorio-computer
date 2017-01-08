@@ -66,6 +66,8 @@ type symbol {
   symtype,   -- DATA=1 FUNC=2 CONST=3
   addr,
   size,
+  farcode,
+  fardata,
 
 }
 
