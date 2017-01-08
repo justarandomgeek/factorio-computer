@@ -20,8 +20,58 @@ type mallocstate{
 }
 mallocstate mstate
 
-function MALLOC(int size)
-  rNull = rNull
+int function MALLOC(int size)
+  int pcurr
+  int pnext
+  int asize
+  memhead current
+
+  asize = size+1
+  pcurr = mstate.pfreelist
+  current = @pcurr
+
+  while current.size < asize do
+    if current.pnext == pcurr then
+      return 0
+    else
+      pnext = current.pnext
+      current = @pnext
+    end
+  end
+
+  if current.size - asize >= 2 then
+    -- split the chunk, use end
+    int pthis
+    memhead newblock
+
+    current.size = current.size - asize
+    newblock.magic = 1
+    newblock.size = asize
+    @pnext = current
+    pthis = pnext+current.size
+    @pthis = newblock
+    return pthis+1
+  else
+    -- return whole chunk, equal or slightly larger than requested
+    memhead unlink
+
+    unlink = @current.pprev
+    unlink.pnext = current.pnext
+    @current.pprev = unlink
+
+    unlink = @current.pnext
+    unlink.pprev = current.pprev
+    @current.pnext = unlink
+
+    mstate.pfreelist = current.pnext
+    current.pnext = 0
+    current.pprev = 0
+
+    @pnext = current
+
+    return pnext+1
+  end
+
 end
 
 -- This reterns the address of the last free block before the requested address
@@ -32,7 +82,7 @@ int function findNearestInFreelist(int address)
   pcurr = mstate.pfreelist
   current = @pcurr
   while 0==0 do
-    --TODO: loop until pcurr < address < current.next or current.next < pcurr and address outside
+    --loop until pcurr < address < current.next or current.next < pcurr and address outside
     if address > pcurr then if address < current.pnext then return pcurr end end
     if pcurr > current.pnext then
       if address > pcurr then return pcurr end
@@ -48,7 +98,7 @@ function FREE(int address)
   if mstate == rNull then
     -- this is the first free, set up the freelist
     mstate.magic = 1
-    mstate.pfreelist = address
+    mstate.pfreelist = address - 1
   else
     -- insert this item into the freelist.
     int pcurr
@@ -93,11 +143,8 @@ function FREE(int address)
       end
     end
   end
-end
 
-function initMALLOC()
-  rNull = rNull
-  --TODO: prompt for memory chunk to
+
 end
 
 function LDPROG(int address)

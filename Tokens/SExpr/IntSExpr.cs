@@ -47,7 +47,16 @@ namespace compiler
 
 		public List<Instruction> FetchToField(FieldSRef dest)
 		{
-			throw new NotImplementedException();
+			var code = new List<Instruction>();
+			code.Add(new compiler.Instruction {
+				opcode = Opcode.Sub,
+				op1 = FieldSRef.Imm1(),
+				imm1 = this,
+				op2 = dest,
+				dest = dest,
+				acc = true
+			});
+			return code;
 		}
 
 		public PointerIndex frame()
