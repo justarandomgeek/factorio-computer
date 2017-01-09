@@ -18,6 +18,8 @@ namespace compiler
 		public Exchange(RegVRef reg, PointerIndex frame, SExpr addr): this(reg,reg,frame,addr){}
 		public Exchange(RegVRef source, RegVRef dest, PointerIndex frame, SExpr addr)
 		{
+			
+			if (addr.AsDirectField() == null && !addr.IsConstant()) throw new ArgumentException("must be register field or constant", "addr");
 			this.source = source;
 			this.dest = dest;
 			this.frame = frame;
@@ -36,14 +38,15 @@ namespace compiler
 
 		public static implicit operator Instruction(Exchange p)
 		{
+
 			return new compiler.Instruction
 			{
 				opcode = Opcode.MemWrite,
 				idx = p.frame,
-				op1 = p.addr as FieldSRef ?? FieldSRef.Imm1(),
+				op1 = p.addr.AsDirectField() ?? FieldSRef.Imm1(),
 				op2 = p.source,
 				dest = p.dest,
-				imm1 = p.addr is FieldSRef ? null : p.addr, //TODO: this definitely needs work...
+				imm1 = p.addr.IsConstant() ? p.addr : null,
 			};
 		}
 		public List<Instruction> CodeGen()
@@ -52,13 +55,5 @@ namespace compiler
 			b.Add(this);
 			return b;
 		}
-
-		public Block Flatten()
-		{
-			Block b = new Block();
-			b.Add(this);
-			return b;
-		}
 	}
-
 }

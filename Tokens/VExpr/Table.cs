@@ -238,7 +238,7 @@ namespace compiler
 
 		public List<Instruction> FetchToReg(RegVRef dest)
 		{
-			//TODO: allocate as const if possible, and memread it
+			//allocate as const if possible, and memread it
 			if (this.IsConstant())
 			{
 				var constname = "__const" + this.GetHashCode();

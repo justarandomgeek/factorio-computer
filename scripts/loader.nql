@@ -16,9 +16,13 @@ type memhead{
 type mallocstate{
   magic,
   pfreelist,
-
 }
 mallocstate mstate
+
+--extern LOADER {
+--  int function MALLOC(int size)
+--  function FREE(int size)
+--}
 
 int function MALLOC(int size)
   int pcurr
@@ -71,7 +75,6 @@ int function MALLOC(int size)
 
     return pnext+1
   end
-
 end
 
 -- This reterns the address of the last free block before the requested address
@@ -107,7 +110,6 @@ function FREE(int address)
     memhead next
     memhead this
 
-    --TODO: check if continguous and merge chunks instead of relinking
     pcurr = findNearestInFreelist(address)
     current = @pcurr
 
