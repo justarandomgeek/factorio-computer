@@ -102,6 +102,7 @@ namespace compiler
 				code.Add(new Instruction
 				{
 					opcode = Opcode.Sub,
+					imm1 = new IntSExpr(value),
 					op1 = FieldSRef.Imm1(),
 					op2 = this,
 					dest = this,
@@ -116,6 +117,7 @@ namespace compiler
 				code.Add(new Instruction
 				{
 					opcode = Opcode.Sub,
+					imm1 = new IntSExpr(value),
 					op1 = FieldSRef.Imm1(),
 					op2 = t,
 					dest = t,
@@ -161,7 +163,7 @@ namespace compiler
 
 		public PointerIndex frame()
 		{
-			//TODO: maybe frame of varref if mem?
+			//TODO: the frame this field is in terms of, not the fram of varref!
 			return PointerIndex.None;
 		}
 

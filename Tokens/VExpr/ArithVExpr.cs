@@ -52,12 +52,61 @@ namespace compiler
 
 		public List<Instruction> FetchToReg(RegVRef dest)
 		{
-			throw new NotImplementedException();
+			var code = new List<Instruction>();
+			RegVRef other;
+			if (dest == V1.AsReg())
+			{
+				other = V2.AsReg();
+				if (other == null)
+				{
+					other = RegVRef.rScratchTab;
+					code.AddRange(V2.FetchToReg(other));
+				}				
+			}
+			else if (dest == V2.AsReg())
+			{
+				other = V1.AsReg();
+				if (other == null)
+				{
+					other = RegVRef.rScratchTab;
+					code.AddRange(V1.FetchToReg(other));
+				}
+			}
+			else
+			{
+				code.AddRange(V1.FetchToReg(dest));
+				other = V2.AsReg();
+				if (other == null)
+				{
+					other = RegVRef.rScratchTab;
+					code.AddRange(V2.FetchToReg(other));
+				}				
+			}
+
+			switch (Op)
+			{
+				case ArithSpec.Add:
+					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = true, op1 = other, dest = dest });
+					break;
+				case ArithSpec.Subtract:
+					code.Add(new Instruction { opcode = Opcode.EachMulV, acc = true, op1 = other, op2 = FieldSRef.Imm2(), imm2 = new IntSExpr(-1), dest = dest });
+					break;
+				case ArithSpec.Multiply:
+					code.Add(new Instruction { opcode = Opcode.VMul, op1 = dest, op2 = other, dest = dest });
+					break;
+				case ArithSpec.Divide:
+					code.Add(new Instruction { opcode = Opcode.VDiv, op1 = dest, op2 = other, dest = dest });
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+
+			return code;
 		}
 
 		public RegVRef AsReg()
 		{
-			throw new NotImplementedException();
+			return null;
 		}
 	}
 

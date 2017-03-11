@@ -20,7 +20,6 @@
   internal Block blockVal;
   internal Branch brVal;
   internal ExprList elVal;
-  //internal FunctionCall fcVal;
 }
 
 %token <iVal> INTEGER
@@ -32,7 +31,7 @@
 
 %token FUNCASSIGN ASSIGN APPEND
 %token DO WHILE IF THEN ELSE END
-%token REQUIRE TYPE FUNCTION RETURN
+%token REQUIRE TYPE FUNCTION RETURN EXTERN
 %token INT
 
 
@@ -67,9 +66,19 @@ program: definition {};
 program: program definition {};
 
 definition: REQUIRE '(' STRING ')' { Require($3); };
+definition: externdef;
 definition: functiondef;
 definition: datadef;
 definition: typedef;
+
+externdef: EXTERN UNDEF  '{' {BeginExtern($2);} externlist '}' {CompleteExtern();};
+externlist: ;
+externlist: externlist datadef;
+externlist: externlist extfunction;
+
+extfunction:          FUNCTION UNDEF '(' paramdeflist ')' { ExternFunction($2,"var",$4); };
+extfunction: TYPENAME FUNCTION UNDEF '(' paramdeflist ')' { ExternFunction($3,   $1,$5); };
+extfunction: INT      FUNCTION UNDEF '(' paramdeflist ')' { ExternFunction($3,"int",$5); };
 
 functiondef:          FUNCTION UNDEF '(' paramdeflist ')' { BeginFunction($2,"var",$4); } block END { CompleteFunction($2,$7); };
 functiondef: TYPENAME FUNCTION UNDEF '(' paramdeflist ')' { BeginFunction($3,   $1,$5); } block END { CompleteFunction($3,$8); };
@@ -97,7 +106,6 @@ datadef: TYPENAME '[' INTEGER ']'              UNDEF { CreateSym(new Symbol{name
 typedef: TYPE UNDEF '{' fielddeflist '}'     { RegisterType($2,$4); };
 typedef: TYPE UNDEF '{' fielddeflist ',' '}' { RegisterType($2,$4); }; // allow trailing comma
 
-
 fielddeflist: STRING {$$ = new TypeInfo(); $$.hasString=true; };
 fielddeflist: fielddef {$$ = new TypeInfo(); $$.Add($1); };
 fielddeflist: fielddeflist ',' fielddef { $$=$1; $$.Add($3); };
@@ -115,7 +123,6 @@ branch: vexpr COMPARE vexpr {$$=new VBranch{ V1=$1, Op=$2, V2=$3};};
 
 //vbranch: vexpr COMPARE vexpr {$$=new VBranch{ S1=$1, Op=$2, S2=$3};};
 //vbranch: vexpr {$$=new VBranch{ V1=$1, Op= CompSpec.NotEqual };};
-
 
 statement: IF branch THEN block elseblock END { $$ = new If{branch=$2,ifblock=$4,elseblock=$5}; };
 elseblock: ELSE block { $$ = $2; };
@@ -136,8 +143,10 @@ statement: datadef;
 
 exprlist: { $$=new ExprList(); };
 exprlist: sexpr { $$=new ExprList(); $$.ints.Add($1); };
+exprlist: vexpr { $$=new ExprList(); $$.vars.Add($1); };
 exprlist: exprlist ',' sexpr { $$=$1; $$.ints.Add($3); };
-exprlist: vexpr { $$=new ExprList(); $$.var=$1; };
+exprlist: exprlist ',' vexpr { $$=$1; $$.vars.Add($3); };
+
 
 statement: RETURN { $$ = new Return(); };
 statement: RETURN sexpr { $$ = new Return($2); };

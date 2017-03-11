@@ -21,7 +21,7 @@ namespace compiler
 			foreach (var p in locals.Where(sym=>sym.type == SymbolType.Parameter && sym.datatype == "int")) {
 				localints.Add(p.name,"signal-" + p.fixedAddr);
 			}
-			locals.RemoveAll(sym => localints.Keys.Contains(sym.name));
+			//locals.RemoveAll(sym => localints.Keys.Contains(sym.name));
 			var newlocals = new SymbolList();
 
 			//TODO: fix this to actually confirm a register is available
@@ -69,7 +69,7 @@ namespace compiler
 				// save parent localints
 				b.Add(new Push(RegVRef.rLocalInts("parent")));
 			}
-
+			
             // push regs as needed
             foreach (var sym in locals.Where(s => s.type == SymbolType.Register))
             {
@@ -107,8 +107,7 @@ namespace compiler
             }
 
 			FieldSRef.ResetScratchInts();
-			b.AddRange(new VAssign { source = RegVRef.rNull, target = RegVRef.rScratchInts }.CodeGen());
-
+			b.AddRange(RegVRef.rScratchInts.PutFromReg(RegVRef.rNull));
 
 			// body
 			b.AddRange(body.CodeGen());

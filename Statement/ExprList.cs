@@ -9,10 +9,10 @@ namespace compiler
 
 	public class ExprList{
 		public List<SExpr> ints = new List<SExpr>();
-		public VExpr var;
+		public List<VExpr> vars = new List<VExpr>();
 		public override string ToString()
 		{
-			return string.Format("[ExprList Ints={0} || Var={1}]", string.Join(",",ints), var);
+			return string.Format("[ExprList Ints={0} || Vars={1}]", string.Join(",",ints), string.Join(",", vars));
 		}
 		public void Print(string prefix)
 		{

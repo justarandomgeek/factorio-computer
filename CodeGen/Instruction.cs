@@ -104,6 +104,9 @@ namespace compiler
 		Append,
 
 		PlayerInfo = 100,
+		ConMan,
+		Scammer,
+
 
 	}
 
@@ -129,6 +132,9 @@ namespace compiler
 			var op = new Table();
 			op.datatype = "opcode";
 			op.Add("op", (int)inst.opcode);
+
+			if (inst.relative) op.Add("signal-green", 1);
+			if (inst.acc) op.Add("signal-A", 1);
 
 			if (inst.idx != PointerIndex.None) op.Add("index", (int)inst.idx);
 
@@ -159,6 +165,8 @@ namespace compiler
 		{
 			var sb = new StringBuilder();
 			sb.AppendFormat("[{0}] ", opcode);
+
+			if (relative) sb.Append("R ");
 
 			if (imm1 != null || imm2 != null) sb.AppendFormat("I({0}:{1}) ", imm1, imm2);
 

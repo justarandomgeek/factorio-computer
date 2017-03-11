@@ -71,7 +71,7 @@ namespace compiler
 		public Symbol VarSym()
 		{
 			Symbol varsym = new Symbol();
-			var func = Program.CurrentProgram.InFunction != null ? Program.CurrentProgram.Functions[Program.CurrentProgram.InFunction] : Program.CurrentFunction;
+			var func = Program.CurrentFunction ?? Program.CurrentProgram.InFunction;
 			if (func != null) varsym = func.locals.Find(sym => sym.name == this.name);
 			if (varsym.name == null) varsym = Program.CurrentProgram.Symbols.Find(sym => sym.name == this.name);
 

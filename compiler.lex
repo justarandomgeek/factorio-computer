@@ -36,6 +36,7 @@ register r[0-9]+
 
 <PROGRAM> "return"       {return (int)Tokens.RETURN;}
 <PROGRAM> "require"       {return (int)Tokens.REQUIRE;}
+<PROGRAM> "extern"       {return (int)Tokens.EXTERN;}
 
 <PROGRAM> "?1" {yylval.bVal = true; return (int)Tokens.COND;}
 <PROGRAM> "?=" {yylval.bVal = false;  return (int)Tokens.COND;}

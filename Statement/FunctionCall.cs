@@ -32,9 +32,16 @@ namespace compiler
 
 		public List<Instruction> FetchToReg(RegVRef dest)
 		{
-			var code = CodeGen();
-			code.AddRange(new VAssign { source = RegVRef.rVarArgs, target = dest }.CodeGen());
-			return code;
+			if (Program.CurrentProgram.VBuiltins.ContainsKey(this.name))
+			{
+				return Program.CurrentProgram.VBuiltins[this.name](this, dest);
+			}
+			else
+			{
+				var code = CodeGen();
+				code.AddRange(new VAssign { source = RegVRef.rVarArgs, target = dest }.CodeGen());
+				return code;
+			}
 		}
 
 		public List<Instruction> CodeGen()
@@ -65,9 +72,11 @@ namespace compiler
 			//table arg or null in r7
 			b.AddRange(new VAssign
 			{
-				source = args.var ?? RegVRef.rNull,
+				source = args.vars.Count>0? args.vars[1] : RegVRef.rNull,
 				target = RegVRef.rVarArgs,
 			}.CodeGen());
+
+			//TODO: table args 2-n
 
 			//jump to function, with return in r8.0
 			b.Add(new Jump

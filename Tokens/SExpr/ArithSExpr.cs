@@ -101,6 +101,8 @@ namespace compiler
 					throw new InvalidOperationException();
 			}
 
+			var tmp = FieldSRef.ScratchInt();
+
 			code.Add(new Instruction
 			{
 				opcode = op,
@@ -108,9 +110,12 @@ namespace compiler
 				imm1 = S1.IsConstant() ? S1 : null,
 				op2 = f2,
 				imm2 = S2.IsConstant() ? S2 : null,
-				dest = dest,
+				dest = tmp,
 				acc = true
 			});
+
+			//TODO: optimize this one day?
+			code.AddRange(dest.PutFromField(tmp));
 
 			return code;
 		}

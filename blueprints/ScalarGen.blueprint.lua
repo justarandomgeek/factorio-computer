@@ -168,12 +168,18 @@ do local script=true
 
   local siglist = {}
 
+  local charmap = {}
+  if remote.interfaces['signalstrings']['get_map'] then
+    charmap = remote.call('signalstrings','get_map').s2c
+  end
+
   local op1,r1,s1,op2,r2,s2,opr,sr,vr = bus({x=0,y=0})
   local sigcount = 1
   local pos = {x=5,y=-2.5}
   for _,signal in pairs(map) do
     op1,r1,s1,op2,r2,s2,opr,sr,vr = doSig(pos,op1,r1,s1,op2,r2,s2,opr,sr,vr,signal,sigcount)
-    table.insert(siglist,{id=sigcount,type=signal.type,name=signal.name})
+
+    table.insert(siglist,{id=sigcount,type=signal.type,name=signal.name,char=charmap[signal.name]})
     sigcount = sigcount + 1
     pos.x = pos.x + 1
     if sigcount % 100 == 0 then
@@ -183,17 +189,18 @@ do local script=true
     end
   end
 
-  game.write_file("scalarmap.lua", "return " .. serpent.block(siglist), false)
+  game.write_file("scalarmap.lua", serpent.dump(siglist,{indent="  "}), false)
 
   --[[ Assemble and return blueprint ]]
   local blueprintData = {
     entities = entities,
     icons={
       {index=1, signal={type="item",name="decider-combinator"}},
-      {index=2, signal={type="item",name="constant-combinator"}}
+      {index=2, signal={type="item",name="constant-combinator"}},
+      {index=3, signal={type="virgual",name="signal-grey"}},
+      {index=4, signal={type="virgual",name="signal-white"}},
     },
-    name = "ScalarGen",
-    version = "0.2.5"
+    name = "ScalarGen"
   }
 
   return blueprintData

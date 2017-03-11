@@ -19,10 +19,10 @@ type mallocstate{
 }
 mallocstate mstate
 
---extern LOADER {
---  int function MALLOC(int size)
---  function FREE(int size)
---}
+extern LOADER {
+  int function MALLOC(int size)
+  function FREE(int size)
+}
 
 int function MALLOC(int size)
   int pcurr

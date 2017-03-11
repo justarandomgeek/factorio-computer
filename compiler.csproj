@@ -119,7 +119,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Parser.cs" />
+    <Compile Include="Scanner.cs" />
     <Compile Include="Statement\Clear.cs" />
+    <Compile Include="Statement\Extern.cs" />
     <Compile Include="Tokens\ArithSpec.cs" />
     <Compile Include="Tokens\Block.cs" />
     <Compile Include="Tokens\CompSpec.cs" />
@@ -161,6 +164,8 @@
     <Compile Include="Tokens\SymbolType.cs" />
     <Compile Include="Tokens\TableItem.cs" />
     <Compile Include="Tokens\TypeInfo.cs" />
+    <Compile Include="Tokens\VExpr\ScammerVExpr.cs" />
+    <Compile Include="Tokens\VExpr\ConManVExpr.cs" />
     <Compile Include="Tokens\VExpr\Table.cs" />
     <Compile Include="Tokens\VExpr\ArithVExpr.cs" />
     <Compile Include="Tokens\VExpr\ArithVSExpr.cs" />
@@ -207,6 +212,9 @@
       <LogicalName>serpent</LogicalName>
     </EmbeddedResource>
     <Compile Include="Tokens\SExpr\SRef\IntVarSRef.cs" />
+    <None Include="scripts\loader.nql" />
+    <None Include="scripts\stddefs.nql" />
+    <None Include="scripts\test.nql" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">

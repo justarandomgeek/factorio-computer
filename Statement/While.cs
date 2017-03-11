@@ -33,10 +33,14 @@ namespace compiler
 			}
 			else
 			{
+				FieldSRef.ResetScratchInts();
+				b.AddRange(RegVRef.rScratchInts.PutFromReg(RegVRef.rNull));
 				var flatbody = body.CodeGen();
 				b.AddRange(branch.CodeGen(1, flatbody.Count + 2));
 				b.AddRange(flatbody);
-				b.Add(new Jump { target = new IntSExpr(-(flatbody.Count + 1)), relative = true });
+				b.Add(new Jump { target = new IntSExpr(-b.Count), relative = true });
+				b.AddRange(RegVRef.rScratchInts.PutFromReg(RegVRef.rNull));
+				FieldSRef.ResetScratchInts();
 
 			}
 

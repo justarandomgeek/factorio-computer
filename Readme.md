@@ -137,6 +137,26 @@ This is a programmable computer constructed entirely of vanilla combinator logic
 
   Individual instructions may also define additional signals. Any unused signals should be left unset.
 
+
+### Memory Layout
+
+* RAM - 0-300 (0-499)
+  * slices allocated to programs as needed
+* NixieTerm 500-506
+* <gap>
+* ROMS 1000-?
+
+
+Programs:
+  * Program symbol [1]
+    * Program name, size of other sections
+  * Symbol table [n]
+    * Symbole name/type/address/size
+  * (?) Extern linksw
+  * Constants [n]
+  * Code [n]
+
+
 #### 0: Halt
   Any undefined opcode will halt the machine, but Op=0 is specifically reserved for doing so.
 
@@ -285,6 +305,7 @@ This is a programmable computer constructed entirely of vanilla combinator logic
     * Retrieve a frame to one of the stacks in rIndex, as selected by `signal-I`.
       * [rIndex.stack] -> Rd
       * rIndex.stack++
+    * As a special case, the stack pointer will not be incremented if Rd is rIndex.
 
 #### 85: Append (not yet implemented)
   Store a frame to an array in one of the index pointers.
@@ -298,3 +319,10 @@ This is a programmable computer constructed entirely of vanilla combinator logic
   If R1.S1 == 0, a `playercounts` frame is returned containing the number players total, and online.
 
   If R1.S1 >0, then it returns a `playerinfo` frame, with the players name, and their online/admin status.
+
+### 10x: Construction Orders (Optional, not yet implemented)
+  Issue an order in R1 to a ConMan, with data in R2. If ConMan returns any data on CC2, it will be sent to Rd
+
+
+### 10x: Map Scanning (Optional, not yet implemented)
+  Scan the position or area selected by the command in R1, and send result to Rd.

@@ -23,6 +23,7 @@ end
 -- Demo functions - these demonstrate and test various parts of the machine
 function COLORDEMO()
   -- Print a color demo
+  -- TODO: colormasks as c"RGBCPY", c"RRR GGGGG BBBB", c"CCC PPPP YYYYYY"
   rNixie = { "COLORS", signal-red=1, signal-green=2, signal-blue=4, signal-cyan=8, signal-pink=16, signal-yellow=32 }
   rNixie = { "RED GREEN BLUE", signal-red=7, signal-green=496, signal-blue=15360}
   rNixie = { "CYAN PINK YELLOW", signal-cyan=15, signal-pink=480, signal-yellow=64512}
@@ -51,7 +52,6 @@ function MATHDEMO(int i)
 
     num.signal-white = num.signal-white + 1
   end
-  return
 end
 
 function KEYBDDEMO()
