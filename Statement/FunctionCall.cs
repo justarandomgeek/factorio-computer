@@ -53,11 +53,11 @@ namespace compiler
 			{
 				for (int i = 0; i < args.ints.Count; i++)
 				{
-					b.AddRange(new SAssign
-					{
-						source = new ArithSExpr(args.ints[i], ArithSpec.Add, IntSExpr.Zero),
-						target = FieldSRef.VarField(RegVRef.rScratchInts, "signal-" + (i + 1)),
-					}.CodeGen());
+					b.AddRange(
+						args.ints[i].FetchToField(
+							new FieldSRef(RegVRef.rScratchInts, "signal-" + (i + 1))
+							)
+						);
 				}
 			}
 			else

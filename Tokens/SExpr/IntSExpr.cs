@@ -11,9 +11,8 @@ namespace compiler
 	{
 		public readonly int value;
 
-		public IntSExpr(int? i) : this(i ?? 0) { }
-		public IntSExpr(int i) { value = i; }
-
+		public IntSExpr(int? i){ value = i??0; }
+		
 		public static IntSExpr Zero = new IntSExpr(0);
 		public static IntSExpr One  = new IntSExpr(1);
 
@@ -24,9 +23,11 @@ namespace compiler
 		{
 			return string.Format("{0}", value);
 		}
-		
-		public static bool operator ==(IntSExpr a1, IntSExpr a2) { return a1.Equals(a2); }
-		public static bool operator !=(IntSExpr a1, IntSExpr a2) { return !a1.Equals(a2); }
+
+		public static bool operator ==(IntSExpr a1, int i2) { return (a1?.value ?? 0) == i2; }
+		public static bool operator !=(IntSExpr a1, int i2) { return (a1?.value ?? 0) != i2; }
+		public static bool operator ==(IntSExpr a1, IntSExpr a2) { return (a1?.value ?? 0) == (a2?.value ?? 0); }
+		public static bool operator !=(IntSExpr a1, IntSExpr a2) { return (a1?.value ?? 0) != (a2?.value ?? 0); }
 		public override int GetHashCode()
 		{
 			return value.GetHashCode();
@@ -34,9 +35,13 @@ namespace compiler
 		public override bool Equals(object obj)
 		{
 			var other = obj as IntSExpr;
-			if (other != null)
+			if (obj is IntSExpr)
 			{
-				return other.value == this.value;
+				return this.value == ((IntSExpr)obj).value;
+			}
+			else if (obj is int)
+			{
+				return this.value == (int)obj;
 			}
 			else
 			{
@@ -48,7 +53,7 @@ namespace compiler
 		public List<Instruction> FetchToField(FieldSRef dest)
 		{
 			var code = new List<Instruction>();
-			code.Add(new compiler.Instruction {
+			code.Add(new Instruction {
 				opcode = Opcode.Sub,
 				op1 = FieldSRef.Imm1(),
 				imm1 = this,

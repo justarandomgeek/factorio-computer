@@ -22,8 +22,8 @@ namespace compiler
 		}
 		
 		public TableItem(char c, SExpr value)
-		{			
-			this.fieldname = Program.CurrentProgram.charmap[c];
+		{
+			this.fieldname = Program.CurrentProgram?.charmap?[c] ?? c.ToString();
 			this.value = value;
 		}
 

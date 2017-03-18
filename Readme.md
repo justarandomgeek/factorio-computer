@@ -256,6 +256,14 @@ Programs:
   * positive values in R2 replace the values in R1
   * negative values in R2 clear the signal
 
+#### 68: String Length
+  max(log2(R1)) -> Rd.Sd
+  log2() treats input values as unsigned, so log2(negative)=32
+
+#### 69: int to string (not yet implemented)
+
+
+
 #### 70: Jump
   ![Jump](screenshots/70_jump.png)
 

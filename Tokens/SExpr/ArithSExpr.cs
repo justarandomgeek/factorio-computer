@@ -101,7 +101,7 @@ namespace compiler
 					throw new InvalidOperationException();
 			}
 
-			var tmp = FieldSRef.ScratchInt();
+			var tmp = dest.precleared ? dest : FieldSRef.ScratchInt();
 
 			code.Add(new Instruction
 			{
@@ -114,8 +114,7 @@ namespace compiler
 				acc = true
 			});
 
-			//TODO: optimize this one day?
-			code.AddRange(dest.PutFromField(tmp));
+			if(!dest.precleared) code.AddRange(dest.PutFromField(tmp));
 
 			return code;
 		}

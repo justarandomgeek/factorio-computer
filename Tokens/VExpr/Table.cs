@@ -22,6 +22,28 @@ namespace compiler
 			return this.All(ti => ti.Value.IsConstant());
 		}
 
+		public Table ConstPart()
+		{
+			var t = new Table();
+			t.datatype = this.datatype;
+			foreach (var item in this.Where(ti => ti.Value.IsConstant()))
+			{
+				t.Add(item.Key, item.Value);
+			}
+			return t;
+		}
+
+		public Table ExprPart()
+		{
+			var t = new Table();
+			t.datatype = this.datatype;
+			foreach (var item in this.Where(ti => !ti.Value.IsConstant()))
+			{
+				t.Add(item.Key, item.Value);
+			}
+			return t;
+		}
+
 		public Table Evaluate()
 		{
 			var output = new Table();//{datatype=this.datatype};
@@ -250,15 +272,30 @@ namespace compiler
 					datatype = this.datatype,
 					data = new List<Table> { this },
 				};
-				Program.CurrentProgram.Symbols.Add(constsym);
+				Program.CurrentProgram?.Symbols?.Add(constsym);
 
 				return new MemVRef(new AddrSExpr(constname), this.datatype).FetchToReg(dest);
 
 			}
 			else
 			{
-				//TODO: compose non-const table in a block of code
-				throw new NotImplementedException();
+				// compose non-const table in a block of code
+
+				
+				// fetch const part
+				var code = this.ConstPart().FetchToReg(dest);
+
+				// sequentially fetch non-const parts? maybe cache sub-expressions
+				code.AddRange(
+					this.ExprPart().
+					SelectMany(
+						ti => ti.Value.FetchToField(
+							new FieldSRef(dest.AsType(this.datatype), ti.Key, true)
+							)
+						)
+					);
+				
+				return code;
 			}
 
 

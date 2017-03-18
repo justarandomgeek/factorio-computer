@@ -53,6 +53,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tokens\SExpr\IntSExprTests.cs" />
+    <Compile Include="Tokens\VExpr\TableTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\compiler.csproj">

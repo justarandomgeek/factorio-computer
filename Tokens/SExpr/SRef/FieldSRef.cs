@@ -11,6 +11,7 @@ namespace compiler
 	{
 		public readonly VRef varref;
 		public readonly string fieldname;
+		public bool precleared; //TODO: direct fetch where possible
 
 		public bool IsConstant()
 		{
@@ -22,7 +23,7 @@ namespace compiler
 		}
 		
 		private FieldSRef() { }
-		public FieldSRef(VRef varref, string fieldname) { this.varref = varref; this.fieldname = fieldname; }
+		public FieldSRef(VRef varref, string fieldname, bool precleared = false) { this.varref = varref; this.fieldname = fieldname; this.precleared = precleared; }
 		public static FieldSRef CallSite { get { return new FieldSRef(RegVRef.rScratchInts, "signal-0"); } }
 		public static FieldSRef SReturn { get { return new FieldSRef(RegVRef.rScratchInts, "signal-1"); } }
 		public static FieldSRef GlobalInt(string intname) { return new FieldSRef(RegVRef.rGlobalInts,intname); }
@@ -39,11 +40,11 @@ namespace compiler
 			return new FieldSRef(RegVRef.rIndex, ptrnames[(int)ptr]);
 		}
 
-		private static int nextScratch=Program.CurrentProgram.NativeFields.IndexOf("signal-0");
+		private static int nextScratch=Program.CurrentProgram?.NativeFields?.IndexOf("signal-0") ?? 0;
 		public static FieldSRef ScratchInt() { return new FieldSRef(RegVRef.rScratchInts, Program.CurrentProgram.NativeFields[nextScratch++]); }
 		public static void ResetScratchInts()
 		{
-			nextScratch = Program.CurrentProgram.NativeFields.IndexOf("signal-0");
+			nextScratch = Program.CurrentProgram?.NativeFields?.IndexOf("signal-0") ?? 0;
 		}
 
 		// null-field conversion for use in Instruction to represent register only

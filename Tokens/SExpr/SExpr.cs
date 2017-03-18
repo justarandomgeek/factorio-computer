@@ -18,6 +18,6 @@ namespace compiler
 		PointerIndex frame();
 		FieldSRef AsDirectField();
 		List<Instruction> FetchToField(FieldSRef dest);
+
 	}
-	
 }

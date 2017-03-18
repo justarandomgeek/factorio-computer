@@ -2,23 +2,35 @@
 
 function FINDCOPPER(int startx)
   rNixie = "SEARCHING..."
+
   var search
+  var found
+  var result
+  int left
+  int right
+  int top
+  int bottom
+  
+
   search = {signal-A=1, signal-Y = -256, signal-V=256}
   search.signal-X = startx
   search.signal-U = startx + 32
-  var found
-  var result
+  
   while found.copper-ore == 0 do
     search = search + {signal-X=32, signal-U=32 }
   	found = scammer(search)
   end
+  
   found = rNull
+  
   result = "FOUND!"
   result.signal-grey = search.signal-X
   result.signal-white = search.signal-U
+  
   rNixie = result
 
   rNixie = "ISOLATING..."
+  
   search.signal-U = search.signal-X + 1
 
   while found.copper-ore == 0 do
@@ -26,24 +38,23 @@ function FINDCOPPER(int startx)
     found = scammer(search)
   end
 
-  int left
   left = search.signal-X
   result = "LEFT"
   result.signal-grey = left
   rNixie = result
 
-
   while found.copper-ore > 0 do
-    search.signal-X = search.signal-X+1
-    search.signal-U = search.signal-U+1
+    search = search + {signal-X=1, signal-U=1 }
     found = scammer(search)
   end
 
-  int right
   right = search.signal-X
   result = "RIGHT"
   result.signal-grey = right
   rNixie = result
+
+  search.signal-X = left
+  search.signal-U = right
 
 
   rNull = halt()
@@ -53,4 +64,9 @@ var @r19 rLocation
 
 function MAIN()
   FINDCOPPER(rLocation.signal-X)
+
+  int foo
+  foo=1
+  var test
+  test = { "ASDF", signal-grey = foo, signal-white = foo + 32}
 end

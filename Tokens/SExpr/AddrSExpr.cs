@@ -65,8 +65,8 @@ namespace compiler
 
 		public PointerIndex frame()
 		{
-			var s = Program.CurrentProgram.Symbols.Find(sym => sym.name == symbol);
-			return s.frame;
+			var s = Program.CurrentProgram?.Symbols?.Find(sym => sym.name == symbol);
+			return s?.frame ?? PointerIndex.None;
 		}
 
 		public FieldSRef AsDirectField()

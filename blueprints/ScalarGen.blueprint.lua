@@ -169,7 +169,7 @@ do local script=true
   local siglist = {}
 
   local charmap = {}
-  if remote.interfaces['signalstrings']['get_map'] then
+		if remote.interfaces['signalstrings'] and remote.interfaces['signalstrings']['get_map'] then
     charmap = remote.call('signalstrings','get_map').s2c
   end
 
