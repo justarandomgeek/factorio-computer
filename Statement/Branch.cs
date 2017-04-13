@@ -44,10 +44,8 @@ namespace compiler
 			b.Add(new Instruction
 			{
 				opcode = Opcode.Branch,
-				op1 = f1,
-				imm1 = S1.IsConstant() ? new IntSExpr(S1.Evaluate()) : null,
-				op2 = f2,
-				imm2 = S2.IsConstant() ? new IntSExpr(S2.Evaluate()) : null,
+				op1 = f1, imm1 = S1.IsConstant() ? new IntSExpr(S1.Evaluate()) : null,
+				op2 = f2, imm2 = S2.IsConstant() ? new IntSExpr(S2.Evaluate()) : null,
 				rjmpeq = this.Op.HasFlag(CompSpec.Equal) ? truejump : falsejump,
 				rjmplt = this.Op.HasFlag(CompSpec.Less) ? truejump : falsejump,
 				rjmpgt = this.Op.HasFlag(CompSpec.Greater) ? truejump : falsejump,
@@ -74,44 +72,25 @@ namespace compiler
 			{
 				var b = new List<Instruction>();
 
-				b.AddRange(V1.FetchToReg(RegVRef.rScratchTab));
-
-				var r2 = V2.AsReg();
-				if (r2 == null)
-				{
-					// if V2 isn't already a register, borrow rScratchInts temporarily to fetch it
-					r2 = RegVRef.rScratchInts;
-					b.Add(new Push(RegVRef.rScratchInts));
-					b.AddRange(V2.FetchToReg(r2));
-				}
-
-				b.Add(new Instruction
-				{
-					opcode = Opcode.EachMulV,
-					acc = true,
-					dest = RegVRef.rScratchTab,
-					op1 = r2,
-					op2 = FieldSRef.Imm2(),
-					imm2 = new IntSExpr(-1),
-				});
-
-				// restore rScratchInts if needed
-				if (r2 == RegVRef.rScratchInts) b.Add(new Pop(RegVRef.rScratchInts));
+				b.AddRange(new ArithVExpr(V1,ArithSpec.Subtract,V2).FetchToReg(RegVRef.rFetch(1)));
+								
 				var flag = FieldSRef.ScratchInt();
 
 				// ensure flag is clear, in case this branch is used in a loop and is coming around again to reuse it
 				b.Add(new Clear(flag));
+				flag.precleared = true;
 
 				// set flag if every=0
+				// TODO: replace this with a conditional expression once those have been done...
 				b.Add(new Instruction
 				{
-					opcode = Opcode.EveryEqS2S1,
-					op1 = RegVRef.rScratchTab,
+					opcode = Opcode.EveryCMPS1,
+					op1 = RegVRef.rFetch(1),
 					dest = flag,
 					acc = true,
+					rjmpeq = 1,
 				});
-
-
+				
 				b.Add(new Instruction
 				{
 					opcode = Opcode.Branch,

@@ -13,6 +13,24 @@ namespace compiler
 		public readonly string fieldname;
 		public bool precleared; //TODO: direct fetch where possible
 
+		public override bool Equals(object obj)
+		{
+			if (obj is FieldSRef)
+			{
+				var fsr = obj as FieldSRef;
+				return this.varref.Equals(fsr.varref) && this.fieldname == fsr.fieldname && this.precleared==fsr.precleared;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public override int GetHashCode()
+		{
+			return varref.GetHashCode() ^ fieldname.GetHashCode();
+		}
+
 		public bool IsConstant()
 		{
 			return false;
@@ -24,11 +42,12 @@ namespace compiler
 		
 		private FieldSRef() { }
 		public FieldSRef(VRef varref, string fieldname, bool precleared = false) { this.varref = varref; this.fieldname = fieldname; this.precleared = precleared; }
-		public static FieldSRef CallSite { get { return new FieldSRef(RegVRef.rScratchInts, "signal-0"); } }
-		public static FieldSRef SReturn { get { return new FieldSRef(RegVRef.rScratchInts, "signal-1"); } }
 		public static FieldSRef GlobalInt(string intname) { return new FieldSRef(RegVRef.rGlobalInts,intname); }
-		public static FieldSRef LocalInt(string funcname, string intname) { return new FieldSRef(RegVRef.rLocalInts(funcname),intname); }
-		public static FieldSRef IntArg(string funcname, string intname) { return new FieldSRef(RegVRef.rIntArgs(funcname), intname); }
+		private readonly static int firstarg = Program.CurrentProgram?.NativeFields?.IndexOf("signal-0") ?? 0;
+		public static FieldSRef LocalInt(int intnum) { return new FieldSRef(RegVRef.rLocalInts, Program.CurrentProgram.NativeFields[intnum + firstarg]); }
+		public static FieldSRef IntArg(int intnum) { return new FieldSRef(RegVRef.rIntArgs, Program.CurrentProgram.NativeFields[intnum + firstarg]); }
+		public static FieldSRef CallSite { get { return new FieldSRef(RegVRef.rIntArgs, "signal-0"); } }
+		public static FieldSRef SReturn { get { return new FieldSRef(RegVRef.rIntArgs, "signal-1"); } }
 		public static FieldSRef Imm1() { return new FieldSRef(RegVRef.rOpcode, "Imm1"); }
 		public static FieldSRef Imm2() { return new FieldSRef(RegVRef.rOpcode, "Imm2"); }
 
@@ -68,27 +87,13 @@ namespace compiler
 			var code = new List<Instruction>();
 			if (varref.AsReg() == null)
 			{
-				code.AddRange(varref.FetchToReg(RegVRef.rScratchTab));
-				code.Add(new Instruction
-				{
-					opcode = Opcode.Sub,
-					op1 = src,
-					op2 = this.InRegister(RegVRef.rScratchTab),
-					dest = this.InRegister(RegVRef.rScratchTab),
-					acc = true,
-				});
-				code.AddRange(varref.PutFromReg(RegVRef.rScratchTab));
+				code.AddRange(varref.FetchToReg(RegVRef.rFetch(1)));
+				code.AddRange(this.InRegister(RegVRef.rFetch(1)).PutFromField(src));
+				code.AddRange(varref.PutFromReg(RegVRef.rFetch(1)));
 			}
 			else
 			{
-				code.Add(new Instruction
-				{
-					opcode = Opcode.Sub,
-					op1 = src,
-					op2 = this,
-					dest = this,
-					acc = true,
-				});
+				code.Add(new Instruction { opcode = Opcode.Sub, op1 = src, op2 = this, dest = this, acc = true });
 			}
 
 			return code;
@@ -100,32 +105,13 @@ namespace compiler
 
 			if(varref.IsLoaded)
 			{
-				code.Add(new Instruction
-				{
-					opcode = Opcode.Sub,
-					imm1 = new IntSExpr(value),
-					op1 = FieldSRef.Imm1(),
-					op2 = this,
-					dest = this,
-					acc = true,
-				});
+				code.Add(new Instruction { opcode = Opcode.Sub, imm1 = new IntSExpr(value), op1 = Imm1(), op2 = this, dest = this, acc = true });
 			}
 			else
 			{
-				code.AddRange(this.varref.FetchToReg(RegVRef.rScratchTab));
-
-				var t = this.InRegister(RegVRef.rScratchTab);
-				code.Add(new Instruction
-				{
-					opcode = Opcode.Sub,
-					imm1 = new IntSExpr(value),
-					op1 = FieldSRef.Imm1(),
-					op2 = t,
-					dest = t,
-					acc = true,
-				});
-
-				code.AddRange(this.varref.PutFromReg(RegVRef.rScratchTab));
+				code.AddRange(this.varref.FetchToReg(RegVRef.rFetch(1)));
+				code.AddRange(this.InRegister(RegVRef.rFetch(1)).PutFromInt(value));
+				code.AddRange(this.varref.PutFromReg(RegVRef.rFetch(1)));
 			}
 
 			return code;
@@ -137,26 +123,12 @@ namespace compiler
 			var code = new List<Instruction>();
 			if(varref.AsReg() == null)
 			{
-				code.AddRange(varref.FetchToReg(RegVRef.rScratchTab));
-				code.Add(new Instruction
-				{
-					opcode = Opcode.Sub,
-					op1 = this.InRegister(RegVRef.rScratchTab),
-					op2 = dest,
-					dest = dest,
-					acc = true,
-				});
+				code.AddRange(varref.FetchToReg(RegVRef.rFetch(1)));
+				code.AddRange(this.InRegister(RegVRef.rFetch(1)).FetchToField(dest));
 			}
 			else
 			{
-				code.Add(new Instruction
-				{
-					opcode = Opcode.Sub,
-					op1 = this,
-					op2 = dest,
-					dest = dest,
-					acc = true,
-				});
+				code.Add(new Instruction { opcode = Opcode.Sub, op1 = this, op2 = dest, dest = dest, acc = true });
 			}
 
 			return code;
@@ -164,7 +136,7 @@ namespace compiler
 
 		public PointerIndex frame()
 		{
-			//TODO: the frame this field is in terms of, not the fram of varref!
+			//TODO: the frame this field is in terms of, not the frame of varref!
 			return PointerIndex.None;
 		}
 
@@ -182,8 +154,15 @@ namespace compiler
 			}
 			else
 			{
-				return new FieldSRef(reg, fieldname);
+				return this;
 			}
+		}
+
+		public FieldSRef AsPreCleared()
+		{
+			var fsr = this;
+			fsr.precleared = true;
+			return fsr;
 		}
 	}
 

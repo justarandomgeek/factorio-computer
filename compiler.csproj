@@ -202,6 +202,7 @@
     <None Include="lib\NLua.dll" />
     <None Include="lib\SourceRconLib.dll" />
     <None Include="packages.config" />
+    <None Include="Readme.md" />
     <None Include="ScalarGen.blueprint.lua" />
     <EmbeddedResource Include="scalarmap.lua">
       <LogicalName>scalarmap</LogicalName>

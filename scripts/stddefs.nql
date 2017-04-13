@@ -73,22 +73,24 @@ type symbol {
 
 -- Standard Definitions:
 var     @r0   rNull
--- r1: global ints
--- r2: local ints
--- r3: local vars
--- r4: local vars
--- r5: local vars
--- r6: local vars
--- r7: compiler scratch, table arg/return
--- r8: compiler scratch, call/return, int args
-ireg    @r9   rIndex
-var     @r10  rRed
-var     @r11  rGreen
-sreg    @r12  rStatus
-opcode  @r13  rOp
-var     @r14  rNixie
-var     @r15  rFlanRX
-var     @r16  rFlanTX
-var     @r17  rKeyboard
+-- r1:     global ints
+-- r2:     local ints
+-- r3:     scratch ints
+-- r4-5:   fetch space
+-- r6-9:   func args
+-- r10:    func int args
+-- r11-15: temporaries
+-- r16-20: saved temporaries
+-- r21-25: reserved for OS/ISR use
+-- 26-100: [GAP]
+ireg    @r101 rIndex
+var     @r102 rRed
+var     @r103 rGreen
+sreg    @r104 rStatus
+opcode  @r105 rOp
+var     @r106 rNixie
+var     @r107 rKeyboard
+var     @r108 rResearch
 
-var[6] @500 nixies
+-- size of this may not be accurate
+var[20] @900 nixies

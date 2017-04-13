@@ -34,14 +34,14 @@ namespace compiler
 		public static bool operator !=(ArithVExpr a1, ArithVExpr a2) { return !a1.Equals(a2); }
 		public override int GetHashCode()
 		{
-			return V1.GetHashCode() ^ Op.GetHashCode() ^ V2.GetHashCode();
+			return ToString().GetHashCode();
 		}
 		public override bool Equals(object obj)
 		{
 			var other = obj as ArithVExpr;
 			if (other != null)
 			{
-				return other.V1 == this.V1 && other.Op == this.Op && other.V2 == this.V2;
+				return other.V1.Equals(this.V1) && other.Op == this.Op && other.V2.Equals(this.V2);
 			}
 			else
 			{
@@ -53,49 +53,36 @@ namespace compiler
 		public List<Instruction> FetchToReg(RegVRef dest)
 		{
 			var code = new List<Instruction>();
-			RegVRef other;
-			if (dest == V1.AsReg())
+			RegVRef R1 = V1.AsReg();
+			RegVRef R2 = V2.AsReg();
+			
+			if (R1 == null)
 			{
-				other = V2.AsReg();
-				if (other == null)
-				{
-					other = RegVRef.rScratchTab;
-					code.AddRange(V2.FetchToReg(other));
-				}				
-			}
-			else if (dest == V2.AsReg())
-			{
-				other = V1.AsReg();
-				if (other == null)
-				{
-					other = RegVRef.rScratchTab;
-					code.AddRange(V1.FetchToReg(other));
-				}
-			}
-			else
-			{
-				code.AddRange(V1.FetchToReg(dest));
-				other = V2.AsReg();
-				if (other == null)
-				{
-					other = RegVRef.rScratchTab;
-					code.AddRange(V2.FetchToReg(other));
-				}				
+				R1 = RegVRef.rFetch(1);
+				code.AddRange(V1.FetchToReg(R1));
 			}
 
+			if (R2 == null)
+			{
+				R2 = RegVRef.rFetch(2);
+				code.AddRange(V2.FetchToReg(R2));
+			}
+									
 			switch (Op)
 			{
 				case ArithSpec.Add:
-					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = true, op1 = other, dest = dest });
+					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = false, op1 = R1, dest = dest });
+					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = true, op1 = R2, dest = dest });
 					break;
 				case ArithSpec.Subtract:
-					code.Add(new Instruction { opcode = Opcode.EachMulV, acc = true, op1 = other, op2 = FieldSRef.Imm2(), imm2 = new IntSExpr(-1), dest = dest });
+					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = false, op1 = R1, dest = dest });
+					code.Add(new Instruction { opcode = Opcode.EachMulV, acc = true, op1 = R2, op2 = FieldSRef.Imm2(), imm2 = new IntSExpr(-1), dest = dest });
 					break;
 				case ArithSpec.Multiply:
-					code.Add(new Instruction { opcode = Opcode.VMul, op1 = dest, op2 = other, dest = dest });
+					code.Add(new Instruction { opcode = Opcode.VMul, op1 = R1, op2 = R2, dest = dest });
 					break;
 				case ArithSpec.Divide:
-					code.Add(new Instruction { opcode = Opcode.VDiv, op1 = dest, op2 = other, dest = dest });
+					code.Add(new Instruction { opcode = Opcode.VDiv, op1 = R1, op2 = R2, dest = dest });
 					break;
 				default:
 					throw new NotImplementedException();

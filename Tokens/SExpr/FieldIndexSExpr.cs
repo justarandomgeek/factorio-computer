@@ -16,7 +16,7 @@ namespace compiler
 		public int Evaluate()
 		{
 			string signal = field;
-			if((type??"var")!="var" && Program.CurrentProgram.Types[type].ContainsKey(field))  {
+			if((type??"var")!="var" && Program.CurrentProgram.Types.ContainsKey(type) && Program.CurrentProgram.Types[type].ContainsKey(field))  {
 				signal = Program.CurrentProgram.Types[type][field];
 			}
 			return Program.CurrentProgram.NativeFields.IndexOf(signal)+1;

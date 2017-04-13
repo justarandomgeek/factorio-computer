@@ -44,7 +44,11 @@ namespace compiler.Tests
 		[TestMethod()]
 		public void FetchToFieldTest()
 		{
-			Assert.Fail();
+			var c = IntSExpr.One.FetchToField(FieldSRef.VarField(RegVRef.rScratchInts, "signal-0"));
+			Assert.AreEqual(c.Count, 1);
+			Assert.AreEqual(c[0].opcode, Opcode.Sub);
+			Assert.AreEqual(c[0].op2, c[0].dest);
+			Assert.IsTrue(c[0].acc);
 		}
 
 		[TestMethod()]

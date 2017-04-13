@@ -10,17 +10,28 @@ namespace compiler
 	public class SymbolList:List<Symbol>
 	{
 
-		int paramcount=1;
+		int intparamcount = 1;
+		int varparamcount = 1;
 		public void AddParam(FieldInfo pi)
 		{
-			this.Add(new Symbol{
-			         	name=pi.name,
-			         	type=SymbolType.Parameter,
-			         	datatype=pi.basename,
-			         	fixedAddr=paramcount++,
-			         });
+			if (this.Exists(sym => sym.name == pi.name)) { throw new ArgumentException(); }
+
+			this.Add(new Symbol
+			{
+				name = pi.name,
+				type = SymbolType.Parameter,
+				datatype = pi.basename,
+				fixedAddr = pi.basename == "int" ? intparamcount++ : varparamcount++,
+			});
 		}
 	
+		
+		public Symbol this[string name]
+		{
+			get { return this.Find(sym => sym.name == name);}
+		}
+
+		
 		
 	}
 

@@ -61,7 +61,7 @@ namespace compiler
 			{
 				throw new NotImplementedException(); //TODO: how to do extern ints? or just declare it not legal?
 			} else if (InFunction != null) {
-        		InFunction.localints.Add(name,null);
+				InFunction.locals.Add(new Symbol { name = name, datatype="int", type = SymbolType.Register });
         		
         	} else {
         		if(!Types.ContainsKey("__globalints")){Types.Add("__globalints",new TypeInfo());}
@@ -222,7 +222,7 @@ namespace compiler
 				// 
 				var b = new List<Instruction>();
 				b.Add(new Exchange(
-					fcall.args.vars[0] as RegVRef ?? RegVRef.rScratchTab,
+					fcall.args.vars[0] as RegVRef,
 					dest,
 					(PointerIndex)fcall.args.ints[1].Evaluate(),
 					fcall.args.ints[0]
@@ -302,10 +302,6 @@ namespace compiler
         	else if (InFunction != null && InFunction.locals.Exists((s) => s.name == ident))
         	{
         		return InFunction.locals.Find((s) => s.name == ident).ToToken();
-        	}
-        	else if (InFunction != null && InFunction.localints.ContainsKey(ident))
-        	{
-        		return Tokens.INTVAR;
         	}
         	else if(Symbols.Exists((s) => s.name == ident))
         	{

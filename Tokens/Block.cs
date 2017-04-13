@@ -42,6 +42,6 @@ namespace compiler
 				}
 			}
 			return code;
-		}		
+		}
 	}
 }

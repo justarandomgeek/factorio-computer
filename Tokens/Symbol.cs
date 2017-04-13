@@ -36,7 +36,36 @@ namespace compiler
 		}
 		private int? declsize;
 		public List<Table> data;
-		
+
+
+		public override bool Equals(object obj)
+		{
+			if(obj is Symbol)
+			{
+				var sym = (Symbol)obj;
+				return this.name == sym.name &&
+					this.type == sym.type &&
+					this.datatype == sym.datatype &&
+					this.fixedAddr == sym.fixedAddr &&
+					this.frame == sym.frame &&
+					this.declsize == sym.declsize &&
+
+					(this.data != null ? this.data.SequenceEqual(sym.data) : sym.data == null);
+
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public override int GetHashCode()
+		{
+			return this.name.GetHashCode() ^ this.type.GetHashCode() ^ this.datatype.GetHashCode() ^
+				this.fixedAddr.GetHashCode() ^ this.frame.GetHashCode() ^ this.declsize.GetHashCode() ^
+				(this.data?.GetHashCode() ?? 0);
+		}
+
 		public void assign(int addr)
 		{
 			fixedAddr = addr;

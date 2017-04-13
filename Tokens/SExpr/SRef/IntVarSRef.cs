@@ -9,6 +9,24 @@ namespace compiler
 	{
 		public readonly string name;
 
+		public override bool Equals(object obj)
+		{
+			if(obj is IntVarSRef)
+			{
+				var ivs = obj as IntVarSRef;
+				return this.name == ivs.name;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public override int GetHashCode()
+		{
+			return name.GetHashCode();
+		}
+
 		public IntVarSRef(string name)
 		{
 			this.name = name;
@@ -29,9 +47,22 @@ namespace compiler
 
 		public FieldSRef BaseField()
 		{
-			if (Program.CurrentFunction.localints.ContainsKey(name))
+			var varsym = Program.CurrentFunction?.locals.Find(s => s.name == name && s.datatype == "int");
+			if (varsym.HasValue)
 			{
-				return FieldSRef.LocalInt(Program.CurrentFunction.name, name);
+				if(varsym.Value.type == SymbolType.Register)
+				{
+					return FieldSRef.LocalInt(varsym.Value.fixedAddr??-1);
+				}
+				else if(varsym.Value.type == SymbolType.Parameter)
+				{
+					return FieldSRef.IntArg(varsym.Value.fixedAddr ?? -1);
+				}
+				else
+				{
+					throw new InvalidOperationException();
+				}
+				
 			}
 			else
 			{

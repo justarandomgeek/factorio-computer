@@ -8,80 +8,63 @@ namespace compiler
 
 	public enum Opcode
 	{
+		//Invalid = -1,
 		Halt = 0,
 
-		EveryEqS2V,
-		EveryLtS2V,
-		EveryGtS2V,
-		EveryEqS2V1,
-		EveryGtS2V1,
-		EveryLtS2V1,
+		EachCMPS1 = 1,
+		EachCMPSF,
+		EachCMPSV,
+		EveryCMPS1,
+		EveryCMPSF,
+		EveryCMPSV,
+		AnyCMPS1,
+		AnyCMPSF,
+		AnyCMPSV,
+		SCMPS1,
+		SCMPSF,
+		SCMPSV,
 
-		AnyEqS2V,
-		AnyLtS2V,
-		AnyGtS2V,
-		AnyEqS2V1,
-		AnyGtS2V1,
-		AnyLtS2V1,
+		/* GAP */
 
-		S1EqS2V,
-		S1LtS2V,
-		S1GtS2V,
-		S1EqS2V1,
-		S1GtS2V1,
-		S1LtS2V1,
-
-		EachEqS2V,
-		EachLtS2V,
-		EachGtS2V,
-		EachEqS2V1,
-		EachGtS2V1,
-		EachLtS2V1,
-
-		EveryEqS2S,
-		EveryLtS2S,
-		EveryGtS2S,
-		EveryEqS2S1,
-		EveryGtS2S1,
-		EveryLtS2S1,
-
-		AnyEqS2S,
-		AnyLtS2S,
-		AnyGtS2S,
-		AnyEqS2S1,
-		AnyGtS2S1,
-		AnyLtS2S1,
-
-		S1EqS2S,
-		S1LtS2S,
-		S1GtS2S,
-		S1EqS2S1,
-		S1GtS2S1,
-		S1LtS2S1,
-
-		EachEqS2S,
-		EachLtS2S,
-		EachGtS2S,
-		EachEqS2S1,
-		EachGtS2S1,
-		EachLtS2S1,
-
-		EachSubV,
+		EachSubV = 17,
 		EachAddV,
 		EachDivV,
 		EachMulV,
+		EachModV,
+		EachAndV,
+		EachOrV,
+		EachXorV,
+		EachPowV,
+		EachLShiftV,
+		EachRShiftV,
 
 		EachSubS,
 		EachAddS,
 		EachDivS,
 		EachMulS,
-
+		EachModS,
+		EachAndS,
+		EachOrS,
+		EachXorS,
+		EachPowS,
+		EachLShiftS,
+		EachRShiftS,
+		
 		Sub,
 		Add,
 		Div,
 		Mul,
+		Mod,
+		And,
+		Or,
+		Xor,
+		Pow,
+		LShift,
+		RShift,
 
-		VMul,
+		/* GAP */
+
+		VMul = 61,
 		VDiv,
 
 		SArrPick,
@@ -92,9 +75,13 @@ namespace compiler
 
 		VReplace,
 
+		/* GAP */
+
 		Jump = 70,
 		Branch,
 		Exec,
+
+		/* GAP */
 
 		Wire = 80,
 		MemWrite,
@@ -103,11 +90,11 @@ namespace compiler
 		Pop,
 		Append,
 
+		/* GAP */
+
 		PlayerInfo = 100,
 		ConMan,
 		Scammer,
-
-
 	}
 
 	public struct Instruction

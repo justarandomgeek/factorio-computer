@@ -16,4 +16,12 @@ namespace compiler
         LocalData=4,
     }
 
+	public static class PoinerIndexExt
+	{
+		public static FieldSRef AsField(this PointerIndex pointer)
+		{
+			return FieldSRef.Pointer(pointer);
+		}
+	}
+
 }

@@ -29,8 +29,8 @@ namespace compiler
 			var srcreg = source.AsReg();
 			var tgtreg = target.AsReg();
 
-			if (srcreg == null || (srcreg != null && tgtreg != null)) code.AddRange(source.FetchToReg(tgtreg ?? RegVRef.rScratchTab));
-			if (tgtreg == null)	code.AddRange(target.PutFromReg(srcreg ?? RegVRef.rScratchTab));
+			if (srcreg == null || (srcreg != null && tgtreg != null)) code.AddRange(source.FetchToReg(tgtreg ?? RegVRef.rFetch(1)));
+			if (tgtreg == null)	code.AddRange(target.PutFromReg(srcreg ?? RegVRef.rFetch(1)));
 
 			return code;
 		}

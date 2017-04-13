@@ -72,10 +72,6 @@ namespace compiler
 						if (Options.Current.func) Console.WriteLine("{0}:{1}", func.name, func.returntype);
 						func.AllocateLocals();
 
-						foreach (var field in func.localints)
-						{
-							if (Options.Current.func) Console.WriteLine("  {0}:{1}", field.Key, field.Value);
-						}
 						foreach (var symbol in func.locals)
 						{
 							if (Options.Current.func) Console.WriteLine("  " + symbol);
@@ -89,8 +85,6 @@ namespace compiler
 								Console.WriteLine("  {0}", item);
 							}
 						}
-
-						if (func.localints.Count > 0) CurrentProgram.Types.Add("__li" + func.name, func.localints);
 
 						CurrentProgram.Symbols.Add(new Symbol
 						{

@@ -54,15 +54,14 @@ namespace compiler
 			var cmd = Command.AsReg();
 			if(cmd == null)
 			{
-				cmd = RegVRef.rScratchTab;
+				cmd = RegVRef.rFetch(1);
 				code.AddRange(Command.FetchToReg(cmd));
 			}
 
 			var data = Data.AsReg();
 			if (data == null)
 			{
-				data = cmd == RegVRef.rScratchTab ? RegVRef.rScratchInts : RegVRef.rScratchTab;
-				if (data == RegVRef.rScratchInts) FieldSRef.ResetScratchInts();
+				data = RegVRef.rFetch(2);
 				code.AddRange(Data.FetchToReg(data));
 			}
 
@@ -73,8 +72,6 @@ namespace compiler
 				op2 = data,
 				dest = dest,
 			});
-
-			if (data == RegVRef.rScratchInts) code.AddRange(data.PutFromReg(RegVRef.rNull));
 
 			return code;
 		}

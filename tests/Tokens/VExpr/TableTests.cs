@@ -82,18 +82,18 @@ namespace compiler.Tests
 			Assert.AreEqual(t["E"], 2);
 			Assert.AreEqual(t["S"], 4);
 		}
-		
+
 		[TestMethod()]
 		public void FetchToRegTest()
 		{
 			//TODO: test codegen more strictly?
 			var t = new Table("TEST");
-			var c = t.FetchToReg(RegVRef.rScratchTab);
+			var c = t.FetchToReg(RegVRef.rFetch(1));
 			Assert.AreEqual(c.Count, 1);
-			Assert.AreEqual(c[0].opcode,Opcode.MemRead);
-			
+			Assert.AreEqual(c[0].opcode, Opcode.MemRead);
+
 			t.Add("signal-1", FieldSRef.Imm1());
-			c = t.FetchToReg(RegVRef.rScratchTab);
+			c = t.FetchToReg(RegVRef.rFetch(1));
 			Assert.AreEqual(c.Count, 2);
 			Assert.AreEqual(c[0].opcode, Opcode.MemRead);
 			Assert.AreEqual(c[1].opcode, Opcode.Sub);
@@ -106,6 +106,52 @@ namespace compiler.Tests
 		public void AsRegTest()
 		{
 			Assert.IsNull(new Table().AsReg());
+		}
+
+		[TestMethod()]
+		public void GetHashCodeTest()
+		{
+			var t1 = new Table();
+			var t2 = new Table();
+			Assert.AreEqual(t1.GetHashCode(), t2.GetHashCode());
+
+			t1.Add("signal-0", 1);
+			Assert.AreNotEqual(t1.GetHashCode(), t2.GetHashCode());
+			t2.Add("signal-0", 1);
+			Assert.AreEqual(t1.GetHashCode(), t2.GetHashCode());
+
+			t1.Add("signal-1", FieldSRef.Imm1());
+			Assert.AreNotEqual(t1.GetHashCode(), t2.GetHashCode());
+			t2.Add("signal-1", FieldSRef.Imm1());
+			Assert.AreEqual(t1.GetHashCode(), t2.GetHashCode());
+			t2["signal-1"] = FieldSRef.Imm2();
+			Assert.AreNotEqual(t1.GetHashCode(), t2.GetHashCode());
+			t2["signal-1"] = FieldSRef.Imm1();
+			t2.datatype = "foo";
+			Assert.AreNotEqual(t1.GetHashCode(), t2.GetHashCode());
+		}
+
+		[TestMethod()]
+		public void EqualsTest()
+		{
+			var t1 = new Table();
+			var t2 = new Table();
+			Assert.AreEqual(t1, t2);
+
+			t1.Add("signal-0", 1);
+			Assert.AreNotEqual(t1, t2);
+			t2.Add("signal-0", 1);
+			Assert.AreEqual(t1, t2);
+
+			t1.Add("signal-1", FieldSRef.Imm1());
+			Assert.AreNotEqual(t1, t2);
+			t2.Add("signal-1", FieldSRef.Imm1());
+			Assert.AreEqual(t1, t2);
+			t2["signal-1"] = FieldSRef.Imm2();
+			Assert.AreNotEqual(t1, t2);
+			t2["signal-1"] = FieldSRef.Imm1();
+			t2.datatype = "foo";
+			Assert.AreNotEqual(t1, t2);
 		}
 	}
 }

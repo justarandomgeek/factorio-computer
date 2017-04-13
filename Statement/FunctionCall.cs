@@ -39,7 +39,7 @@ namespace compiler
 			else
 			{
 				var code = CodeGen();
-				code.AddRange(new VAssign { source = RegVRef.rVarArgs, target = dest }.CodeGen());
+				code.AddRange(new VAssign { source = RegVRef.rVReturn(), target = dest }.CodeGen());
 				return code;
 			}
 		}
@@ -47,38 +47,52 @@ namespace compiler
 		public List<Instruction> CodeGen()
 		{
 			var b = new List<Instruction>();
+
+			var locals = (Program.CurrentFunction ?? Program.CurrentProgram?.InFunction)?.locals;
+
+			// push local regs
+			foreach (var sym in locals.Where(s => s.type == SymbolType.Register && s.datatype != "int" && !(new RegVRef(s.fixedAddr ?? -1).CalleeSaved)).OrderBy(s => s.fixedAddr))
+			{
+				b.Add(new Push(new RegVRef(sym.fixedAddr.Value)));
+			}
+
+			// push local args
+			foreach (var sym in locals.Where(s => s.type == SymbolType.Parameter && s.datatype != "int").OrderBy(s => s.fixedAddr))
+			{
+				b.Add(new Push(RegVRef.rArg(sym.fixedAddr.Value)));
+			}
+
+			// push local intargs
+			// have to always push because contains callsite
+			b.Add(new Push(RegVRef.rIntArgs));
 			
-			//int args or null in r8
+			// prepare table args
+			for (int i = 0; i < args.vars.Count; i++)
+			{
+				if (i < 4)
+				{
+					b.AddRange(args.vars[i].FetchToReg(RegVRef.rArg(i + 1)));
+				}
+				else
+				{
+					throw new NotImplementedException();
+				}
+			}
+
+			// prepare int args
+			// allways clear for callsite
+			b.AddRange(new VAssign { source = RegVRef.rNull, target = RegVRef.rIntArgs }.CodeGen());
 			if (args.ints.Count > 0)
 			{
 				for (int i = 0; i < args.ints.Count; i++)
 				{
-					b.AddRange(
-						args.ints[i].FetchToField(
-							new FieldSRef(RegVRef.rScratchInts, "signal-" + (i + 1))
-							)
-						);
+					b.AddRange(args.ints[i].FetchToField(FieldSRef.IntArg(i + 1).AsPreCleared()));
 				}
 			}
-			else
-			{
-				b.AddRange(new VAssign
-				{
-					source = RegVRef.rNull,
-					target = RegVRef.rScratchInts,
-				}.CodeGen());
-			}
-
-			//table arg or null in r7
-			b.AddRange(new VAssign
-			{
-				source = args.vars.Count>0? args.vars[1] : RegVRef.rNull,
-				target = RegVRef.rVarArgs,
-			}.CodeGen());
-
-			//TODO: table args 2-n
-
-			//jump to function, with return in r8.0
+				
+			//TODO: LongCall change pointers here
+								
+			// **JUMP**
 			b.Add(new Jump
 			{
 				target = new AddrSExpr(name),
@@ -86,12 +100,22 @@ namespace compiler
 				frame = PointerIndex.ProgConst,
 			});
 
-			// return values are in r7/r8 for use by following code
+			// pop local intargs
+			b.Add(new Pop(RegVRef.rIntArgs));
+			
+			// pop local args
+			foreach (var sym in locals.Where(s => s.type == SymbolType.Parameter && s.datatype != "int").OrderBy(s => s.fixedAddr))
+			{
+				b.Add(new Pop(RegVRef.rArg(sym.fixedAddr.Value)));
+			}
 
-			//capture returned values
-			//if (sreturn != null) b.AddRange(new SAssign { source = FieldSRef.SReturn, target = sreturn, }.CodeGen());
-			//if (vreturn != null) b.AddRange(new VAssign { source = RegVRef.rVarArgs, target = (VRef)vreturn ?? RegVRef.rNull, }.CodeGen());
-
+			// pop local regs
+			foreach (var sym in locals.Where(s => s.type == SymbolType.Register && s.datatype != "int" && !(new RegVRef(s.fixedAddr ?? -1).CalleeSaved)).OrderByDescending(s => s.fixedAddr))
+			{
+				b.Add(new Pop(new RegVRef(sym.fixedAddr.Value)));
+			}
+			
+			// return values are in rFetch1/2 and rScratchInts
 			return b;
 		}
 

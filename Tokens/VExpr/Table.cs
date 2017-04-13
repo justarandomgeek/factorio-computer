@@ -26,6 +26,7 @@ namespace compiler
 		{
 			var t = new Table();
 			t.datatype = this.datatype;
+			
 			foreach (var item in this.Where(ti => ti.Value.IsConstant()))
 			{
 				t.Add(item.Key, item.Value);
@@ -44,21 +45,23 @@ namespace compiler
 			return t;
 		}
 
-		public Table Evaluate()
+		public Table Evaluate() { return Evaluate(false); }
+		public Table Evaluate(bool withdatatype)
 		{
-			var output = new Table();//{datatype=this.datatype};
+			var output = new Table();
+			if (withdatatype) output.datatype=this.datatype;
 			foreach (var element in this) {
 				
 				string field = element.Key;
 				if(datatype != null && datatype != "var")
 				{
-					if(Program.CurrentProgram.Types[datatype].ContainsKey(field))
+					if(Program.CurrentProgram?.Types[datatype].ContainsKey(field)??false)
 						field = Program.CurrentProgram.Types[datatype][field];
 				}
 				
 				output.Add(
 					field ?? element.Key,
-					element.Value.Evaluate()
+					element.Value.IsConstant() ? new IntSExpr(element.Value.Evaluate()) : element.Value
 				);
 			}
 			
@@ -214,7 +217,7 @@ namespace compiler
 			foreach (var ti in t) {
 				tres.Add(ti.Key, new ArithSExpr (
 					ti.Value,
-					ArithSpec.Divide,
+					ArithSpec.Multiply,
 					s
 				));
 			}
@@ -226,16 +229,40 @@ namespace compiler
 			foreach (var ti in t) {
 				tres.Add(ti.Key, new ArithSExpr(
 					ti.Value,
-					ArithSpec.Multiply,
+					ArithSpec.Divide,
 					s
 				));
 			}
 			return tres;
 		}
 
+		public override bool Equals(object obj)
+		{
+			if(obj is Table)
+			{
+				var t = obj as Table;
+
+				if (this.datatype != t.datatype) return false;
+
+				if (this.Count != t.Count) return false;
+
+				return this.All(ti => t.ContainsKey(ti.Key) && t[ti.Key].Equals(ti.Value));
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public override int GetHashCode()
+		{
+			return this.Evaluate(true).ToString().GetHashCode();
+		}
+
 
 		public override string ToString()
 		{
+			// Other formatters? Maybe a way to provide them externally?
 			if(datatype == "opcode")
 			{
 				return string.Format("[OP{0} [{13}]{1}.{2} {3}.{4} => {7}{5}.{6} {8}:{9}:{10} {11}:{12}]",
@@ -263,19 +290,27 @@ namespace compiler
 			//allocate as const if possible, and memread it
 			if (this.IsConstant())
 			{
-				var constname = "__const" + this.GetHashCode();
-				var constsym = new Symbol
+				if (this.Count == 0)
 				{
-					type = SymbolType.Constant,
-					name = constname,
-					frame = PointerIndex.ProgConst,
-					datatype = this.datatype,
-					data = new List<Table> { this },
-				};
-				Program.CurrentProgram?.Symbols?.Add(constsym);
+					return RegVRef.rNull.FetchToReg(dest);
+				}
+				else
+				{
+					var constname = "__const" + this.GetHashCode();
+					var constsym = new Symbol
+					{
+						type = SymbolType.Constant,
+						name = constname,
+						frame = PointerIndex.ProgConst,
+						datatype = this.datatype,
+						data = new List<Table> { this },
+					};
 
-				return new MemVRef(new AddrSExpr(constname), this.datatype).FetchToReg(dest);
+					if(Program.CurrentProgram!=null && !Program.CurrentProgram.Symbols.Contains(constsym))
+						Program.CurrentProgram.Symbols.Add(constsym);
 
+					return new MemVRef(new AddrSExpr(constname), this.datatype).FetchToReg(dest);
+				}
 			}
 			else
 			{

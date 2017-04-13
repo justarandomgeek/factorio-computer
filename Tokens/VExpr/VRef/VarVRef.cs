@@ -88,6 +88,8 @@ namespace compiler
 					return new RegVRef(varsym.fixedAddr ?? -1, varsym.datatype);
 				case SymbolType.Data:
 					return new MemVRef(new AddrSExpr(varsym.name), varsym.datatype);
+				case SymbolType.Parameter:
+					return RegVRef.rArg(varsym.fixedAddr ?? -1);
 				default:
 					throw new InvalidOperationException();
 			}
@@ -96,7 +98,7 @@ namespace compiler
 
 		public static explicit operator RegVRef(VarVRef v)
 		{
-			return v==(VarVRef)null?null:v.BaseVRef() as RegVRef;
+			return v == (VarVRef)null ? null : v.BaseVRef() as RegVRef;
 		}
 
 		public static explicit operator MemVRef(VarVRef v)
