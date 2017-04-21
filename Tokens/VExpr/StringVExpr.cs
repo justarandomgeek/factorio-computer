@@ -41,6 +41,8 @@ namespace compiler
 
 		}
 
+		public string datatype { get { return "var"; } }
+
 		public List<Instruction> FetchToReg(RegVRef dest)
 		{
 			return new Table(this.text).FetchToReg(dest);

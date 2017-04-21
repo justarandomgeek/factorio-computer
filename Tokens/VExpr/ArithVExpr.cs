@@ -25,6 +25,17 @@ namespace compiler
 			this.V2 = V2;
 		}
 
+		public string datatype
+		{
+			get
+			{
+				//TODO: probably better ways to compose types?
+				if (V1.datatype == V2.datatype) return V1.datatype;
+
+				return "var";
+			}
+		}
+
 		public override string ToString()
 		{
 			return string.Format("[ArithVExpr {0} {1} {2}]", V1, Op, V2);
@@ -64,19 +75,36 @@ namespace compiler
 
 			if (R2 == null)
 			{
+				if (R1.Equals(RegVRef.rFetch(1))) { code.AddRange(new Push(R1).CodeGen()); }
 				R2 = RegVRef.rFetch(2);
 				code.AddRange(V2.FetchToReg(R2));
+				if (R1.Equals(RegVRef.rFetch(1))) { code.AddRange(new Pop(R1).CodeGen()); }
 			}
 									
 			switch (Op)
 			{
 				case ArithSpec.Add:
-					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = false, op1 = R1, dest = dest });
-					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = true, op1 = R2, dest = dest });
+					if(dest.Equals(R1))
+					{
+						code.Add(new Instruction { opcode = Opcode.EachAddV, acc = true, op1 = R2, dest = dest });
+					}
+					else if (dest.Equals(R2))
+					{
+						code.Add(new Instruction { opcode = Opcode.EachAddV, acc = true, op1 = R1, dest = dest });
+					}
+					else
+					{
+						code.Add(new Instruction { opcode = Opcode.EachAddV, acc = false, op1 = R1, dest = dest });
+						code.Add(new Instruction { opcode = Opcode.EachAddV, acc = true, op1 = R2, dest = dest });
+					}
+
 					break;
 				case ArithSpec.Subtract:
-					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = false, op1 = R1, dest = dest });
-					code.Add(new Instruction { opcode = Opcode.EachMulV, acc = true, op1 = R2, op2 = FieldSRef.Imm2(), imm2 = new IntSExpr(-1), dest = dest });
+					code.Add(new Instruction { opcode = Opcode.EachMulV, acc = R1.Equals(dest.AsReg()), op1 = R2, op2 = FieldSRef.Imm2(), imm2 = new IntSExpr(-1), dest = dest });
+					if (!R1.Equals(dest.AsReg()))
+					{
+						code.Add(new Instruction { opcode = Opcode.EachAddV, acc = true, op1 = R1, dest = dest });
+					}
 					break;
 				case ArithSpec.Multiply:
 					code.Add(new Instruction { opcode = Opcode.VMul, op1 = R1, op2 = R2, dest = dest });

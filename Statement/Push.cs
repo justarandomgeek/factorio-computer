@@ -11,16 +11,18 @@ namespace compiler
 	{
 		public readonly PointerIndex stack;
 		public readonly RegVRef reg;
+		public readonly bool clear;
 
-		public Push(RegVRef reg, PointerIndex stack = PointerIndex.CallStack)
+		public Push(RegVRef reg, PointerIndex stack = PointerIndex.CallStack, bool clear = false)
 		{
 			this.reg = reg;
 			this.stack = stack;
+			this.clear = clear;
 		}
 		
 		public override string ToString()
 		{
-			return string.Format("[Push {0} {1}]", stack, reg);
+			return string.Format("[Push {0} {1}{2}]", stack, reg, clear?" x":"");
 		}
 		
 		public void Print(string prefix)
@@ -30,12 +32,14 @@ namespace compiler
 
 		public static implicit operator Instruction(Push p)
 		{
-			return new Instruction
-			{
+			var i = new Instruction {
 				opcode = Opcode.Push,
 				idx = p.stack,
 				op2 = p.reg
 			};
+			if (p.clear)
+				i.dest = p.reg;
+			return i;
 		}
 		public List<Instruction> CodeGen()
 		{

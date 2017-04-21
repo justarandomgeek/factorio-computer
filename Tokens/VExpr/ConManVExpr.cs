@@ -27,7 +27,9 @@ namespace compiler
 		{
 			return string.Format("[ConManVExpr {0} {1}]", Command, Data);
 		}
-		
+
+		public string datatype { get { return "var"; } }
+
 		public static bool operator ==(ConManVExpr a1, ConManVExpr a2) { return a1.Equals(a2); }
 		public static bool operator !=(ConManVExpr a1, ConManVExpr a2) { return !a1.Equals(a2); }
 		public override int GetHashCode()

@@ -23,6 +23,9 @@ namespace compiler
 		public bool IsConstant() { return false; }
 		int SExpr.Evaluate() { throw new InvalidOperationException(); }
 
+		//TODO: look up function and report it's actual datatype?
+		public string datatype { get { return "var"; } }
+
 		public List<Instruction> FetchToField(FieldSRef dest)
 		{
 			var code = CodeGen();
@@ -46,6 +49,12 @@ namespace compiler
 
 		public List<Instruction> CodeGen()
 		{
+			if (Program.CurrentProgram.VBuiltins.ContainsKey(this.name))
+			{
+				return Program.CurrentProgram.VBuiltins[this.name](this, RegVRef.rNull);
+			}
+
+
 			var b = new List<Instruction>();
 
 			var locals = (Program.CurrentFunction ?? Program.CurrentProgram?.InFunction)?.locals;

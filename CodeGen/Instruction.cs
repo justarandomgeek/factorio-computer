@@ -38,19 +38,9 @@ namespace compiler
 		EachLShiftV,
 		EachRShiftV,
 
-		EachSubS,
-		EachAddS,
-		EachDivS,
-		EachMulS,
-		EachModS,
-		EachAndS,
-		EachOrS,
-		EachXorS,
-		EachPowS,
-		EachLShiftS,
-		EachRShiftS,
+		/* GAP */
 		
-		Sub,
+		Sub = 39,
 		Add,
 		Div,
 		Mul,

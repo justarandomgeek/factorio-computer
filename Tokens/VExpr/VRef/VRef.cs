@@ -11,7 +11,7 @@ namespace compiler
 
 	public interface VRef: VExpr // the assignable subset of vector expressions
 	{
-		string datatype { get; }
+		//string datatype { get; }
 		List<Instruction> PutFromReg(RegVRef src);
 		bool IsLoaded { get; }
 	}

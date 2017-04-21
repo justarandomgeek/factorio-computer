@@ -57,7 +57,7 @@ namespace compiler
 				opcode = Opcode.Sub,
 				op1 = FieldSRef.Imm1(),
 				imm1 = this,
-				op2 = dest,
+				op2 = dest.precleared ? null : dest,
 				dest = dest,
 				acc = true
 			});

@@ -55,18 +55,17 @@ namespace compiler
             var b = new List<Instruction>();
 			
 			// save parent localints
-			if (locals.Count(s => s.type == SymbolType.Register && s.datatype == "int") > 0) b.Add(new Push(RegVRef.rLocalInts));
+			if (locals.Count(s => s.type == SymbolType.Register && s.datatype == "int") > 0) b.Add(new Push(RegVRef.rLocalInts, clear: true));
 
 			// push regs as needed
 			foreach (var sym in locals.Where(s => s.type == SymbolType.Register && s.datatype != "int" && new RegVRef(s.fixedAddr ?? -1).CalleeSaved).OrderBy(s => s.fixedAddr))
 			{
 				b.Add(new Push(new RegVRef(sym.fixedAddr.Value)));
 			}
-			
+
 			//TODO: allocate stackframe and set LocalData pointer
 
-			FieldSRef.ResetScratchInts();
-			b.AddRange(RegVRef.rScratchInts.PutFromReg(RegVRef.rNull));
+			b.AddRange(FieldSRef.ResetScratchInts(true));
 			
 			// body
 			b.AddRange(body.CodeGen());

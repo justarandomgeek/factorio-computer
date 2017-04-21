@@ -19,7 +19,6 @@ function FINDEND(var search, var increment)
   return search
 end
 
-
 function FINDCOPPER(int startx)
   var result
   var search 
@@ -55,8 +54,66 @@ function FINDCOPPER(int startx)
   return result
 end
 
+function BUILDMINES(var orepatch)
+  -- build mines where needed, bring ore out west side
+  var minesite
+  var basesite
+  int lastdrill
+  int row
+  rNixie = "BUILDING MINES..."
+  basesite = {signal-A=1, signal-X = orepatch.signal-X, signal-Y = orepatch.signal-Y,signal-U = orepatch.signal-X+4, signal-V = orepatch.signal-Y+4}
+  minesite = basesite
+  while minesite.signal-Y < orepatch.signal-V do
+    while minesite.signal-X < orepatch.signal-U do
+      conman({
+	    construction-robot=1,
+	    medium-electric-pole=1,
+	    signal-X = minesite.signal-X+4, signal-Y = minesite.signal-Y+3
+	    })
+      if scammer(minesite).copper-ore > 0 then
+        conman({
+	      construction-robot=1,
+	      electric-mining-drill=1,
+	      signal-X = minesite.signal-X+2, signal-Y = minesite.signal-Y+2,
+	      signal-D = 4
+	      })
+	    lastdrill = minesite.signal-X+2
+	    rNixie.signal-grey = rNixie.signal-grey + 1
+      end
+    
+      if scammer(minesite+{signal-Y=4,signal-V=4}).copper-ore > 0 then
+        conman({
+	      construction-robot=1,
+	      electric-mining-drill=1,
+	      signal-X = minesite.signal-X+2, signal-Y = minesite.signal-Y+6,
+	      signal-D = 0
+          })
+	    lastdrill = minesite.signal-X+2
+	    rNixie.signal-white = rNixie.signal-white + 1
+      end
+	  minesite = minesite + {signal-X=5,signal-U=5}
+    end
+	rNixie = "BELT BACK..."
+    while lastdrill >= orepatch.signal-X do
+      conman({
+	    construction-robot=1,
+	    express-transport-belt=1,
+	    signal-X = lastdrill, signal-Y = minesite.signal-Y+4,
+	    signal-D = 6
+        })
+	  lastdrill = lastdrill - 1
+	  rNixie.signal-grey = rNixie.signal-grey + 1
+    end
+
+	row = row + 1
+	minesite = basesite + ({signal-Y=9, signal-V=9}*row)
+  end
+end
+
 var @r109 rLocation
 
 function MAIN()
-  FINDCOPPER(rLocation.signal-X)
+  var orepatch
+  orepatch = FINDCOPPER(rLocation.signal-X+700)
+  BUILDMINES(orepatch)
 end

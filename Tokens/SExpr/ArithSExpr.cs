@@ -54,6 +54,11 @@ namespace compiler
 		{
 			var code = new List<Instruction>();
 
+			if (Op == ArithSpec.Add && dest.Equals(S1.AsDirectField()))
+			{
+				return S2.FetchToField(dest.AsPreCleared());
+			}
+
 			var f1 = S1.AsDirectField();
 			if (f1 == null)
 			{

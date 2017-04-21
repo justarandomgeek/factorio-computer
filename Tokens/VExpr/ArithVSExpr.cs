@@ -25,6 +25,8 @@ namespace compiler
 			this.S2 = S2;
 		}
 
+		public string datatype { get { return V1.datatype; } }
+
 		public override string ToString()
 		{
 			return string.Format("[ArithVSExpr {0} {1} {2}]", V1, Op, S2);
@@ -52,12 +54,49 @@ namespace compiler
 
 		public List<Instruction> FetchToReg(RegVRef dest)
 		{
-			throw new NotImplementedException();
+
+			var code = new List<Instruction>();
+			RegVRef R1 = V1.AsReg();
+			FieldSRef F2 = S2.AsDirectField();
+
+			if (R1 == null)
+			{
+				R1 = RegVRef.rFetch(1);
+				code.AddRange(V1.FetchToReg(R1));
+			}
+
+			if (F2 == null)
+			{
+				if (R1.Equals(RegVRef.rFetch(1))) { code.AddRange(new Push(R1).CodeGen()); }
+				F2 = FieldSRef.ScratchInt();
+				code.AddRange(S2.FetchToField(F2));
+				if (R1.Equals(RegVRef.rFetch(1))) { code.AddRange(new Pop(R1).CodeGen()); }
+			}
+
+			switch (Op)
+			{
+				case ArithSpec.Add:
+					code.Add(new Instruction { opcode = Opcode.EachAddV, acc = false, op1 = R1, op2 = F2, dest = dest });
+					break;
+				case ArithSpec.Subtract:
+					code.Add(new Instruction { opcode = Opcode.EachSubV, acc = false, op1 = R1, op2 = F2, dest = dest });
+					break;
+				case ArithSpec.Multiply:
+					code.Add(new Instruction { opcode = Opcode.EachMulV, acc = false, op1 = R1, op2 = F2, dest = dest });
+					break;
+				case ArithSpec.Divide:
+					code.Add(new Instruction { opcode = Opcode.EachDivV, acc = false, op1 = R1, op2 = F2, dest = dest });
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+
+			return code;
 		}
 
 		public RegVRef AsReg()
 		{
-			throw new NotImplementedException();
+			return null;
 		}
 	}
 

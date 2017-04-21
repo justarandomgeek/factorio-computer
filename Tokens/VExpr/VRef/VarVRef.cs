@@ -52,10 +52,13 @@ namespace compiler
 		}
 		public override bool Equals(object obj)
 		{
-			var other = obj as VarVRef;
-			if (other != (VarVRef)null)
+			if(obj == null)
 			{
-				return other.name == this.name;
+				return false;
+			}
+			else if (obj is VarVRef)
+			{
+				return ((VarVRef)obj).name == this.name;
 			}
 			else if(obj is MemVRef || obj is RegVRef)
 			{

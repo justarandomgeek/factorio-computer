@@ -12,7 +12,17 @@ namespace compiler
 		Add,
 		Subtract,
 		Multiply,
-		Divide
+		Divide,
+
+		Modulo,
+		Power,
+
+		LShift,
+		RShift,
+
+		BAnd,
+		BOr,
+		BXor,
 	}
 
 }

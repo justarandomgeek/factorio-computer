@@ -43,7 +43,7 @@
 %type <slVal> paramdeflist
 
 %type <seVal> sexpr
-%type <veVal> vexpr
+%type <veVal> vexpr vexprinit
 %type <srVal> sref
 %type <vrVal> vref
 %type <tabVal> littable
@@ -89,6 +89,10 @@ paramdeflist: paramdef {$$ = new SymbolList(); $$.AddParam($1);};
 paramdeflist: paramdeflist ',' paramdef {$$=$1; $$.AddParam($3);};
 paramdef: TYPENAME UNDEF {$$ = new FieldInfo{name=$2,basename=$1}; };
 paramdef: INT      UNDEF {$$ = new FieldInfo{name=$2,basename="int"}; };
+
+
+vexprinit: ;
+vexprinit: vexpr {$$=$1;};
 
 datadef: TYPENAME '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Data,frame=PointerIndex.ProgData,datatype=$1,fixedAddr=$3}); };
 datadef: TYPENAME '@' REGISTER UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Register,datatype=$1,fixedAddr=$3}); };
@@ -166,6 +170,12 @@ sexpr: '&' SFUNCNAME { $$ = new AddrSExpr($2); };
 sexpr: '&' VFUNCNAME { $$ = new AddrSExpr($2); };
 //sexpr: '&' ARRAY { $$ = new AddrSExpr{symbol = $2}; };
 //sexpr: '&' ARRAY '[' sexpr ']' { $$ = new ArithSExpr{S1 = new AddrSExpr{symbol = $2}, Op=ArithSpec.Add, S2 = $4}; };
+sexpr: vexpr '.' {
+	ExpectFieldType=$1.datatype;
+	} FIELD {
+	$$ = new FieldSRef($1,$4);
+	};
+
 
 vexpr: '(' vexpr ')' { $$=$2; };
 vexpr: vexpr arith vexpr {$$=new ArithVExpr($1,$2,$3);};

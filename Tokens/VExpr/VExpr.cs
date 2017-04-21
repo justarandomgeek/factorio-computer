@@ -16,6 +16,7 @@ namespace compiler
 
 		RegVRef AsReg();
 		List<Instruction> FetchToReg(RegVRef dest);
+		string datatype { get; }
 	}
 	
 		

@@ -68,7 +68,7 @@ namespace compiler
 			return output;
 		}
 
-		public string datatype;
+		public string datatype { get; set; }
 
 		public void Add(TableItem ti)
 		{

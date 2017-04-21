@@ -21,7 +21,7 @@ namespace compiler
 		{
 			Console.WriteLine("{1}{0}", this, prefix);
 			ifblock.Print(prefix +"  ");
-			if(elseblock!=null)
+			if(elseblock?.Count > 0)
 			{
 				Console.WriteLine(prefix+"Else");
 				elseblock.Print(prefix+"  ");					
@@ -34,7 +34,8 @@ namespace compiler
 			var flatif = ifblock.CodeGen();
 			var flatelse = elseblock.CodeGen();
 
-			flatif.Add(new Jump { relative = true, target = new IntSExpr(flatelse.Count) });
+			if ( flatelse.Count > 0 ) flatif.Add(new Jump { relative = true, target = new IntSExpr(flatelse.Count) });
+
 			b.AddRange(branch.CodeGen(1, flatif.Count + 1));
 			b.AddRange(flatif);
 			b.AddRange(flatelse);
