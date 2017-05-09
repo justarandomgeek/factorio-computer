@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using NLua;
 
-namespace compiler
+namespace nql
 {
 
 	public class While:Statement
 	{
+		//TODO: do/while loops, body-first?
+
+
 		public Branch branch;
 		public Block body;
 		public override string ToString()
@@ -50,6 +53,29 @@ namespace compiler
 
 			return b;
 			
+		}
+
+		public static Block VFor(VRef loopvar, VExpr start, VExpr end, VExpr increment, Block body)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static Block SFor(SRef loopvar, SExpr start, SExpr end, SExpr increment, Block body)
+		{
+			var b = new Block();
+			b.Add(new SAssign { target=loopvar, source = start });
+			//TODO: precompute end/increment if non-const?
+			body.Add(new SAssign { target = loopvar, source = new ArithSExpr(loopvar, ArithSpec.Add, increment) });
+			b.Add(new While {
+				
+				branch = new SBranch {
+					S1 = loopvar,
+					//TODO: downcounts?
+					Op = CompSpec.LessEqual,
+					S2 = end },
+				body = body
+			});
+			return b;
 		}
 	}
 

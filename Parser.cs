@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.IO.Compression;
+using System.Web.Script.Serialization;
 using System.Reflection;
 using NLua;
 using SourceRconLib;
 using CommandLine;
+using nql.Blueprints;
 
-namespace compiler
+namespace nql
 {
 
 	partial class Parser
@@ -17,6 +19,7 @@ namespace compiler
         new Scanner Scanner { get { return (Scanner)base.Scanner; } set { base.Scanner = value; } }
 
         public List<string> NativeFields = new List<string>();
+		public Dictionary<string, string> NativeFieldTypes = new Dictionary<string, string>();
 		public Dictionary<char, string> charmap = new Dictionary<char, string>();
 		public Dictionary<string,TypeInfo> Types = new Dictionary<string, TypeInfo>();
         public Dictionary<string,FunctionInfo> Functions = new Dictionary<string, FunctionInfo>();
@@ -31,10 +34,7 @@ namespace compiler
         public List<Table> romdata;
         
         public string Name {get; set;}
-        
-        Lua lua = new Lua();
-
-
+                
 		public void ParseFile(string file)
 		{
 			string prog = "";
@@ -324,6 +324,10 @@ namespace compiler
         
         public void ReadMachineDesc()
         {
+			Lua lua = new Lua();
+			var serpent = lua.DoString(Program.GetResourceText("serpent"), "serpent");
+			lua["serpent"] = serpent[0];
+
 			string maptext;
 
 			var options = Options.Current;
@@ -341,105 +345,106 @@ namespace compiler
 			}
 			
 			var signalmap = (LuaTable)lua.DoString(maptext,"scalarmap")[0];
-			lua.NewTable("signaltypes");
-			LuaTable sigtypes = (LuaTable)lua["signaltypes"];
 			foreach (LuaTable sig in signalmap.Values) {
         		var name = sig["name"] as string;
         		var id = (int)(double)sig["id"];
         		var type = sig["type"] as string;
 				var ch = sig["char"] as string;
 
-        		sigtypes[name]=type;
-        		this.NativeFields.Add(name);
+        		NativeFieldTypes[name]=type;
+        		NativeFields.Add(name);
 				if (ch!=null && ch.Length==1) this.charmap[ch[0]] = name;
         	}
         }
-
-        public static string Compress(string s)
-        {
-        	using(var ms = new MemoryStream())
-        	{
-        		using(var sw = new GZipStream(ms, CompressionMode.Compress))
-        		{
-					var byteprint = Encoding.UTF8.GetBytes(s);
-		        	sw.Write(byteprint, 0, byteprint.Length);
-        		}
-        		
-        		return Convert.ToBase64String(ms.ToArray());			
-        	}
-        }
                 
-        public void returnBlueprint(string printName, string printData)
-        {
-        	var options = Options.Current;
-        	if(options.rconplayer != null)
-        	{
-        		var rcon = new Rcon();
-        		var rconhost = new System.Net.IPEndPoint(
-	        		System.Net.Dns.GetHostEntry(options.rconhost).AddressList[0],
-	        		options.rconport);
-        		const string rconcommand = "/c remote.call('foreman','addBlueprint',game.players['{0}'],{1},{2})";
-
-				Console.WriteLine("Sending {0} to Foreman by RCON...", printName);
-				rcon.ConnectBlocking(rconhost,options.rconpass); 
-	        	rcon.ServerCommandBlocking(
-	        		string.Format(rconcommand,options.rconplayer,Compress(printData),printName));
-	        	rcon.Disconnect();	
-        	} else {
-        		Console.WriteLine(printName);
-				//Console.WriteLine(printData);
-				Console.WriteLine(Compress(printData));
-        		Console.WriteLine("");
-        	}
-        }
-        
         public void MakeROM()
         {
-        	lua["parser"]=this;
-			
-			lua.NewTable("romdata");
-			
-			LuaTable rd = (LuaTable)lua["romdata"];
-			for (int i = 0; i < romdata.Count; i++) {
-				var table = romdata[i].Evaluate();
-				var lt = CreateLuaTable();
-            	foreach (var element in table) {
-            		lt[element.Key]=element.Value.Evaluate();
-            	}			                                    	
-				rd[i]= lt;
-			}
+			var b = new Blueprint();
 
-			var options = Options.Current;
-			string romgen;
-			if (options.romscript != null)
+			var addrsignal = new SignalID { name = "signal-black", type = "virtual" };
+			var sigeverything = new SignalID { name = "signal-everything", type = "virtual" };
+			var sigeach = new SignalID { name = "signal-each", type = "virtual" };
+
+			b.icons[0] = new SignalID { name = "arithmetic-combinator", type = "item" };
+			b.icons[1] = new SignalID { name = "decider-combinator", type = "item" };
+			b.entities.Add(new PowerPole
 			{
-				using (var reader = new StreamReader(options.romscript))
+				name = "medium-electric-pole",
+				position = { x = 0, y = 0 }
+			});
+			b.entities.Add(new ConstantCombinator
+			{
+				name = "constant-combinator",
+				position = { x = 0, y = -1 },
+				direction = 4,
+				filters = { new Filter { count = -1000, signal = addrsignal } }
+			});
+
+			var memreqwire = new CircuitConnection { entity_id = 1, circuit_id = 1 };
+			var memrepwire = new CircuitConnection { entity_id = 1, circuit_id = 1 };
+			var baseaddrwire = new CircuitConnection { entity_id = 2, circuit_id = 1 };
+
+			for (int i = 0; i < this.romdata.Count; i++)
+			{
+				var dc = new DeciderCombinator
 				{
-					romgen = reader.ReadToEnd();
-				}
-			}
-			else
-			{
-				romgen = Program.GetResourceText("CompileROM");
+					name = "decider-combinator",
+					position = { x = 1 + i, y = 1.5 },
+					direction = 4,
+					first_signal = addrsignal,
+					comparator = "=",
+					output_signal = sigeverything,
+					copy_count_from_input = true,
+					connections = {
+						["1"] = new CircuitPort{ green = { memreqwire } },
+						["2"] = new CircuitPort{ red = { memrepwire } },
+					},
+				};
+
+				b.entities.Add(dc);
+				memreqwire = new CircuitConnection { entity_id = dc.entity_number, circuit_id = 1 };
+				memrepwire = new CircuitConnection { entity_id = dc.entity_number, circuit_id = 2 };
+
+				//TODO: do CC-splitting for large data?
+				List<Filter> data = romdata[i];
+				data.Add(new Filter { count = -i, signal = addrsignal });
+				var cc = new ConstantCombinator
+				{
+					name = "constant-combinator",
+					position = { x = 1 + i, y = -2 },
+					direction = 4,
+					filters = data
+				};
+				b.entities.Add(cc);
+
+				var ac = new ArithmeticCombinator
+				{
+					name = "arithmetic-combinator",
+					position = { x = 1 + i, y = -0.5 },
+					direction = 4,
+					first_signal = sigeach,
+					operation = "+",
+					output_signal = sigeach,
+					connections = {
+						["1"] = new CircuitPort{
+							green = { baseaddrwire },
+							red = { new CircuitConnection { entity_id = cc.entity_number, circuit_id = 1 } }
+						},
+						["2"] = new CircuitPort{
+							red = { new CircuitConnection { entity_id = dc.entity_number, circuit_id = 1 } }
+						},
+					},
+				};
+				b.entities.Add(ac);
+				baseaddrwire = new CircuitConnection { entity_id = ac.entity_number, circuit_id = 1 };
 			}
 			
-			var compileROM = lua.LoadString(romgen, "CompileROM");
-			var foo = compileROM.Call();
-        }
-
-        public LuaTable CreateLuaTable()
-		{
-		    return (LuaTable)lua.DoString("return {}")[0];
+			string print = b.GetBlueprintString();
+			Console.WriteLine(print);
 		}
-
-        public Parser():base(null)
-        {
-        	var serpent = lua.DoString(Program.GetResourceText("serpent"),"serpent");
-        	lua["serpent"]=serpent[0];
-        	
-        }
-
-
+		
+        public Parser():base(null){}
+		
 		public void Parse(string input)
         {
 			var s = new Scanner();

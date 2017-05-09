@@ -6,7 +6,7 @@ using System.Text;
 using NLua;
 
 
-namespace compiler
+namespace nql
 {
 
 	

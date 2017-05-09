@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NLua;
-namespace compiler
+namespace nql
 {
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
 	public class Table : Dictionary<string, SExpr>, VExpr
@@ -45,8 +45,7 @@ namespace compiler
 			return t;
 		}
 
-		public Table Evaluate() { return Evaluate(false); }
-		public Table Evaluate(bool withdatatype)
+		public Table Evaluate(bool withdatatype=false)
 		{
 			var output = new Table();
 			if (withdatatype) output.datatype=this.datatype;
@@ -66,6 +65,18 @@ namespace compiler
 			}
 			
 			return output;
+		}
+
+		public static implicit operator List<Blueprints.Filter>(Table t)
+		{
+			return t.Evaluate().Select(
+				item => new Blueprints.Filter{
+					count = item.Value.Evaluate(),
+					signal = {
+						name = item.Key,
+						type = Program.CurrentProgram.NativeFieldTypes[item.Key]
+					}
+				}).ToList();
 		}
 
 		public string datatype { get; set; }

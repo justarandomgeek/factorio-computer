@@ -21,7 +21,7 @@ using CommandLine;
 //TODO: use conditional ALU ops
 
 	
-namespace compiler
+namespace nql
 {
 	
 	public class Program

@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using CommandLine;
 
-namespace compiler
+namespace nql
 {
 	class Options {
 		public static Options Current = new Options();

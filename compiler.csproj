@@ -6,8 +6,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <OutputType>Exe</OutputType>
-    <RootNamespace>compiler</RootNamespace>
-    <AssemblyName>compiler</AssemblyName>
+    <RootNamespace>nql</RootNamespace>
+    <AssemblyName>nql</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <NoWin32Manifest>False</NoWin32Manifest>
@@ -19,6 +19,7 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <SignAssembly>False</SignAssembly>
     <DelaySign>False</DelaySign>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -31,7 +32,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -76,6 +76,7 @@
     <LangVersion>6</LangVersion>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -114,10 +115,12 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Blueprint.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Scanner.cs" />
@@ -185,9 +188,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <EmbeddedResource Include="CompileROM.lua">
-      <LogicalName>CompileROM</LogicalName>
-    </EmbeddedResource>
     <None Include="gp\gplex-input.pdf" />
     <None Include="gp\gplex.exe" />
     <None Include="gp\gplex.pdf" />
@@ -204,6 +204,7 @@
     <None Include="packages.config" />
     <None Include="Readme.md" />
     <None Include="ScalarGen.blueprint.lua" />
+    <EmbeddedResource Include="CompileROM.lua" />
     <EmbeddedResource Include="scalarmap.lua">
       <LogicalName>scalarmap</LogicalName>
     </EmbeddedResource>

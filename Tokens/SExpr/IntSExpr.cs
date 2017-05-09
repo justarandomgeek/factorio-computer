@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using NLua;
 
-namespace compiler
+namespace nql
 {
 
 	public class IntSExpr: SExpr

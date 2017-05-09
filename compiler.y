@@ -1,4 +1,4 @@
-%namespace compiler
+%namespace nql
 %partial
 %union {
   internal int iVal;
@@ -30,7 +30,7 @@
 %token <bVal> COND
 
 %token FUNCASSIGN ASSIGN APPEND
-%token DO WHILE IF THEN ELSE END
+%token DO WHILE FOR IF THEN ELSE END
 %token REQUIRE TYPE FUNCTION RETURN EXTERN
 %token INT
 
@@ -43,7 +43,7 @@
 %type <slVal> paramdeflist
 
 %type <seVal> sexpr
-%type <veVal> vexpr vexprinit
+%type <veVal> vexpr
 %type <srVal> sref
 %type <vrVal> vref
 %type <tabVal> littable
@@ -90,10 +90,6 @@ paramdeflist: paramdeflist ',' paramdef {$$=$1; $$.AddParam($3);};
 paramdef: TYPENAME UNDEF {$$ = new FieldInfo{name=$2,basename=$1}; };
 paramdef: INT      UNDEF {$$ = new FieldInfo{name=$2,basename="int"}; };
 
-
-vexprinit: ;
-vexprinit: vexpr {$$=$1;};
-
 datadef: TYPENAME '@' INTEGER  UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Data,frame=PointerIndex.ProgData,datatype=$1,fixedAddr=$3}); };
 datadef: TYPENAME '@' REGISTER UNDEF { CreateSym(new Symbol{name=$4,type=SymbolType.Register,datatype=$1,fixedAddr=$3}); };
 datadef: TYPENAME              UNDEF { CreateSym(new Symbol{
@@ -125,15 +121,16 @@ branch: sexpr {$$=new SBranch{ S1=$1, Op= CompSpec.NotEqual, S2=IntSExpr.Zero };
 
 branch: vexpr COMPARE vexpr {$$=new VBranch{ V1=$1, Op=$2, V2=$3};};
 
-//vbranch: vexpr COMPARE vexpr {$$=new VBranch{ S1=$1, Op=$2, S2=$3};};
-//vbranch: vexpr {$$=new VBranch{ V1=$1, Op= CompSpec.NotEqual };};
-
 statement: IF branch THEN block elseblock END { $$ = new If{branch=$2,ifblock=$4,elseblock=$5}; };
 elseblock: ELSE block { $$ = $2; };
 elseblock: {$$=new Block();};
 
 statement: WHILE branch DO block END { $$ = new While{branch=$2,body=$4}; };
 statement: WHILE branch DO       END { $$ = new While{branch=$2,body=new Block()}; };
+
+//block: FOR vref '=' vexpr ',' vexpr ',' vexpr DO block END { $$ = While.VFor($2,$4,$6,$8,$10); };
+block: FOR sref '=' sexpr ',' sexpr ',' sexpr DO block END { $$ = While.SFor($2,$4,$6,$8,$10); };
+block: FOR sref '=' sexpr ',' sexpr DO block END { $$ = While.SFor($2,$4,$6,IntSExpr.One,$8); };
 
 vexpr: VFUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };
 sexpr: SFUNCNAME '(' exprlist ')' { $$ = new FunctionCall{name=$1,args=$3}; };

@@ -6,7 +6,7 @@ using System.Text;
 using NLua;
 
 
-namespace compiler
+namespace nql
 {
 
 	public interface SRef : SExpr // the assignable subset of scalar expressions

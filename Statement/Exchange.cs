@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using NLua;
 
-namespace compiler
+namespace nql
 {
 
 	public class Exchange : Statement
@@ -39,7 +39,7 @@ namespace compiler
 		public static implicit operator Instruction(Exchange p)
 		{
 
-			return new compiler.Instruction
+			return new nql.Instruction
 			{
 				opcode = Opcode.MemWrite,
 				idx = p.frame,

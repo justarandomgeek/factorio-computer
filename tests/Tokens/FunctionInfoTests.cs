@@ -1,12 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using compiler;
+using nql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace compiler.Tests
+namespace nql.Tests
 {
 	[TestClass()]
 	public class FunctionInfoTests

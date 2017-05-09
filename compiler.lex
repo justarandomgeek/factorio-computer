@@ -1,4 +1,4 @@
-%namespace compiler
+%namespace nql
 %option nofiles
 
 %x PROGRAM
@@ -26,6 +26,7 @@ register r[0-9]+
 <PROGRAM> "type"      {return (int)Tokens.TYPE;}
 <PROGRAM> "function"  {return (int)Tokens.FUNCTION;}
 <PROGRAM> "while"     {return (int)Tokens.WHILE;}
+<PROGRAM> "for"     {return (int)Tokens.FOR;}
 <PROGRAM> "do"        {return (int)Tokens.DO;}
 <PROGRAM> "if"        {return (int)Tokens.IF;}
 <PROGRAM> "then"        {return (int)Tokens.THEN;}
@@ -47,6 +48,8 @@ register r[0-9]+
 <PROGRAM> ">="  {yylval.compVal = CompSpec.GreaterEqual; return (int)Tokens.COMPARE;}
 <PROGRAM> "<="  {yylval.compVal = CompSpec.LessEqual;    return (int)Tokens.COMPARE;}
 <PROGRAM> "<>"  {yylval.compVal = CompSpec.NotEqual;    return (int)Tokens.COMPARE;}
+<PROGRAM> "!="  {yylval.compVal = CompSpec.NotEqual;    return (int)Tokens.COMPARE;}
+<PROGRAM> "~="  {yylval.compVal = CompSpec.NotEqual;    return (int)Tokens.COMPARE;}
 
 
 //<PROGRAM> "+=" {return (int)Tokens.APPEND;}

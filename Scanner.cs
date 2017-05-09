@@ -9,7 +9,7 @@ using NLua;
 using SourceRconLib;
 using CommandLine;
 
-namespace compiler
+namespace nql
 {
 
 	partial class Scanner
